@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高雄郵局商品展示中心 | 搶先看熱銷商品與即時庫存</title>
+    <!-- SEO 描述 -->
+    <meta name="description" content="高雄郵局最新推展品展示，包含集郵精品、生活好物及限定商品。提供即時庫存透視功能，讓您精準掌握各支局貨況，不用白跑一趟。">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        .product-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- 導覽列 -->
+    <nav class="bg-green-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="bg-white p-1 rounded-full">
+                    <svg class="w-6 h-6 text-green-700" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5v-5l-10 5-10-5v5z"/></svg>
+                </div>
+                <span class="text-xl font-bold tracking-wider">高雄郵局商品展示</span>
+            </div>
+            <div class="hidden md:flex space-x-6 text-sm font-medium">
+                <a href="#" class="hover:text-yellow-300 transition">首頁</a>
+                <a href="#" class="hover:text-yellow-300 transition">最新公告</a>
+                <a href="#" class="hover:text-yellow-300 transition">庫存透視機</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero 區塊 -->
+    <header class="bg-white border-b">
+        <div class="container mx-auto px-4 py-12 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">發現高雄郵局的特色好物</h1>
+            <p class="text-gray-600 max-w-2xl mx-auto mb-8">
+                這是一個專為高雄支局經理與客戶設計的展示平台。透過「庫存透視」功能，您可以直接查看哪間支局還有現貨，讓選購更透明、業績更集中！
+            </p>
+            
+            <!-- 搜尋與篩選 -->
+            <div class="flex flex-col md:flex-row justify-center items-center gap-4 max-w-3xl mx-auto">
+                <input type="text" id="searchInput" placeholder="搜尋商品名稱（如：郵摺、波波...）" 
+                       class="w-full md:flex-1 px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:outline-none shadow-sm">
+                <div class="flex gap-2">
+                    <button onclick="filterCategory('all')" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">全部商品</button>
+                    <button onclick="filterCategory('集郵')" class="px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-100 transition">集郵品</button>
+                    <button onclick="filterCategory('生活')" class="px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-100 transition">生活用品</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 商品列表區 -->
+    <main class="container mx-auto px-4 py-12">
+        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+            <!-- 商品卡片將由 JavaScript 動態產生 -->
+        </div>
+    </main>
+
+    <!-- 庫存透視彈窗 (Modal) -->
+    <div id="stockModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-[100] p-4">
+        <div class="bg-white rounded-xl max-w-lg w-full overflow-hidden shadow-2xl">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h3 class="text-xl font-bold text-gray-900" id="modalProductName">庫存透視結果</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6 max-h-[60vh] overflow-y-auto">
+                <p class="text-sm text-gray-500 mb-4 italic">※ 資料僅供參考，前往前建議先致電確認。</p>
+                <ul id="stockList" class="space-y-3">
+                    <!-- 支局庫存資料 -->
+                </ul>
+            </div>
+            <div class="p-4 bg-gray-50 text-right">
+                <button onclick="closeModal()" class="px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 頁尾 -->
+    <footer class="bg-gray-900 text-gray-400 py-12 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p class="mb-4">中華郵政 高雄郵局 - 數位展示平台</p>
+            <div class="flex justify-center space-x-4 text-sm">
+                <a href="#" class="hover:text-white">隱私權政策</a>
+                <a href="#" class="hover:text-white">聯絡我們</a>
+                <a href="#" class="hover:text-white">庫存管理後台</a>
+            </div>
+            <p class="mt-8 text-xs">© 2024 Kaohsiung Post. Designed for Excellence.</p>
+        </div>
+    </footer>
+
+    <script>
+        // 模擬商品資料（之後可以改成 Fetch 你的 Google Apps Script API）
+        const products = [
+            { 
+                id: 1, 
+                name: "鋼鐵人 限量郵摺", 
+                category: "集郵", 
+                price: "450", 
+                status: "in_stock", 
+                img: "https://images.unsplash.com/photo-1594819047050-99defca82545?w=400&q=80",
+                branches: [
+                    { name: "新興郵局", stock: 12, tel: "07-231xxxx" },
+                    { name: "左營郵局", stock: 3, tel: "07-581xxxx" },
+                    { name: "鳳山郵局", stock: 25, tel: "07-746xxxx" }
+                ]
+            },
+            { 
+                id: 2, 
+                name: "SNOOPY 聯名手提袋", 
+                category: "生活", 
+                price: "299", 
+                status: "low_stock", 
+                img: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=400&q=80",
+                branches: [
+                    { name: "鼓山郵局", stock: 1, tel: "07-531xxxx" },
+                    { name: "三民郵局", stock: 2, tel: "07-311xxxx" }
+                ]
+            },
+            { 
+                id: 3, 
+                name: "波波鴿 絨毛娃娃", 
+                category: "生活", 
+                price: "150", 
+                status: "sold_out", 
+                img: "https://images.unsplash.com/photo-1559440666-37421326444e?w=400&q=80",
+                branches: []
+            },
+            { 
+                id: 4, 
+                name: "高雄風景經典明信片組", 
+                category: "集郵", 
+                price: "120", 
+                status: "in_stock", 
+                img: "https://images.unsplash.com/photo-1579541814924-49fef17c5be5?w=400&q=80",
+                branches: [
+                    { name: "旗津郵局", stock: 50, tel: "07-571xxxx" },
+                    { name: "美濃郵局", stock: 30, tel: "07-681xxxx" }
+                ]
+            }
+        ];
+
+        // 渲染商品
+        function renderProducts(data) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = data.map(p => {
+                let statusLabel = '';
+                if(p.status === 'in_stock') statusLabel = '<span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded">在售中</span>';
+                else if(p.status === 'low_stock') statusLabel = '<span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded">即將完售</span>';
+                else statusLabel = '<span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded">已完售</span>';
+
+                return `
+                    <div class="product-card bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col">
+                        <div class="relative h-48 bg-gray-200">
+                            <img src="${p.img}" alt="${p.name}" class="w-full h-full object-cover">
+                            <div class="absolute top-2 right-2">${statusLabel}</div>
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col">
+                            <p class="text-xs text-green-600 font-bold mb-1 uppercase tracking-wider">${p.category}</p>
+                            <h2 class="text-lg font-bold text-gray-900 mb-2">${p.name}</h2>
+                            <p class="text-xl font-bold text-gray-800 mb-4">$${p.price}</p>
+                            
+                            <button onclick="showStock(${p.id})" 
+                                    class="${p.status === 'sold_out' ? 'bg-gray-200 cursor-not-allowed' : 'bg-green-50 text-green-700 hover:bg-green-600 hover:text-white'} 
+                                           w-full py-2 rounded-lg font-medium transition flex items-center justify-center space-x-2 border border-green-200">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                <span>${p.status === 'sold_out' ? '全數售罄' : '庫存透視'}</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 庫存透視彈窗邏輯
+        function showStock(id) {
+            const product = products.find(p => p.id === id);
+            if (!product || product.status === 'sold_out') return;
+
+            document.getElementById('modalProductName').innerText = product.name + " - 支局庫存詳情";
+            const stockList = document.getElementById('stockList');
+            
+            if (product.branches.length === 0) {
+                stockList.innerHTML = '<li class="text-center py-4 text-gray-500">查無支局庫存資訊</li>';
+            } else {
+                stockList.innerHTML = product.branches.map(b => `
+                    <li class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        <div>
+                            <span class="font-bold text-gray-800">${b.name}</span>
+                            <p class="text-xs text-gray-500">電話: ${b.tel}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-sm font-bold ${b.stock < 5 ? 'text-red-500' : 'text-green-600'}">
+                                ${b.stock} 件
+                            </span>
+                            <p class="text-[10px] text-gray-400">更新於 10分鐘前</p>
+                        </div>
+                    </li>
+                `).join('');
+            }
+
+            document.getElementById('stockModal').classList.remove('hidden');
+            document.getElementById('stockModal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('stockModal').classList.add('hidden');
+            document.getElementById('stockModal').classList.remove('flex');
+        }
+
+        // 篩選功能
+        function filterCategory(cat) {
+            if(cat === 'all') {
+                renderProducts(products);
+            } else {
+                const filtered = products.filter(p => p.category === cat);
+                renderProducts(filtered);
+            }
+        }
+
+        // 搜尋功能
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            const filtered = products.filter(p => p.name.toLowerCase().includes(val));
+            renderProducts(filtered);
+        });
+
+        // 初始化
+        window.onload = () => renderProducts(products);
+    </script>
+</body>
+</html>
