@@ -3,547 +3,795 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高雄郵局商品展示中心 | 搶先看熱銷商品與即時庫存</title>
-    <meta name="description" content="高雄郵局最新推展品展示，包含集郵精品、生活好物及限定商品。提供即時庫存透視功能，讓您精準掌握各支局貨況，不用白跑一趟。">
+    <title>高雄郵局商品屋 🌿</title>
+    <meta name="description" content="高雄郵局最新推展品展示，包含集郵精品、生活好物及限定商品。">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* ===== CSS 變數系統 ===== */
-        :root {
-            --color-primary:     #1a4d2e;
-            --color-primary-mid: #2d7a4f;
-            --color-primary-light:#e8f5ee;
-            --color-accent:      #c8a850;
-            --color-accent-light:#fdf6e3;
-            --color-danger:      #c0392b;
-            --color-warn:        #e67e22;
-            --color-surface:     #ffffff;
-            --color-bg:          #f4f1ec;
-            --color-text:        #1c1c1c;
-            --color-muted:       #6b7280;
-            --color-border:      #e2ddd6;
-            --radius-card:       16px;
-            --shadow-card:       0 2px 12px rgba(26,77,46,0.08);
-            --shadow-hover:      0 8px 32px rgba(26,77,46,0.16);
-            --font-display:      'Noto Serif TC', serif;
-            --font-body:         'Noto Sans TC', sans-serif;
-            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+/* ============================================================
+   CSS 變數 — 牧場物語色系
+============================================================ */
+:root {
+    --soil:         #5c3d1e;
+    --soil-light:   #7a5230;
+    --wood:         #a0704a;
+    --wood-light:   #c49a6c;
+    --parchment:    #fdf3dc;
+    --parchment-2:  #f5e4bc;
+    --parchment-3:  #ede0c0;
+    --grass:        #5a9e3a;
+    --grass-dark:   #3d7226;
+    --grass-light:  #d4edca;
+    --sky:          #a8d8ea;
+    --sun:          #f5c842;
+    --sun-dark:     #d4a017;
+    --berry:        #c0392b;
+    --berry-light:  #fadbd8;
+    --mint:         #48c9b0;
+    --text-dark:    #3b2a1a;
+    --text-mid:     #6b4c2a;
+    --text-light:   #a07848;
+    --border-wood:  #8b5e3c;
+    --shadow-warm:  rgba(91,61,30,0.25);
 
-        /* ===== Reset & Base ===== */
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: var(--font-body);
-            background-color: var(--color-bg);
-            color: var(--color-text);
-            line-height: 1.6;
-        }
-        img { display: block; max-width: 100%; }
-        button { cursor: pointer; border: none; background: none; font-family: inherit; }
-        a { text-decoration: none; color: inherit; }
+    --radius-btn:   12px;
+    --radius-card:  16px;
+    --radius-panel: 20px;
 
-        /* ===== 導覽列 ===== */
-        .navbar {
-            background: var(--color-primary);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 3px solid var(--color-accent);
-        }
-        .navbar__inner {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 24px;
-            height: 64px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .navbar__brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #fff;
-        }
-        .navbar__logo {
-            width: 36px;
-            height: 36px;
-            background: var(--color-accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-        .navbar__title {
-            font-family: var(--font-display);
-            font-size: 1.1rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-        }
-        .navbar__links {
-            display: flex;
-            gap: 24px;
-            font-size: 0.85rem;
-            color: rgba(255,255,255,0.75);
-        }
-        .navbar__links a:hover { color: var(--color-accent); transition: var(--transition-smooth); }
+    --font-game: 'Nunito', sans-serif;
+    --font-tc:   'Noto Sans TC', sans-serif;
 
-        /* ===== Hero ===== */
-        .hero {
-            background: var(--color-primary);
-            padding: 64px 24px 0;
-            position: relative;
-            overflow: hidden;
-        }
-        .hero::after {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            height: 40px;
-            background: var(--color-bg);
-            border-radius: 40px 40px 0 0;
-        }
-        .hero__inner {
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
-            padding-bottom: 60px;
-            position: relative;
-            z-index: 1;
-        }
-        .hero__badge {
-            display: inline-block;
-            background: var(--color-accent);
-            color: var(--color-primary);
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.15em;
-            padding: 4px 14px;
-            border-radius: 20px;
-            margin-bottom: 18px;
-            text-transform: uppercase;
-        }
-        .hero__title {
-            font-family: var(--font-display);
-            font-size: clamp(1.8rem, 4vw, 2.8rem);
-            font-weight: 700;
-            color: #fff;
-            line-height: 1.3;
-            margin-bottom: 16px;
-        }
-        .hero__title span { color: var(--color-accent); }
-        .hero__desc {
-            font-size: 0.95rem;
-            color: rgba(255,255,255,0.65);
-            max-width: 560px;
-            margin: 0 auto 36px;
-        }
+    --pixel-border: 3px solid var(--border-wood);
+}
 
-        /* ===== 搜尋列 ===== */
-        .search-bar {
-            display: flex;
-            gap: 8px;
-            max-width: 620px;
-            margin: 0 auto;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .search-bar__input {
-            flex: 1;
-            min-width: 220px;
-            padding: 12px 18px;
-            border: 2px solid rgba(255,255,255,0.15);
-            border-radius: 10px;
-            background: rgba(255,255,255,0.12);
-            color: #fff;
-            font-family: var(--font-body);
-            font-size: 0.9rem;
-            outline: none;
-            transition: var(--transition-smooth);
-        }
-        .search-bar__input::placeholder { color: rgba(255,255,255,0.45); }
-        .search-bar__input:focus {
-            border-color: var(--color-accent);
-            background: rgba(255,255,255,0.18);
-        }
-        .filter-btn {
-            padding: 10px 18px;
-            border-radius: 10px;
-            font-size: 0.82rem;
-            font-weight: 600;
-            letter-spacing: 0.03em;
-            transition: var(--transition-smooth);
-            border: 2px solid transparent;
-        }
-        .filter-btn--default {
-            background: rgba(255,255,255,0.12);
-            color: rgba(255,255,255,0.8);
-            border-color: rgba(255,255,255,0.15);
-        }
-        .filter-btn--default:hover { background: rgba(255,255,255,0.22); }
-        .filter-btn--active {
-            background: var(--color-accent);
-            color: var(--color-primary);
-            border-color: var(--color-accent);
-        }
+/* ============================================================
+   Reset & Base
+============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+    font-family: var(--font-tc);
+    background-color: #7ab648;
+    background-image:
+        radial-gradient(circle at 20% 80%, rgba(90,158,58,0.5) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(168,216,234,0.4) 0%, transparent 40%);
+    min-height: 100vh;
+    color: var(--text-dark);
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ctext y='20' font-size='20'%3E🌱%3C/text%3E%3C/svg%3E") 0 20, auto;
+}
+button { cursor: inherit; border: none; background: none; font-family: inherit; }
+a { text-decoration: none; color: inherit; }
+img { display: block; max-width: 100%; }
 
-        /* ===== 主內容區 ===== */
-        .main {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 40px 24px 80px;
-        }
-        .main__header {
-            display: flex;
-            align-items: baseline;
-            gap: 10px;
-            margin-bottom: 28px;
-        }
-        .main__count-label {
-            font-size: 0.82rem;
-            color: var(--color-muted);
-        }
-        .main__count { font-weight: 700; color: var(--color-primary-mid); }
+/* ============================================================
+   草地地面裝飾
+============================================================ */
+.ground-strip {
+    height: 32px;
+    background: repeating-linear-gradient(
+        90deg,
+        var(--grass-dark) 0px, var(--grass-dark) 12px,
+        var(--grass) 12px, var(--grass) 24px
+    );
+    border-top: 4px solid var(--grass-dark);
+    border-bottom: 4px solid var(--soil);
+    position: relative;
+    overflow: hidden;
+}
+.ground-strip::after {
+    content: '🌻 🌿 🍄 🌼 🌿 🌻 🌿 🍄 🌼 🌿 🌻 🌿 🍄 🌼 🌿 🌻 🌿 🍄 🌼 🌿 🌻';
+    position: absolute;
+    top: -4px;
+    font-size: 18px;
+    letter-spacing: 12px;
+    white-space: nowrap;
+    animation: scroll-flowers 30s linear infinite;
+}
+@keyframes scroll-flowers {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
 
-        /* ===== 商品格線 ===== */
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 24px;
-        }
+/* ============================================================
+   導覽列 — 木牌風格
+============================================================ */
+.navbar {
+    background: var(--soil);
+    border-bottom: 5px solid var(--soil-light);
+    box-shadow: 0 4px 12px var(--shadow-warm);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.navbar__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.navbar__brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.navbar__icon {
+    font-size: 2rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    animation: bob 2.5s ease-in-out infinite;
+}
+@keyframes bob {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-4px); }
+}
+.navbar__title {
+    font-family: var(--font-game);
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--sun);
+    text-shadow: 2px 2px 0 var(--soil-light), 0 0 12px rgba(245,200,66,0.4);
+    letter-spacing: 0.03em;
+}
+.navbar__links {
+    display: flex;
+    gap: 8px;
+}
+.navbar__link {
+    font-family: var(--font-game);
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--parchment-2);
+    padding: 6px 14px;
+    border-radius: var(--radius-btn);
+    border: 2px solid rgba(255,255,255,0.1);
+    transition: all 0.2s;
+}
+.navbar__link:hover {
+    background: var(--wood);
+    color: var(--sun);
+    border-color: var(--sun-dark);
+    transform: translateY(-2px);
+}
 
-        /* ===== 商品卡片 ===== */
-        .card {
-            background: var(--color-surface);
-            border-radius: var(--radius-card);
-            border: 1px solid var(--color-border);
-            box-shadow: var(--shadow-card);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: var(--transition-smooth);
-        }
-        .card:hover {
-            transform: translateY(-6px);
-            box-shadow: var(--shadow-hover);
-        }
-        .card__img-wrap {
-            position: relative;
-            height: 200px;
-            background: var(--color-primary-light);
-            overflow: hidden;
-        }
-        .card__img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-        .card:hover .card__img { transform: scale(1.06); }
-        .card__badge {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-        }
-        .badge--in_stock  { background: #d1fae5; color: #065f46; }
-        .badge--low_stock { background: #fef3c7; color: #92400e; }
-        .badge--sold_out  { background: #fee2e2; color: #991b1b; }
+/* ============================================================
+   Hero — 看板風格
+============================================================ */
+.hero {
+    padding: 40px 24px 0;
+    position: relative;
+}
+.hero__board {
+    max-width: 860px;
+    margin: 0 auto;
+    background: var(--parchment);
+    border-radius: var(--radius-panel);
+    border: 5px solid var(--wood);
+    box-shadow:
+        0 0 0 2px var(--soil),
+        6px 6px 0 var(--soil),
+        0 12px 40px var(--shadow-warm);
+    padding: 36px 40px 32px;
+    position: relative;
+    text-align: center;
+}
+/* 木板四角釘 */
+.hero__board::before,
+.hero__board::after {
+    content: '🔩';
+    position: absolute;
+    font-size: 1.4rem;
+    top: 12px;
+}
+.hero__board::before { left: 16px; }
+.hero__board::after  { right: 16px; }
+.hero__board-corner-bl,
+.hero__board-corner-br {
+    position: absolute;
+    font-size: 1.4rem;
+    bottom: 12px;
+}
+.hero__board-corner-bl { left: 16px; }
+.hero__board-corner-br { right: 16px; }
 
-        .card__body {
-            padding: 20px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .card__category {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: var(--color-primary-mid);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 6px;
-        }
-        .card__name {
-            font-family: var(--font-display);
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: var(--color-text);
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-        .card__price {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--color-primary);
-            margin-bottom: 16px;
-        }
-        .card__price span { font-size: 0.85rem; font-weight: 400; color: var(--color-muted); }
+.hero__badge {
+    display: inline-block;
+    background: var(--grass);
+    color: #fff;
+    font-family: var(--font-game);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    padding: 5px 16px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    border: 2px solid var(--grass-dark);
+    box-shadow: 0 3px 0 var(--grass-dark);
+    text-transform: uppercase;
+}
+.hero__title {
+    font-family: var(--font-game);
+    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+    font-weight: 900;
+    color: var(--soil);
+    line-height: 1.3;
+    margin-bottom: 12px;
+    text-shadow: 1px 1px 0 var(--parchment-3);
+}
+.hero__title em {
+    color: var(--grass-dark);
+    font-style: normal;
+}
+.hero__desc {
+    font-size: 0.92rem;
+    color: var(--text-mid);
+    max-width: 500px;
+    margin: 0 auto 28px;
+    line-height: 1.7;
+}
 
-        .card__action {
-            margin-top: auto;
-        }
-        .btn-stock {
-            width: 100%;
-            padding: 11px;
-            border-radius: 10px;
-            font-size: 0.87rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-            transition: var(--transition-smooth);
-        }
-        .btn-stock--active {
-            background: var(--color-primary-light);
-            color: var(--color-primary);
-            border: 1.5px solid #b2dfc5;
-        }
-        .btn-stock--active:hover {
-            background: var(--color-primary);
-            color: #fff;
-            border-color: var(--color-primary);
-        }
-        .btn-stock--disabled {
-            background: #f3f4f6;
-            color: #9ca3af;
-            border: 1.5px solid #e5e7eb;
-            cursor: not-allowed;
-        }
+/* ============================================================
+   搜尋列
+============================================================ */
+.search-bar {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.search-bar__input {
+    flex: 1;
+    min-width: 200px;
+    padding: 11px 18px;
+    border-radius: var(--radius-btn);
+    border: 3px solid var(--wood);
+    background: var(--parchment-2);
+    font-family: var(--font-tc);
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    outline: none;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.08), 0 3px 0 var(--border-wood);
+    transition: all 0.2s;
+}
+.search-bar__input::placeholder { color: var(--text-light); }
+.search-bar__input:focus {
+    border-color: var(--grass);
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.08), 0 3px 0 var(--grass-dark), 0 0 0 3px rgba(90,158,58,0.2);
+}
+.filter-btn {
+    font-family: var(--font-game);
+    font-size: 0.82rem;
+    font-weight: 800;
+    padding: 10px 18px;
+    border-radius: var(--radius-btn);
+    border: 3px solid var(--border-wood);
+    transition: all 0.15s;
+    position: relative;
+    top: 0;
+}
+.filter-btn--default {
+    background: var(--parchment-2);
+    color: var(--text-mid);
+    box-shadow: 0 4px 0 var(--border-wood);
+}
+.filter-btn--default:hover {
+    background: var(--parchment-3);
+    top: 2px;
+    box-shadow: 0 2px 0 var(--border-wood);
+}
+.filter-btn--active {
+    background: var(--grass);
+    color: #fff;
+    border-color: var(--grass-dark);
+    box-shadow: 0 4px 0 var(--grass-dark);
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+.filter-btn--active:hover {
+    top: 2px;
+    box-shadow: 0 2px 0 var(--grass-dark);
+}
 
-        /* ===== 空狀態 ===== */
-        .empty-state {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 64px 24px;
-            color: var(--color-muted);
-        }
-        .empty-state__icon { font-size: 3rem; margin-bottom: 12px; }
-        .empty-state__text { font-size: 1rem; }
+/* ============================================================
+   商店主區
+============================================================ */
+.shop {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+}
+.shop__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.shop__header-title {
+    font-family: var(--font-game);
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: var(--parchment);
+    text-shadow: 1px 2px 0 var(--soil);
+}
+.shop__count {
+    font-family: var(--font-game);
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: var(--sun);
+    color: var(--soil);
+    padding: 2px 10px;
+    border-radius: 20px;
+    border: 2px solid var(--sun-dark);
+}
 
-        /* ===== Modal ===== */
-        .modal-backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.55);
-            backdrop-filter: blur(4px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            padding: 24px;
-        }
-        .modal-backdrop.is-open { display: flex; }
+/* ============================================================
+   商品格線
+============================================================ */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    list-style: none;
+}
 
-        .modal {
-            background: var(--color-surface);
-            border-radius: 20px;
-            max-width: 480px;
-            width: 100%;
-            overflow: hidden;
-            box-shadow: 0 24px 64px rgba(0,0,0,0.25);
-            animation: slideUp 0.25s ease;
-        }
-        @keyframes slideUp {
-            from { transform: translateY(30px); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
-        }
-        .modal__header {
-            padding: 22px 24px 18px;
-            border-bottom: 1px solid var(--color-border);
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 12px;
-            background: var(--color-primary-light);
-        }
-        .modal__title-group { flex: 1; }
-        .modal__subtitle { font-size: 0.72rem; color: var(--color-primary-mid); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
-        .modal__title { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--color-primary); }
-        .modal__close {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: rgba(0,0,0,0.08);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-size: 1rem;
-            color: var(--color-text);
-            transition: var(--transition-smooth);
-        }
-        .modal__close:hover { background: var(--color-danger); color: #fff; }
+/* ============================================================
+   商品卡片 — 寶箱/商店貨架風格
+============================================================ */
+.card {
+    background: var(--parchment);
+    border-radius: var(--radius-card);
+    border: 4px solid var(--wood);
+    box-shadow: 0 5px 0 var(--border-wood), 0 8px 24px var(--shadow-warm);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    position: relative;
+    top: 0;
+}
+.card:hover {
+    top: -6px;
+    box-shadow: 0 11px 0 var(--border-wood), 0 16px 32px var(--shadow-warm);
+}
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.85) translateY(12px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
 
-        .modal__body {
-            padding: 20px 24px;
-            max-height: 55vh;
-            overflow-y: auto;
-        }
-        .modal__notice {
-            font-size: 0.78rem;
-            color: var(--color-muted);
-            background: var(--color-accent-light);
-            border-left: 3px solid var(--color-accent);
-            padding: 8px 12px;
-            border-radius: 4px;
-            margin-bottom: 16px;
-        }
-        .branch-list { display: flex; flex-direction: column; gap: 10px; }
-        .branch-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 16px;
-            background: #fafafa;
-            border: 1px solid var(--color-border);
-            border-radius: 12px;
-            transition: var(--transition-smooth);
-        }
-        .branch-item:hover { border-color: var(--color-primary-mid); background: var(--color-primary-light); }
-        .branch-item__name { font-weight: 700; font-size: 0.95rem; margin-bottom: 3px; }
-        .branch-item__tel { font-size: 0.78rem; color: var(--color-muted); }
-        .branch-item__stock { text-align: right; }
-        .branch-item__qty {
-            font-size: 1.05rem;
-            font-weight: 700;
-        }
-        .branch-item__qty--low  { color: var(--color-danger); }
-        .branch-item__qty--ok   { color: var(--color-primary-mid); }
-        .branch-item__updated { font-size: 0.7rem; color: #aaa; margin-top: 2px; }
+/* 卡片頂部木紋條 */
+.card__img-wrap {
+    position: relative;
+    height: 180px;
+    overflow: hidden;
+    border-bottom: 4px solid var(--wood);
+    background: var(--grass-light);
+}
+.card__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+.card:hover .card__img { transform: scale(1.08); }
 
-        .modal__footer {
-            padding: 14px 24px;
-            background: #fafafa;
-            border-top: 1px solid var(--color-border);
-            display: flex;
-            justify-content: flex-end;
-        }
-        .btn-close-modal {
-            padding: 9px 24px;
-            border-radius: 8px;
-            background: var(--color-primary);
-            color: #fff;
-            font-size: 0.85rem;
-            font-weight: 600;
-            transition: var(--transition-smooth);
-        }
-        .btn-close-modal:hover { background: var(--color-primary-mid); }
+/* 角落裝飾 */
+.card__img-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, transparent 60%, rgba(92,61,30,0.3));
+    pointer-events: none;
+}
 
-        /* ===== 頁尾 ===== */
-        .footer {
-            background: var(--color-primary);
-            color: rgba(255,255,255,0.55);
-            padding: 48px 24px;
-            text-align: center;
-        }
-        .footer__brand { font-family: var(--font-display); color: #fff; font-size: 1rem; margin-bottom: 16px; }
-        .footer__links { display: flex; justify-content: center; gap: 20px; font-size: 0.82rem; margin-bottom: 24px; }
-        .footer__links a:hover { color: var(--color-accent); transition: var(--transition-smooth); }
-        .footer__copy { font-size: 0.75rem; }
+.card__badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+    font-family: var(--font-game);
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 2px solid currentColor;
+    letter-spacing: 0.05em;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.badge--in_stock  { background: #d4edca; color: var(--grass-dark); border-color: var(--grass); }
+.badge--low_stock { background: #fef9c3; color: #92400e; border-color: #d97706; }
+.badge--sold_out  { background: #fde8e6; color: var(--berry); border-color: var(--berry); }
 
-        /* ===== 載入動畫 ===== */
-        .card { animation: fadeIn 0.4s ease both; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(16px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
+.card__body {
+    padding: 16px 18px 18px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--parchment);
+    position: relative;
+}
+/* 格子紙線條 */
+.card__body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        transparent, transparent 27px,
+        rgba(160,112,74,0.08) 27px, rgba(160,112,74,0.08) 28px
+    );
+    pointer-events: none;
+}
 
-        /* ===== RWD ===== */
-        @media (max-width: 480px) {
-            .navbar__links { display: none; }
-            .hero { padding: 40px 16px 0; }
-            .search-bar__input { min-width: 100%; }
-        }
+.card__category {
+    font-family: var(--font-game);
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--grass);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+    position: relative;
+}
+.card__name {
+    font-family: var(--font-game);
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--soil);
+    line-height: 1.4;
+    margin-bottom: 10px;
+    position: relative;
+}
+.card__price-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+    position: relative;
+}
+.card__price-icon { font-size: 1.1rem; }
+.card__price {
+    font-family: var(--font-game);
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: var(--soil);
+}
+.card__price-unit {
+    font-size: 0.75rem;
+    color: var(--text-light);
+}
+
+.card__action { margin-top: auto; position: relative; }
+.btn-stock {
+    width: 100%;
+    padding: 11px;
+    border-radius: var(--radius-btn);
+    font-family: var(--font-game);
+    font-size: 0.85rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    transition: all 0.15s;
+    position: relative;
+    top: 0;
+    letter-spacing: 0.03em;
+}
+.btn-stock--active {
+    background: var(--sun);
+    color: var(--soil);
+    border: 3px solid var(--sun-dark);
+    box-shadow: 0 4px 0 var(--sun-dark);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+}
+.btn-stock--active:hover {
+    top: 2px;
+    box-shadow: 0 2px 0 var(--sun-dark);
+    background: #f7d258;
+}
+.btn-stock--disabled {
+    background: var(--parchment-3);
+    color: #b8a88a;
+    border: 3px solid #d4c4a0;
+    box-shadow: 0 4px 0 #d4c4a0;
+    cursor: not-allowed;
+}
+
+/* ============================================================
+   空狀態
+============================================================ */
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 64px 24px;
+    color: var(--parchment);
+    font-family: var(--font-game);
+}
+.empty-state__icon { font-size: 4rem; margin-bottom: 12px; animation: bob 2s ease-in-out infinite; }
+.empty-state__text { font-size: 1.1rem; font-weight: 700; text-shadow: 1px 2px 0 var(--soil); }
+
+/* ============================================================
+   Modal — 對話視窗
+============================================================ */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(30,15,5,0.7);
+    backdrop-filter: blur(3px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 24px;
+}
+.modal-backdrop.is-open { display: flex; }
+.modal {
+    background: var(--parchment);
+    border-radius: 24px;
+    border: 5px solid var(--wood);
+    max-width: 460px;
+    width: 100%;
+    overflow: hidden;
+    box-shadow:
+        0 0 0 2px var(--soil),
+        8px 8px 0 var(--soil),
+        0 24px 64px rgba(0,0,0,0.4);
+    animation: bounceIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes bounceIn {
+    from { transform: scale(0.7) translateY(40px); opacity: 0; }
+    to   { transform: scale(1) translateY(0);    opacity: 1; }
+}
+.modal__header {
+    background: var(--wood);
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 4px solid var(--border-wood);
+}
+.modal__title-group { flex: 1; }
+.modal__subtitle {
+    font-family: var(--font-game);
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--parchment-2);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+}
+.modal__title {
+    font-family: var(--font-game);
+    font-size: 1.05rem;
+    font-weight: 900;
+    color: var(--sun);
+    text-shadow: 1px 1px 0 var(--soil-light);
+}
+.modal__close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.2);
+    border: 2px solid rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    color: #fff;
+    transition: all 0.2s;
+    font-family: var(--font-game);
+    font-weight: 900;
+}
+.modal__close:hover {
+    background: var(--berry);
+    border-color: var(--berry);
+    transform: scale(1.1) rotate(15deg);
+}
+.modal__body {
+    padding: 20px 22px;
+    max-height: 52vh;
+    overflow-y: auto;
+    background: var(--parchment);
+}
+.modal__notice {
+    font-size: 0.78rem;
+    color: var(--text-mid);
+    background: var(--parchment-2);
+    border: 2px dashed var(--wood-light);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-family: var(--font-game);
+}
+.branch-list { display: flex; flex-direction: column; gap: 10px; }
+.branch-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background: var(--parchment-2);
+    border: 3px solid var(--wood-light);
+    border-radius: 14px;
+    transition: all 0.2s;
+    box-shadow: 0 3px 0 var(--wood-light);
+    position: relative;
+    top: 0;
+}
+.branch-item:hover {
+    top: 2px;
+    box-shadow: 0 1px 0 var(--wood-light);
+    border-color: var(--grass);
+}
+.branch-item__name {
+    font-family: var(--font-game);
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--soil);
+    margin-bottom: 3px;
+}
+.branch-item__tel { font-size: 0.78rem; color: var(--text-light); }
+.branch-item__stock { text-align: right; }
+.branch-item__qty {
+    font-family: var(--font-game);
+    font-size: 1.1rem;
+    font-weight: 900;
+}
+.branch-item__qty--low  { color: var(--berry); }
+.branch-item__qty--ok   { color: var(--grass-dark); }
+.branch-item__updated { font-size: 0.68rem; color: #b8a88a; margin-top: 2px; }
+
+.modal__footer {
+    padding: 14px 22px;
+    background: var(--parchment-2);
+    border-top: 3px solid var(--wood-light);
+    display: flex;
+    justify-content: flex-end;
+}
+.btn-modal-close {
+    font-family: var(--font-game);
+    font-size: 0.85rem;
+    font-weight: 800;
+    padding: 9px 26px;
+    border-radius: var(--radius-btn);
+    background: var(--wood);
+    color: var(--parchment);
+    border: 3px solid var(--border-wood);
+    box-shadow: 0 4px 0 var(--border-wood);
+    transition: all 0.15s;
+    position: relative;
+    top: 0;
+}
+.btn-modal-close:hover {
+    top: 2px;
+    box-shadow: 0 2px 0 var(--border-wood);
+}
+
+/* ============================================================
+   頁尾
+============================================================ */
+.footer {
+    background: var(--soil);
+    border-top: 5px solid var(--soil-light);
+    padding: 36px 24px;
+    text-align: center;
+}
+.footer__brand {
+    font-family: var(--font-game);
+    font-size: 1rem;
+    font-weight: 900;
+    color: var(--sun);
+    text-shadow: 1px 1px 0 var(--soil-light);
+    margin-bottom: 14px;
+}
+.footer__links {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    font-family: var(--font-game);
+    font-size: 0.8rem;
+    color: var(--parchment-2);
+    margin-bottom: 18px;
+}
+.footer__links a:hover { color: var(--sun); }
+.footer__copy { font-size: 0.72rem; color: var(--text-light); }
+.footer__deco { font-size: 1.6rem; letter-spacing: 8px; margin-bottom: 12px; }
+
+/* ============================================================
+   RWD
+============================================================ */
+@media (max-width: 600px) {
+    .navbar__links { display: none; }
+    .hero__board { padding: 28px 20px 24px; }
+    .hero__board::before, .hero__board::after { display: none; }
+    .hero__board-corner-bl, .hero__board-corner-br { display: none; }
+}
     </style>
 </head>
 <body>
 
-<!-- ===== 導覽列 ===== -->
+<!-- 草地裝飾條 -->
+<div class="ground-strip" aria-hidden="true"></div>
+
+<!-- 導覽列 -->
 <nav class="navbar">
     <div class="navbar__inner">
         <div class="navbar__brand">
-            <div class="navbar__logo">📮</div>
-            <span class="navbar__title">高雄郵局商品展示</span>
+            <div class="navbar__icon">📮</div>
+            <span class="navbar__title">高雄郵局商品屋</span>
         </div>
         <nav class="navbar__links">
-            <a href="#">首頁</a>
-            <a href="#">最新公告</a>
-            <a href="#">庫存透視機</a>
+            <a class="navbar__link" href="#">🏠 首頁</a>
+            <a class="navbar__link" href="#">📢 公告</a>
+            <a class="navbar__link" href="#">📦 庫存</a>
         </nav>
     </div>
 </nav>
 
-<!-- ===== Hero ===== -->
+<!-- Hero 看板 -->
 <header class="hero">
-    <div class="hero__inner">
-        <div class="hero__badge">✦ 高雄郵局特選商品</div>
-        <h1 class="hero__title">
-            探索高雄郵局<br><span>精選特色好物</span>
-        </h1>
+    <div class="hero__board">
+        <div class="hero__board-corner-bl" aria-hidden="true">🔩</div>
+        <div class="hero__board-corner-br" aria-hidden="true">🔩</div>
+
+        <div class="hero__badge">🌿 新品上架中</div>
+        <h1 class="hero__title">歡迎來到<br><em>高雄郵局商品屋！</em></h1>
         <p class="hero__desc">
-            透過「庫存透視」功能，直接查看哪間支局還有現貨，讓選購更透明、不白跑一趟。
+            這裡有各種集郵精品與生活好物～<br>點擊「庫存透視」，馬上看哪間支局有貨！
         </p>
         <div class="search-bar">
-            <input type="text" id="searchInput" class="search-bar__input" placeholder="搜尋商品名稱…" aria-label="搜尋商品">
+            <input type="text" id="searchInput" class="search-bar__input" placeholder="🔍 搜尋商品名稱…" aria-label="搜尋商品">
             <button class="filter-btn filter-btn--active"  data-cat="all"  onclick="setFilter('all', this)">全部</button>
-            <button class="filter-btn filter-btn--default" data-cat="集郵" onclick="setFilter('集郵', this)">集郵品</button>
-            <button class="filter-btn filter-btn--default" data-cat="生活" onclick="setFilter('生活', this)">生活用品</button>
+            <button class="filter-btn filter-btn--default" data-cat="集郵" onclick="setFilter('集郵', this)">📮 集郵</button>
+            <button class="filter-btn filter-btn--default" data-cat="生活" onclick="setFilter('生活', this)">🎒 生活</button>
         </div>
     </div>
 </header>
 
-<!-- ===== 商品列表 ===== -->
-<main class="main">
-    <div class="main__header">
-        <span class="main__count-label">共 <span class="main__count" id="productCount">0</span> 件商品</span>
+<!-- 商店主區 -->
+<main class="shop">
+    <div class="shop__header">
+        <span class="shop__header-title">🛒 商品一覽</span>
+        <span class="shop__count" id="productCount">0</span>
     </div>
-    <div id="productGrid" class="product-grid" role="list" aria-label="商品列表">
-        <!-- 動態產生 -->
-    </div>
+    <ul id="productGrid" class="product-grid" role="list" aria-label="商品列表"></ul>
 </main>
 
-<!-- ===== 庫存 Modal ===== -->
+<!-- 庫存 Modal -->
 <div id="stockModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal">
         <div class="modal__header">
             <div class="modal__title-group">
-                <div class="modal__subtitle">庫存透視結果</div>
+                <div class="modal__subtitle">📦 庫存透視結果</div>
                 <div class="modal__title" id="modalTitle">商品名稱</div>
             </div>
             <button class="modal__close" onclick="UI.closeModal()" aria-label="關閉">✕</button>
         </div>
         <div class="modal__body">
-            <div class="modal__notice">⚠ 資料僅供參考，前往前建議先致電確認。</div>
+            <div class="modal__notice">⚠️ 資料僅供參考，前往前請先致電確認喔！</div>
             <ul id="stockList" class="branch-list" aria-label="支局庫存列表"></ul>
         </div>
         <div class="modal__footer">
-            <button class="btn-close-modal" onclick="UI.closeModal()">關閉</button>
+            <button class="btn-modal-close" onclick="UI.closeModal()">✅ 知道了</button>
         </div>
     </div>
 </div>
 
-<!-- ===== 頁尾 ===== -->
+<!-- 頁尾 -->
 <footer class="footer">
+    <div class="footer__deco">🌻🍄🌿🌼🍄</div>
     <div class="footer__brand">中華郵政 高雄郵局 — 數位展示平台</div>
     <div class="footer__links">
         <a href="#">隱私權政策</a>
         <a href="#">聯絡我們</a>
-        <a href="#">庫存管理後台</a>
+        <a href="#">庫存後台</a>
     </div>
     <div class="footer__copy">© 2024 Kaohsiung Post. Designed for Excellence.</div>
 </footer>
 
 <script>
 /* =====================================================
-   資料層 (Data Layer)
-   未來可替換為 fetch('/api/products') 或 Google Apps Script
+   資料層
 ===================================================== */
 const STATUS = { IN_STOCK: 'in_stock', LOW_STOCK: 'low_stock', SOLD_OUT: 'sold_out' };
 
@@ -597,15 +845,15 @@ const PRODUCTS = [
 ];
 
 /* =====================================================
-   設定層 (Config)
+   設定層
 ===================================================== */
 const CONFIG = {
     lowStockThreshold: 5,
     updatedLabel: "更新於 10 分鐘前",
     statusLabel: {
-        [STATUS.IN_STOCK]:  "在售中",
-        [STATUS.LOW_STOCK]: "即將完售",
-        [STATUS.SOLD_OUT]:  "已完售",
+        [STATUS.IN_STOCK]:  "✨ 在售中",
+        [STATUS.LOW_STOCK]: "⚡ 即將完售",
+        [STATUS.SOLD_OUT]:  "💨 已完售",
     },
     statusClass: {
         [STATUS.IN_STOCK]:  "badge--in_stock",
@@ -615,17 +863,17 @@ const CONFIG = {
 };
 
 /* =====================================================
-   樣板層 (Templates)
+   樣板層
 ===================================================== */
 const Templates = {
-    card(product) {
+    card(product, index) {
         const isSoldOut  = product.status === STATUS.SOLD_OUT;
         const badgeClass = CONFIG.statusClass[product.status];
         const badgeLabel = CONFIG.statusLabel[product.status];
         const btnClass   = isSoldOut ? 'btn-stock--disabled' : 'btn-stock--active';
-        const btnLabel   = isSoldOut ? '全數售罄' : '庫存透視';
+        const btnLabel   = isSoldOut ? '💨 已全數售罄' : '🔍 庫存透視';
         const price      = product.price.toLocaleString('zh-TW');
-        const delay      = Math.random() * 0.2;
+        const delay      = index * 0.06;
 
         return `
             <li class="card" role="listitem" style="animation-delay:${delay}s">
@@ -634,14 +882,20 @@ const Templates = {
                     <span class="card__badge ${badgeClass}">${badgeLabel}</span>
                 </div>
                 <div class="card__body">
-                    <p class="card__category">${product.category}</p>
+                    <p class="card__category">🌿 ${product.category}</p>
                     <h2 class="card__name">${product.name}</h2>
-                    <p class="card__price">NT$ ${price} <span>/ 件</span></p>
+                    <div class="card__price-row">
+                        <span class="card__price-icon">🪙</span>
+                        <span class="card__price">NT$ ${price}</span>
+                        <span class="card__price-unit">/ 件</span>
+                    </div>
                     <div class="card__action">
                         <button class="btn-stock ${btnClass}"
-                                ${isSoldOut ? 'disabled aria-disabled="true"' : `onclick="UI.openModal(${product.id})"`}
+                                ${isSoldOut
+                                    ? 'disabled aria-disabled="true"'
+                                    : `onclick="UI.openModal(${product.id})"`}
                                 aria-label="${isSoldOut ? '已售罄' : `查看${product.name}庫存`}">
-                            🔍 ${btnLabel}
+                            ${btnLabel}
                         </button>
                     </div>
                 </div>
@@ -649,16 +903,17 @@ const Templates = {
     },
 
     branchItem(branch) {
-        const isLow  = branch.stock < CONFIG.lowStockThreshold;
+        const isLow    = branch.stock < CONFIG.lowStockThreshold;
         const qtyClass = isLow ? 'branch-item__qty--low' : 'branch-item__qty--ok';
+        const qtyIcon  = isLow ? '🔴' : '🟢';
         return `
             <li class="branch-item">
                 <div>
-                    <div class="branch-item__name">${branch.name}</div>
+                    <div class="branch-item__name">🏪 ${branch.name}</div>
                     <div class="branch-item__tel">📞 ${branch.tel}</div>
                 </div>
                 <div class="branch-item__stock">
-                    <div class="branch-item__qty ${qtyClass}">${branch.stock} 件</div>
+                    <div class="branch-item__qty ${qtyClass}">${qtyIcon} ${branch.stock} 件</div>
                     <div class="branch-item__updated">${CONFIG.updatedLabel}</div>
                 </div>
             </li>`;
@@ -666,19 +921,18 @@ const Templates = {
 
     empty() {
         return `<li class="empty-state">
-            <div class="empty-state__icon">🔍</div>
-            <div class="empty-state__text">找不到符合條件的商品</div>
+            <div class="empty-state__icon">🌾</div>
+            <div class="empty-state__text">找不到符合條件的商品…</div>
         </li>`;
     }
 };
 
 /* =====================================================
-   狀態層 (App State)
+   狀態層
 ===================================================== */
 const State = {
-    filter:  'all',
-    query:   '',
-
+    filter: 'all',
+    query:  '',
     getFiltered() {
         return PRODUCTS.filter(p => {
             const matchCat   = this.filter === 'all' || p.category === this.filter;
@@ -689,7 +943,7 @@ const State = {
 };
 
 /* =====================================================
-   UI 控制層 (UI Controller)
+   UI 控制層
 ===================================================== */
 const UI = {
     grid:   document.getElementById('productGrid'),
@@ -702,7 +956,7 @@ const UI = {
         const data = State.getFiltered();
         this.count.textContent = data.length;
         this.grid.innerHTML = data.length
-            ? data.map(p => Templates.card(p)).join('')
+            ? data.map((p, i) => Templates.card(p, i)).join('')
             : Templates.empty();
     },
 
@@ -713,7 +967,7 @@ const UI = {
         this.mTitle.textContent = product.name;
         this.mList.innerHTML = product.branches.length
             ? product.branches.map(b => Templates.branchItem(b)).join('')
-            : '<li style="text-align:center;padding:24px;color:var(--color-muted)">查無支局庫存資訊</li>';
+            : '<li style="text-align:center;padding:24px;color:var(--text-light);font-family:var(--font-game)">🌾 查無支局庫存資訊</li>';
 
         this.modal.classList.add('is-open');
         document.body.style.overflow = 'hidden';
@@ -726,12 +980,12 @@ const UI = {
 };
 
 /* =====================================================
-   事件綁定 (Event Binding)
+   事件綁定
 ===================================================== */
 function setFilter(cat, btn) {
     State.filter = cat;
     document.querySelectorAll('.filter-btn').forEach(b => {
-        b.classList.toggle('filter-btn--active', b === btn);
+        b.classList.toggle('filter-btn--active',  b === btn);
         b.classList.toggle('filter-btn--default', b !== btn);
     });
     UI.render();
@@ -742,12 +996,10 @@ document.getElementById('searchInput').addEventListener('input', e => {
     UI.render();
 });
 
-// 點擊背景關閉 Modal
 document.getElementById('stockModal').addEventListener('click', e => {
     if (e.target === document.getElementById('stockModal')) UI.closeModal();
 });
 
-// ESC 關閉 Modal
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') UI.closeModal();
 });
