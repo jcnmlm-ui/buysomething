@@ -15,14 +15,14 @@
 
     <nav class="bg-green-700 text-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <span class="text-xl font-bold">高雄郵局商品展示</span>
-            <div class="text-xs opacity-80">資料來源：庫存透視機即時連動</div>
+            <span class="text-xl font-bold text-white">高雄郵局商品展示</span>
+            <div class="text-xs opacity-80 text-white">資料來源：庫存透視機即時連動</div>
         </div>
     </nav>
 
     <header class="bg-white border-b py-10 text-center">
         <h1 class="text-3xl font-bold mb-2">高雄支局熱銷推展品</h1>
-        <p class="text-gray-500 text-sm mb-6">點擊「庫存查詢」查看哪些支局還有現貨</p>
+        <p class="text-gray-500 text-sm mb-6">點擊「庫存查詢」查看哪些支局還有現貨 (僅展示 08/12 類別)</p>
         <div class="max-w-md mx-auto px-4">
             <input type="text" id="searchInput" placeholder="輸入商品名稱搜尋..." 
                    class="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
@@ -40,32 +40,48 @@
         <div class="bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl">
             <div class="p-5 border-b flex justify-between items-center">
                 <h3 class="font-bold text-lg" id="modalTitle">支局庫存詳情</h3>
-                <button onclick="closeModal()" class="text-gray-400">✕</button>
+                <button onclick="closeModal()" class="text-gray-400 p-2">✕</button>
             </div>
             <div class="p-5 max-h-80 overflow-y-auto" id="modalContent"></div>
             <div class="p-4 bg-gray-50 text-center">
-                <button onclick="closeModal()" class="text-sm font-bold text-green-700">我知道了</button>
+                <button onclick="closeModal()" class="w-full py-2 text-sm font-bold text-green-700 bg-white border border-green-200 rounded-lg">我知道了</button>
             </div>
         </div>
     </div>
 
     <script>
+        // 請務必將下方的網址替換成你最新的 GAS 部署網址
         const API_URL = "https://script.google.com/macros/s/AKfycbyvR_69JF2edatKUmDHkJG5F2UNCUofjvGrDaw7ofzbdkDTu7hjgNRkd1y1EvfhRQUnNQ/exec"; 
         let products = [];
+        let filteredProducts = [];
 
         async function loadData() {
             try {
                 const res = await fetch(API_URL);
-                products = await res.json();
+                const allData = await res.json();
+                
+                // 修正需求 2：僅展示類別 08 與 12
+                // 使用 String() 確保數字格式也能被正確過濾
+                products = allData.filter(p => {
+                    const cat = String(p.category).trim();
+                    return cat === "08" || cat === "12";
+                });
+                
+                filteredProducts = products;
                 document.getElementById('loading').style.display = 'none';
-                render(products);
+                render(filteredProducts);
             } catch (e) {
-                document.getElementById('loading').innerText = "連線失敗，請確認 GAS 權限。";
+                document.getElementById('loading').innerText = "連線失敗，請確認 GAS 權限與 API 網址。";
             }
         }
 
         function render(data) {
             const grid = document.getElementById('productGrid');
+            if (data.length === 0) {
+                grid.innerHTML = '<p class="col-span-full text-center py-20 text-gray-400">目前無 08 或 12 類別之商品...</p>';
+                return;
+            }
+
             grid.innerHTML = data.map((p, i) => `
                 <div class="product-card bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col">
                     <div class="h-40 bg-gray-100 flex items-center justify-center text-gray-300">
@@ -73,13 +89,13 @@
                     </div>
                     <div class="p-4 flex-1">
                         <div class="flex justify-between text-[10px] mb-1">
-                            <span class="text-green-600 font-bold">${p.category}</span>
+                            <span class="text-green-600 font-bold">類別 ${p.category}</span>
                             <span class="${p.status === 'sold_out' ? 'text-red-500' : 'text-blue-500'} font-bold">
                                 ${p.status === 'sold_out' ? '已完售' : '尚有庫存'}
                             </span>
                         </div>
                         <h2 class="font-bold text-gray-900 mb-1 h-12 overflow-hidden">${p.name}</h2>
-                        <p class="text-red-600 font-bold text-lg mb-4">$${p.price}</p>
+                        <p class="text-red-600 font-bold text-lg mb-4">NT$ ${p.price}</p>
                         <button onclick="showDetail(${i})" class="w-full py-2 bg-green-50 text-green-700 rounded-lg text-sm font-bold border border-green-200 hover:bg-green-600 hover:text-white transition">
                             庫存查詢 (${p.totalStock})
                         </button>
@@ -89,11 +105,14 @@
         }
 
         function showDetail(index) {
-            const p = products[index];
+            const p = filteredProducts[index];
             document.getElementById('modalTitle').innerText = p.name;
+            
+            // 修正需求 1：將原本的 b.branch 修改為 b.branchName
+            // 同時確認是否抓得到資料
             const content = p.branches.map(b => `
                 <div class="flex justify-between py-2 border-b text-sm">
-                    <span class="text-gray-600">局號 ${b.branch}</span>
+                    <span class="text-gray-600 font-medium">${b.branchName || "未知支局"}</span>
                     <span class="font-bold text-green-600">${b.stock} 件</span>
                 </div>
             `).join('') || '<p class="text-center text-gray-400 py-4">目前無任何支局有庫存</p>';
@@ -110,7 +129,8 @@
 
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const val = e.target.value.toLowerCase();
-            render(products.filter(p => p.name.includes(val)));
+            filteredProducts = products.filter(p => p.name.includes(val));
+            render(filteredProducts);
         });
 
         loadData();
