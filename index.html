@@ -3,181 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高雄郵局商品展示中心 | 搶先看熱銷商品與即時庫存</title>
-    <meta name="description" content="高雄郵局最新推展品展示，提供即時庫存透視功能，讓您精準掌握各支局貨況。">
+    <title>高雄郵局商品展示中心</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
         body { font-family: 'Noto Sans TC', sans-serif; }
         .product-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
-        .loading-spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #047857; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
-    <!-- 導覽列 -->
     <nav class="bg-green-700 text-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <div class="bg-white p-1 rounded-full">
-                    <svg class="w-6 h-6 text-green-700" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5v-5l-10 5-10-5v5z"/></svg>
-                </div>
-                <span class="text-xl font-bold tracking-wider">高雄郵局商品展示</span>
-            </div>
-            <div class="hidden md:flex space-x-6 text-sm font-medium">
-                <a href="#" class="hover:text-yellow-300 transition">首頁</a>
-                <a href="https://docs.google.com/spreadsheets/d/1PW5Fa2MU_jcbodRWmrqzYe-yUv1Ayk61ujr0BD12L5s/edit" target="_blank" class="hover:text-yellow-300 transition">管理後端</a>
-            </div>
+            <span class="text-xl font-bold">高雄郵局商品展示</span>
+            <div class="text-xs opacity-80">資料來源：庫存透視機即時連動</div>
         </div>
     </nav>
 
-    <!-- Header 搜尋區 -->
-    <header class="bg-white border-b">
-        <div class="container mx-auto px-4 py-10 text-center">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">高雄郵局特色推展品</h1>
-            <p class="text-gray-500 mb-8">即時連動庫存透視機，讓您在哪裡買、買什麼都一目了然。</p>
-            
-            <div class="flex flex-col md:flex-row justify-center items-center gap-4 max-w-2xl mx-auto">
-                <input type="text" id="searchInput" placeholder="搜尋商品名稱..." 
-                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:outline-none shadow-sm">
-            </div>
+    <header class="bg-white border-b py-10 text-center">
+        <h1 class="text-3xl font-bold mb-2">高雄支局熱銷推展品</h1>
+        <p class="text-gray-500 text-sm mb-6">點擊「庫存查詢」查看哪些支局還有現貨</p>
+        <div class="max-w-md mx-auto px-4">
+            <input type="text" id="searchInput" placeholder="輸入商品名稱搜尋..." 
+                   class="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
         </div>
     </header>
 
-    <!-- 載入中狀態 -->
-    <div id="loading" class="flex flex-col items-center justify-center py-20">
-        <div class="loading-spinner mb-4"></div>
-        <p class="text-gray-500">正在從庫存透視機讀取最新資料...</p>
-    </div>
+    <div id="loading" class="py-20 text-center text-gray-400">正在連線資料庫...</div>
 
-    <!-- 商品列表 -->
-    <main class="container mx-auto px-4 py-10">
-        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            <!-- 由 JavaScript 動態生成 -->
-        </div>
+    <main class="container mx-auto px-4 py-8">
+        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
     </main>
 
-    <!-- 庫存詳情彈窗 -->
-    <div id="stockModal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-[100] p-4">
-        <div class="bg-white rounded-xl max-w-md w-full overflow-hidden shadow-2xl">
-            <div class="p-5 border-b bg-green-50 flex justify-between items-center">
-                <h3 class="text-lg font-bold text-green-900" id="modalTitle">庫存透視</h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+    <!-- 彈窗 -->
+    <div id="stockModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[100] p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h3 class="font-bold text-lg" id="modalTitle">支局庫存詳情</h3>
+                <button onclick="closeModal()" class="text-gray-400">✕</button>
             </div>
-            <div class="p-5">
-                <p class="text-xs text-red-500 mb-4 font-medium">● 庫存僅供參考，建議前往前先電話確認。</p>
-                <div id="branchStockList" class="space-y-2 max-h-[50vh] overflow-y-auto">
-                    <!-- 支局數據 -->
-                </div>
-            </div>
-            <div class="p-4 bg-gray-50 text-right border-t">
-                <button onclick="closeModal()" class="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition text-sm">關閉</button>
+            <div class="p-5 max-h-80 overflow-y-auto" id="modalContent"></div>
+            <div class="p-4 bg-gray-50 text-center">
+                <button onclick="closeModal()" class="text-sm font-bold text-green-700">我知道了</button>
             </div>
         </div>
     </div>
 
     <script>
-        // 1. 請在此貼上你的 GAS 部署網址
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbyvR_69JF2edatKUmDHkJG5F2UNCUofjvGrDaw7ofzbdkDTu7hjgNRkd1y1EvfhRQUnNQ/exec"; // 請替換成你實際的網址
+        const API_URL = "請換成你重新部署後的_GAS_網址"; 
+        let products = [];
 
-        let allProducts = [];
-
-        async function init() {
-            if (GAS_URL.includes("X_X_X")) {
-                document.getElementById('loading').innerHTML = '<p class="text-red-500 font-bold">錯誤：請先將 GAS 部署網址填入 index.html 的代碼中。</p>';
-                return;
-            }
-
+        async function loadData() {
             try {
-                const response = await fetch(GAS_URL);
-                const data = await response.json();
-                
-                // 將試算表格式轉化為網頁物件
-                allProducts = data.map((row, idx) => ({
-                    id: idx,
-                    name: row["商品名稱"] || "未命名商品",
-                    category: row["類別"] || "一般",
-                    price: row["價格"] || "洽詢櫃台",
-                    status: row["狀態"] || "in_stock",
-                    img: row["圖片連結"] || "https://images.unsplash.com/photo-1610444533162-4f964c483840?w=400&q=80",
-                    rawData: row // 保存原始整列資料以便提取支局庫存
-                }));
-
-                document.getElementById('loading').classList.add('hidden');
-                render(allProducts);
-            } catch (err) {
-                console.error(err);
-                document.getElementById('loading').innerHTML = '<p class="text-red-500">無法連動試算表，請確認 GAS 是否已發佈為「所有人」可存取。</p>';
+                const res = await fetch(API_URL);
+                products = await res.json();
+                document.getElementById('loading').style.display = 'none';
+                render(products);
+            } catch (e) {
+                document.getElementById('loading').innerText = "連線失敗，請確認 GAS 權限。";
             }
         }
 
-        function render(items) {
+        function render(data) {
             const grid = document.getElementById('productGrid');
-            if (items.length === 0) {
-                grid.innerHTML = '<p class="col-span-full text-center py-20 text-gray-400">找不到符合條件的商品...</p>';
-                return;
-            }
-
-            grid.innerHTML = items.map(p => {
-                let statusBadge = '';
-                if(p.status === 'in_stock') statusBadge = '<span class="bg-green-100 text-green-700 text-[10px] px-2 py-1 rounded-full font-bold">有現貨</span>';
-                else if(p.status === 'low_stock') statusBadge = '<span class="bg-orange-100 text-orange-700 text-[10px] px-2 py-1 rounded-full font-bold">即將完售</span>';
-                else statusBadge = '<span class="bg-red-100 text-red-700 text-[10px] px-2 py-1 rounded-full font-bold">已售罄</span>';
-
-                return `
-                    <div class="product-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-                        <div class="h-44 bg-gray-100 overflow-hidden">
-                            <img src="${p.img}" class="w-full h-full object-cover transition hover:scale-110" alt="${p.name}">
-                        </div>
-                        <div class="p-4 flex-1 flex flex-col">
-                            <div class="flex justify-between items-start mb-2">
-                                <span class="text-xs text-green-600 font-bold">${p.category}</span>
-                                ${statusBadge}
-                            </div>
-                            <h3 class="font-bold text-gray-900 mb-1 leading-tight">${p.name}</h3>
-                            <p class="text-lg font-bold text-red-600 mb-4">NT$ ${p.price}</p>
-                            
-                            <button onclick="showStock(${p.id})" 
-                                    class="${p.status === 'sold_out' ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 shadow-sm'} 
-                                           w-full py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center space-x-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                <span>${p.status === 'sold_out' ? '全高屏售罄' : '庫存透視機'}</span>
-                            </button>
-                        </div>
+            grid.innerHTML = data.map((p, i) => `
+                <div class="product-card bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col">
+                    <div class="h-40 bg-gray-100 flex items-center justify-center text-gray-300">
+                        <span class="text-xs">[ 暫無商品圖片 ]</span>
                     </div>
-                `;
-            }).join('');
+                    <div class="p-4 flex-1">
+                        <div class="flex justify-between text-[10px] mb-1">
+                            <span class="text-green-600 font-bold">${p.category}</span>
+                            <span class="${p.status === 'sold_out' ? 'text-red-500' : 'text-blue-500'} font-bold">
+                                ${p.status === 'sold_out' ? '已完售' : '尚有庫存'}
+                            </span>
+                        </div>
+                        <h2 class="font-bold text-gray-900 mb-1 h-12 overflow-hidden">${p.name}</h2>
+                        <p class="text-red-600 font-bold text-lg mb-4">$${p.price}</p>
+                        <button onclick="showDetail(${i})" class="w-full py-2 bg-green-50 text-green-700 rounded-lg text-sm font-bold border border-green-200 hover:bg-green-600 hover:text-white transition">
+                            庫存查詢 (${p.totalStock})
+                        </button>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        function showStock(id) {
-            const p = allProducts[id];
-            if (p.status === 'sold_out') return;
-
+        function showDetail(index) {
+            const p = products[index];
             document.getElementById('modalTitle').innerText = p.name;
-            const list = document.getElementById('branchStockList');
+            const content = p.branches.map(b => `
+                <div class="flex justify-between py-2 border-b text-sm">
+                    <span class="text-gray-600">局號 ${b.branch}</span>
+                    <span class="font-bold text-green-600">${b.stock} 件</span>
+                </div>
+            `).join('') || '<p class="text-center text-gray-400 py-4">目前無任何支局有庫存</p>';
             
-            // 自動過濾結尾為「郵局」且庫存大於 0 的欄位
-            let branches = [];
-            for (let key in p.rawData) {
-                if (key.endsWith("郵局") && p.rawData[key] > 0) {
-                    branches.push({ name: key, stock: p.rawData[key] });
-                }
-            }
-
-            if (branches.length === 0) {
-                list.innerHTML = '<div class="text-center py-8 text-gray-400">目前各支局暫無現貨</div>';
-            } else {
-                list.innerHTML = branches.map(b => `
-                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <span class="font-bold text-gray-700">${b.name}</span>
-                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded text-sm font-bold">${b.stock} 件</span>
-                    </div>
-                `).join('');
-            }
-
+            document.getElementById('modalContent').innerHTML = content;
             document.getElementById('stockModal').classList.remove('hidden');
             document.getElementById('stockModal').classList.add('flex');
         }
@@ -189,11 +110,10 @@
 
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const val = e.target.value.toLowerCase();
-            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(val) || p.category.toLowerCase().includes(val));
-            render(filtered);
+            render(products.filter(p => p.name.includes(val)));
         });
 
-        window.onload = init;
+        loadData();
     </script>
 </body>
 </html>
