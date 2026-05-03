@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>高雄郵局 - 特色商品查詢網</title>
+  <title>高雄郵局郵風櫥窗</title>
   
   <!-- 引入 Google Fonts：清晰的 Noto Sans TC (中文) 與 VT323 (像素數字) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -315,6 +315,17 @@
     
     .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
 
+    /* 版權宣告樣式 */
+    .footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--sd-text);
+      font-weight: bold;
+      font-size: 15px;
+      text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+      letter-spacing: 1px;
+    }
+
     /* 回到最上方按鈕 (變成小星星) */
     #scrollToTopBtn { 
       position: fixed; 
@@ -383,12 +394,12 @@
   </div>
 
   <div class="header">
-    <h1>✉️ 高雄郵局 - 雜貨小舖查詢</h1>
+    <h1>🪧 高雄郵局郵風櫥窗</h1>
   </div>
 
   <div class="container">
     <div class="location-box sd-ui-box">
-      <label class="title">🏡 告訴我們您的農場（所在）位置</label>
+      <label class="title">🏡 告訴我們您的（所在）位置</label>
       <div class="select-group">
         <select id="citySelect" onchange="updateDistricts();"></select>
         <select id="districtSelect" onchange="saveLocation()"></select>
@@ -403,15 +414,20 @@
     </div>
 
     <div class="quick-search-box" id="quickSearchBox">
-      <input type="search" id="localSearchInput" placeholder="在皮埃爾的清單中搜尋商品名稱..." oninput="localFilterProducts()">
+      <input type="search" id="localSearchInput" placeholder="輸入關鍵字在櫥窗中搜尋商品..." oninput="localFilterProducts()">
     </div>
 
     <div id="productContainer" class="product-grid">
       <div class="initial-state">
-        <h2>歡迎來到特色商品專區 🌻</h2>
+        <h2>歡迎來到高雄郵局郵風櫥窗 🌻</h2>
         <p>請先設定您所在的縣市與區域<br>並點擊「搜尋鄰近郵局」來尋寶吧！</p>
       </div>
     </div>
+  </div>
+
+  <!-- 版權宣告區 -->
+  <div class="footer">
+    © Design by Chiahsien
   </div>
 
   <div id="branchModal" class="modal" onclick="closeBranchModal()">
@@ -431,7 +447,7 @@
   </button>
 
   <script>
-    // 資料與邏輯部分完全保留原樣，僅修改部分渲染文字
+    // 資料與邏輯部分完全保留原樣
     const twData = {
       "基隆市": ["仁愛區", "信義區", "中正區", "中山區", "安樂區", "暖暖區", "七堵區"],
       "臺北市": ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"],
@@ -439,7 +455,7 @@
       "桃園市": ["中壢區", "平鎮區", "龍潭區", "楊梅區", "新屋區", "觀音區", "桃園區", "龜山區", "八德區", "大溪區", "復興區", "大園區", "蘆竹區"],
       "新竹縣": ["竹北市", "湖口鄉", "新豐鄉", "新埔鎮", "關西鎮", "芎林鄉", "寶山鄉", "竹東鎮", "五峰鄉", "橫山鄉", "尖石鄉", "北埔鄉", "峨眉鄉"],
       "新竹市": ["東區", "北區", "香山區"],
-      "苗栗縣": ["竹南鎮", "頭份市", "三灣鄉", "南庄鄉", "獅潭鄉", "後龍鎮", "通霄鎮", "苑裡鎮", "苗栗市", "造橋鄉", "頭屋鄉", "公館鄉", "大湖鄉", "泰安鄉", "銅鑼鄉", "三義鄉", "西湖鄉", "卓蘭鎮"],
+      "苗栗縣": ["竹南鎮", "頭份市", "三灣鄉", "南庄鄉", "獅潭鄉", "後龍鎮", "通霄鎮", "苑裡鎮", "苗栗市", "造橋鄉", "頭屋鄉", "公館鄉", "大湖鄉", "泰安鄉", "銅羅鄉", "三義鄉", "西湖鄉", "卓蘭鎮"],
       "臺中市": ["中區", "東區", "南區", "西區", "北區", "北屯區", "西屯區", "南屯區", "太平區", "大里區", "霧峰區", "烏日區", "豐原區", "后里區", "石岡區", "東勢區", "和平區", "新社區", "潭子區", "大雅區", "神岡區", "大肚區", "沙鹿區", "龍井區", "梧棲區", "清水區", "大甲區", "外埔區", "大安區"],
       "彰化縣": ["彰化市", "芬園鄉", "花壇鄉", "秀水鄉", "鹿港鎮", "福興鄉", "線西鄉", "和美鎮", "伸港鄉", "員林市", "社頭鄉", "永靖鄉", "埔心鄉", "溪湖鎮", "大村鄉", "埔鹽鄉", "田中鎮", "北斗鎮", "田尾鄉", "埤頭鄉", "溪州鄉", "竹塘鄉", "二林鎮", "大城鄉", "芳苑鄉", "二水鄉"],
       "南投縣": ["南投市", "中寮鄉", "草屯鎮", "國姓鄉", "埔里鎮", "仁愛鄉", "名間鄉", "集集鎮", "水里鄉", "魚池鄉", "信義鄉", "竹山鎮", "鹿谷鄉"],
@@ -606,7 +622,7 @@
         let badgeHtml = '';
         if (hasStock && p.clicks > 0 && topBadgeCount < 3) {
           topBadgeCount++;
-          badgeHtml = `<div class="hot-badge">⭐ 明星商品 TOP ${topBadgeCount}</div>`;
+          badgeHtml = `<div class="hot-badge">⭐ 人氣商品 TOP ${topBadgeCount}</div>`;
         }
 
         const outOfStockStyle = hasStock ? '' : 'opacity: 0.75; filter: grayscale(40%);';
@@ -664,7 +680,8 @@
           const qtyLabel = b.qty <= 5 ? `即將完售 (${b.qty})` : `架上剩餘: ${b.qty}`;
 
           let highlightClass = index === 0 ? ' highlight' : '';
-          let rankIcon = index === 0 ? '🏆 ' : '📫 ';
+          // 統一修改郵局名稱前的 Icon 為 🛖
+          let rankIcon = '🛖 ';
 
           listUl.innerHTML += `
             <li class="branch-item${highlightClass}">
