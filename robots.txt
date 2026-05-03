@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jcnmlm-ui.github.io/buysomething/sitemap.xml
