@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>高雄郵局 - 特色商品查詢網</title>
+  <title>高雄郵局郵風櫥窗</title>
   
+  <!-- 引入 Google Fonts：清晰的 Noto Sans TC (中文) 與 VT323 (像素數字) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+
   <script>
     // =========================================================================
     // ⚠️ 系統設定：請填入您在 Google Apps Script 發布「新版本部署」後取得的網址
@@ -14,151 +19,387 @@
   </script>
 
   <style>
-    /* 基礎重置與變數 */
+    /* 星露谷物語風格變數 */
     :root {
-      --primary: #52796f;
-      --primary-dark: #354f52;
-      --bg: #f4f7f6;
-      --text-main: #2f3e46;
-      --text-muted: #84a59d;
-      --card-bg: #ffffff;
-      --border: #cad2c5;
-      --hot: #e63946;
-      --warning: #f4a261;
+      --sd-grass: #88c24c;          /* 草地綠背景 */
+      --sd-grass-dark: #6fa03d;     /* 草地陰影 */
+      --sd-wood: #c06c28;           /* 木頭亮面 */
+      --sd-wood-dark: #82380d;      /* 木頭邊框/暗面 */
+      --sd-parchment: #fdeca6;      /* 羊皮紙底色 (對話框) */
+      --sd-parchment-dark: #dcb360; /* 羊皮紙邊緣 */
+      --sd-border: #4a2100;         /* 粗黑棕色邊框 */
+      --sd-text: #41220b;           /* 主要文字顏色 */
+      --sd-text-muted: #734e2c;     /* 次要文字顏色 */
+      --sd-hot: #d9382e;            /* 熱門紅色 */
+      --sd-warning: #e58715;        /* 警告橘色 */
     }
+
     * { box-sizing: border-box; }
-    body { font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     
-    /* 頂部導航 */
-    .header { background-color: var(--primary); color: white; padding: 16px 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100;}
-    .header h1 { margin: 0; font-size: 20px; font-weight: bold; letter-spacing: 1px;}
-    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    body { 
+      /* 換成清晰好讀的無襯線字體 */
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif; 
+      background-color: var(--sd-grass); 
+      /* 加上淡淡的草地網格紋理 */
+      background-image: 
+        linear-gradient(var(--sd-grass-dark) 1px, transparent 1px),
+        linear-gradient(90deg, var(--sd-grass-dark) 1px, transparent 1px);
+      background-size: 40px 40px;
+      color: var(--sd-text); 
+      margin: 0; 
+      padding: 0; 
+      -webkit-tap-highlight-color: transparent; 
+    }
+    
+    /* 木製招牌頂部導航 */
+    .header { 
+      background: linear-gradient(to bottom, #d6833b 0%, var(--sd-wood) 100%); 
+      color: #fff; 
+      padding: 18px 20px; 
+      text-align: center; 
+      border-bottom: 5px solid var(--sd-border);
+      position: sticky; 
+      top: 0; 
+      z-index: 100;
+      text-shadow: 2px 2px 0px var(--sd-border);
+      box-shadow: 0 6px 0px rgba(0,0,0,0.15);
+    }
+    
+    /* 招牌上的四顆鐵釘 */
+    .header::before, .header::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      background: #a3aeb1;
+      border: 2px solid var(--sd-border);
+      border-radius: 50%;
+      box-shadow: inset -1px -1px 2px rgba(0,0,0,0.5);
+    }
+    .header::before { left: 20px; }
+    .header::after { right: 20px; }
+
+    .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 2px;}
+    .container { max-width: 1200px; margin: 0 auto; padding: 25px 20px; }
+
+    /* 共用 UI 對話框風格 (木框 + 羊皮紙) */
+    .sd-ui-box {
+      background: var(--sd-parchment);
+      border: 4px solid var(--sd-border);
+      border-radius: 8px;
+      box-shadow: inset 0 0 0 3px var(--sd-parchment-dark), 0 8px 0 rgba(0,0,0,0.1);
+    }
 
     /* 位置設定區 */
-    .location-box { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border-left: 5px solid var(--primary); display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
-    .location-box label.title { font-weight: bold; color: var(--text-main); font-size: 16px; width: 100%; margin-bottom: -5px; display: block; }
+    .location-box { 
+      padding: 22px; 
+      margin-bottom: 30px; 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 15px; 
+      align-items: center; 
+    }
+    .location-box label.title { font-weight: bold; color: var(--sd-text); font-size: 18px; width: 100%; margin-bottom: -5px; display: block; text-shadow: 1px 1px 0px rgba(255,255,255,0.5);}
     
     .select-group { display: flex; gap: 10px; flex-grow: 1; min-width: 280px;}
-    .select-group select { flex: 1; padding: 12px 15px; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 16px; background: white; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2352796f%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 15px top 50%; background-size: 12px auto; }
-    .select-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(82, 121, 111, 0.2); }
+    .select-group select { 
+      flex: 1; 
+      padding: 12px 15px; 
+      border: 3px solid var(--sd-wood-dark); 
+      border-radius: 6px; 
+      outline: none; 
+      font-size: 16px; 
+      font-weight: bold;
+      color: var(--sd-text);
+      background: #fff8d6; 
+      cursor: pointer; 
+      appearance: none; 
+      /* 木頭箭頭 */
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%3E%3Cpath%20fill%3D%22%2382380d%22%20d%3D%22M7%2010l5%205%205-5z%22%2F%3E%3C%2Fsvg%3E"); 
+      background-repeat: no-repeat; 
+      background-position: right 10px top 50%; 
+      background-size: 20px auto; 
+      box-shadow: inset 2px 2px 0 rgba(0,0,0,0.05);
+    }
+    .select-group select:focus { border-color: var(--sd-border); background: #fff;}
     
-    .checkbox-wrapper { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 15px; color: var(--text-muted); margin-right: auto; }
-    .checkbox-wrapper input { width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary); }
+    .checkbox-wrapper { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 16px; font-weight: bold; color: var(--sd-text); margin-right: auto; }
+    .checkbox-wrapper input { width: 22px; height: 22px; cursor: pointer; accent-color: var(--sd-wood); border: 2px solid var(--sd-border);}
     
-    .btn-search { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; white-space: nowrap; box-shadow: 0 4px 6px rgba(82, 121, 111, 0.2); }
-    .btn-search:hover { background: var(--primary-dark); transform: translateY(-1px); }
-    .btn-search:active { transform: translateY(1px); }
+    /* 木板按鈕 */
+    .btn-search { 
+      background: var(--sd-wood); 
+      color: white; 
+      border: 3px solid var(--sd-border); 
+      padding: 12px 30px; 
+      border-radius: 6px; 
+      font-size: 16px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: 0.1s; 
+      white-space: nowrap; 
+      box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2), 0 4px 0 rgba(0,0,0,0.15); 
+      text-shadow: 1px 1px 0px var(--sd-border);
+    }
+    .btn-search:hover { background: #d37d36; }
+    .btn-search:active { box-shadow: inset 2px 4px 0px rgba(0,0,0,0.2); transform: translateY(4px); }
 
     /* 快速搜尋列 */
     .quick-search-box { display: none; margin-bottom: 25px; width: 100%; position: relative;}
-    .quick-search-box input { width: 100%; padding: 14px 20px 14px 45px; border: 2px solid var(--border); border-radius: 30px; font-size: 16px; outline: none; transition: border-color 0.3s; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.03); -webkit-appearance: none; }
-    .quick-search-box input:focus { border-color: var(--primary); }
-    .quick-search-box::before { content: '🔍'; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; color: #888; z-index: 2;}
+    .quick-search-box input { 
+      width: 100%; 
+      padding: 14px 20px 14px 45px; 
+      border: 4px solid var(--sd-border); 
+      background: var(--sd-parchment);
+      border-radius: 12px; 
+      font-size: 16px; 
+      font-weight: bold;
+      color: var(--sd-text);
+      outline: none; 
+      box-shadow: inset 0 0 0 3px var(--sd-parchment-dark), 0 4px 0 rgba(0,0,0,0.1); 
+      -webkit-appearance: none; 
+    }
+    .quick-search-box input:focus { background: #fff8d6; }
+    .quick-search-box::before { content: '🔎'; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; z-index: 2;}
 
     /* 商品網格與卡片 */
-    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
-    .p-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; position: relative;}
-    .p-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
+    .p-card { 
+      display: flex; 
+      flex-direction: column; 
+      position: relative;
+      transition: transform 0.2s;
+    }
+    .p-card:hover { transform: translateY(-6px); }
     
-    .hot-badge { position: absolute; top: 12px; left: -5px; background: var(--hot); color: white; padding: 5px 15px; font-size: 12px; font-weight: bold; border-radius: 0 10px 10px 0; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); z-index: 10; letter-spacing: 0.5px;}
-    .hot-badge::after { content: ''; position: absolute; left: 0; bottom: -5px; border-top: 5px solid #9a0a15; border-left: 5px solid transparent; }
+    /* 展覽會紅絲帶徽章 */
+    .hot-badge { 
+      position: absolute; 
+      top: -10px; 
+      left: -10px; 
+      background: var(--sd-hot); 
+      color: white; 
+      padding: 6px 15px; 
+      font-size: 13px; 
+      font-weight: bold; 
+      border: 3px solid var(--sd-border);
+      border-radius: 4px; 
+      box-shadow: 2px 4px 0px rgba(0,0,0,0.2); 
+      z-index: 10; 
+      text-shadow: 1px 1px 0px var(--sd-border);
+    }
 
-    .p-img-box { width: 100%; height: 220px; background: #f8f9fa; overflow: hidden; position: relative; padding: 10px;}
-    .p-img-box img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
+    .p-img-box { 
+      width: 100%; 
+      height: 200px; 
+      background: #fff; 
+      border-bottom: 4px solid var(--sd-border);
+      overflow: hidden; 
+      position: relative; 
+      padding: 10px;
+      border-radius: 4px 4px 0 0;
+    }
+    .p-img-box img { width: 100%; height: 100%; object-fit: contain; }
     
     .p-info { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; }
-    .p-title { font-size: 18px; font-weight: bold; margin: 0 0 10px 0; color: var(--text-main); line-height: 1.4;}
-    .p-desc { font-size: 14px; color: #666; margin-bottom: 16px; line-height: 1.6; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .p-title { font-size: 19px; font-weight: bold; margin: 0 0 10px 0; color: var(--sd-text); line-height: 1.4; text-shadow: 1px 1px 0px rgba(255,255,255,0.6);}
+    .p-desc { font-size: 15px; color: var(--sd-text-muted); margin-bottom: 16px; line-height: 1.6; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-weight: bold;}
     
-    .p-meta { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px dashed #eee; }
-    .p-barcode { font-family: monospace; font-size: 12px; color: #888; background: #f1f5f9; padding: 4px 8px; border-radius: 4px;}
-    .p-price { font-size: 22px; font-weight: bold; color: #e07a5f; }
-    .p-price::before { content: 'NT$ '; font-size: 14px; color: #888; }
+    .p-meta { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 2px dashed var(--sd-wood-dark); }
+    .p-barcode { font-family: 'VT323', monospace; font-size: 16px; color: #fff; background: var(--sd-wood-dark); padding: 4px 8px; border-radius: 4px; border: 2px solid var(--sd-border); letter-spacing: 1px;}
+    .p-price { font-family: 'VT323', monospace; font-size: 28px; font-weight: normal; color: var(--sd-hot); text-shadow: 1px 1px 0px rgba(255,255,255,0.8); letter-spacing: 1px;}
+    .p-price::before { content: '💰 '; font-size: 18px; font-family: 'Noto Sans TC', sans-serif; }
 
     /* 按鈕顯眼化設計 */
-    .btn-view-branch { width: calc(100% - 32px); margin: 16px; background: var(--primary); color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; transition: background 0.2s, transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 10px rgba(82, 121, 111, 0.25); display: flex; justify-content: center; align-items: center; gap: 6px; }
-    .btn-view-branch:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(82, 121, 111, 0.35); }
-    .btn-view-branch:active { transform: translateY(1px); }
+    .btn-view-branch { 
+      width: calc(100% - 32px); 
+      margin: 0 16px 16px 16px; 
+      background: var(--sd-wood); 
+      color: white; 
+      border: 3px solid var(--sd-border); 
+      padding: 12px; 
+      font-size: 16px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      border-radius: 6px; 
+      transition: transform 0.1s; 
+      box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2); 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      gap: 6px; 
+      text-shadow: 1px 1px 0px var(--sd-border);
+    }
+    .btn-view-branch:hover { background: #d37d36; }
+    .btn-view-branch:active { box-shadow: inset 2px 4px 0px rgba(0,0,0,0.2); transform: translateY(2px); }
     
-    .initial-state { text-align: center; padding: 60px 20px; color: var(--text-muted); grid-column: 1 / -1; }
-    .initial-state h2 { color: var(--primary); margin-bottom: 15px; font-size: 22px;}
-    .initial-state p { font-size: 16px; line-height: 1.5;}
+    .initial-state { text-align: center; padding: 60px 20px; color: var(--sd-text); grid-column: 1 / -1; background: var(--sd-parchment); border: 4px dashed var(--sd-wood-dark); border-radius: 12px;}
+    .initial-state h2 { color: var(--sd-wood-dark); margin-bottom: 15px; font-size: 24px;}
+    .initial-state p { font-size: 18px; line-height: 1.6; font-weight: bold;}
 
     /* 彈出視窗 (Modal) */
-    .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; }
-    .modal-content { background: white; width: 90%; max-width: 500px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border-radius: 16px; overflow: hidden; animation: fadeIn 0.3s ease; }
+    .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); justify-content: center; align-items: center; }
+    .modal-content { 
+      width: 90%; 
+      max-width: 500px; 
+      max-height: 85vh; 
+      display: flex; 
+      flex-direction: column; 
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    }
     
-    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
-    .modal-header { background: var(--primary); color: white; padding: 16px 20px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
-    .btn-close { background: none; border: none; color: white; font-size: 28px; cursor: pointer; line-height: 1; padding: 0 5px; opacity: 0.8; transition: opacity 0.2s;}
-    .btn-close:hover { opacity: 1; }
-    .modal-body { padding: 0; overflow-y: auto; background: #fafbfc; flex-grow: 1;}
+    .modal-header { 
+      background: var(--sd-wood); 
+      color: white; 
+      padding: 16px 20px; 
+      font-weight: bold; 
+      font-size: 18px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      border-bottom: 4px solid var(--sd-border);
+      text-shadow: 2px 2px 0px var(--sd-border);
+    }
+    /* 星露谷風格的關閉按鈕 (紅色方塊) */
+    .btn-close { 
+      background: var(--sd-hot); 
+      border: 3px solid var(--sd-border); 
+      color: white; 
+      font-size: 20px; 
+      font-weight: bold;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 4px;
+      cursor: pointer; 
+      box-shadow: inset -2px -2px 0px rgba(0,0,0,0.2);
+    }
+    .btn-close:active { box-shadow: inset 2px 2px 0px rgba(0,0,0,0.3); transform: translateY(2px);}
+    
+    .modal-body { padding: 0; overflow-y: auto; background: var(--sd-parchment); flex-grow: 1; border-radius: 0 0 4px 4px;}
     
     /* 分局清單樣式 */
     .branch-list { list-style: none; padding: 0; margin: 0; }
-    .branch-item { padding: 20px; border-bottom: 1px solid #eee; transition: background 0.2s; border-left: 5px solid transparent; }
-    .branch-item:hover { background: white; }
+    .branch-item { padding: 20px; border-bottom: 2px dotted var(--sd-wood-dark); transition: background 0.2s; border-left: 6px solid transparent; }
+    .branch-item:last-child { border-bottom: none; }
+    .branch-item:hover { background: rgba(255, 255, 255, 0.4); }
     
-    /* ★ 隱形引導：第一名專屬純視覺高亮樣式 */
+    /* ★ 隱形引導：第一名高亮 (加強星露谷風格) */
     .branch-item.highlight { 
-      background-color: rgba(82, 121, 111, 0.06); 
-      border-left: 5px solid var(--primary); 
+      background-color: rgba(255, 215, 0, 0.2); 
+      border-left: 6px solid #eab308; 
     }
-    .branch-item.highlight:hover { background-color: rgba(82, 121, 111, 0.1); }
 
     .b-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px;}
     .b-name-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1;}
-    .b-name { font-weight: bold; color: var(--primary-dark); font-size: 17px; }
+    .b-name { font-weight: bold; color: var(--sd-text); font-size: 18px; text-shadow: 1px 1px 0px #fff;}
 
-    .b-qty { background: #e07a5f; color: white; padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: bold; white-space: nowrap; height: fit-content;}
-    .b-qty.low-stock { background: var(--warning); color: #fff;}
-    .b-detail { font-size: 15px; color: #555; display: flex; align-items: flex-start; gap: 10px; margin-top: 8px; line-height: 1.4;}
-    .b-detail svg { width: 18px; height: 18px; fill: #8da399; flex-shrink: 0; margin-top: 2px;}
+    .b-qty { 
+      background: var(--sd-grass-dark); 
+      color: white; 
+      padding: 4px 10px; 
+      border: 2px solid var(--sd-border);
+      border-radius: 4px; 
+      font-size: 14px; 
+      font-weight: bold; 
+      white-space: nowrap; 
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.15);
+    }
+    .b-qty.low-stock { background: var(--sd-warning); }
+    
+    .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
 
-    /* 回到最上方按鈕 */
-    #scrollToTopBtn { position: fixed; bottom: 25px; right: 25px; width: 50px; height: 50px; background-color: var(--primary); color: white; border: none; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 999; }
-    #scrollToTopBtn:active { transform: translateY(2px); }
+    /* 版權宣告樣式 */
+    .footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--sd-text);
+      font-weight: bold;
+      font-size: 15px;
+      text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+      letter-spacing: 1px;
+    }
+
+    /* 回到最上方按鈕 (變成小星星) */
+    #scrollToTopBtn { 
+      position: fixed; 
+      bottom: 25px; 
+      right: 25px; 
+      width: 55px; 
+      height: 55px; 
+      background-color: #fdeca6; 
+      color: var(--sd-text); 
+      font-size: 24px;
+      border: 3px solid var(--sd-border); 
+      border-radius: 50%; 
+      box-shadow: 0 4px 0px rgba(0,0,0,0.2), inset -2px -2px 0px #dcb360; 
+      cursor: pointer; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      opacity: 0; 
+      visibility: hidden; 
+      transition: all 0.3s ease; 
+      z-index: 999; 
+    }
+    #scrollToTopBtn:active { transform: translateY(4px); box-shadow: 0 0px 0px rgba(0,0,0,0.2), inset 2px 2px 0px #dcb360; }
     #scrollToTopBtn.show { opacity: 1; visibility: visible; }
 
-    #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index: 1000; display:none; flex-direction:column; justify-content:center; align-items:center; }
-    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin-bottom: 15px;}
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    /* 祝尼魔 / 精靈 載入畫面 */
+    #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(253, 236, 166, 0.9); z-index: 1000; display:none; flex-direction:column; justify-content:center; align-items:center; }
+    
+    .bouncing-star {
+      font-size: 50px;
+      animation: bounce 0.6s infinite alternate cubic-bezier(0.5, 0.05, 1, 0.5);
+      margin-bottom: 20px;
+      text-shadow: 0 10px 10px rgba(0,0,0,0.2);
+    }
+    @keyframes bounce {
+      0% { transform: translateY(0) scale(1.1); }
+      100% { transform: translateY(-30px) scale(0.9); text-shadow: 0 40px 15px rgba(0,0,0,0.1); }
+    }
 
     /* ========== RWD 手機版專屬優化 ========== */
     @media (max-width: 600px) {
       .container { padding: 15px; }
-      .location-box { padding: 15px; flex-direction: column; align-items: stretch; gap: 12px; }
+      .location-box { padding: 18px; flex-direction: column; align-items: stretch; gap: 12px; }
       .location-box label.title { margin-bottom: 0; }
       .select-group { flex-direction: column; min-width: 100%; gap: 10px;}
       .btn-search { width: 100%; padding: 14px; font-size: 18px;}
       .checkbox-wrapper { margin-top: 5px; justify-content: center; margin-right: 0;}
       
-      .product-grid { grid-template-columns: 1fr; gap: 15px; }
-      .p-img-box { height: 240px; }
+      .product-grid { grid-template-columns: 1fr; gap: 20px; }
+      .p-img-box { height: 220px; }
       
-      #scrollToTopBtn { bottom: 20px; right: 20px; width: 45px; height: 45px; }
+      #scrollToTopBtn { bottom: 20px; right: 20px; width: 50px; height: 50px; }
 
       .modal { align-items: flex-end; }
-      .modal-content { width: 100%; max-width: none; border-radius: 20px 20px 0 0; max-height: 85vh; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      .modal-content { width: 100%; max-width: none; border-radius: 12px 12px 0 0; max-height: 85vh; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; border-bottom: none;}
       @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
     }
   </style>
 </head>
 <body>
 
+  <!-- 星露谷精靈載入動畫 -->
   <div id="loader">
-    <div class="spinner"></div>
-    <div style="font-weight:bold; color:#52796f; font-size: 16px;">正在為您尋找商品...</div>
+    <div class="bouncing-star">✨</div>
+    <div style="font-weight:bold; color:var(--sd-text); font-size: 18px; background: #fff; padding: 10px 20px; border: 3px solid var(--sd-border); border-radius: 8px;">正在向精靈確認庫存清單... 📦</div>
   </div>
 
   <div class="header">
-    <h1>高雄郵局 - 特色商品查詢</h1>
+    <h1>🪧 高雄郵局郵風櫥窗</h1>
   </div>
 
   <div class="container">
-    <div class="location-box">
-      <label class="title">📍 請選擇您的所在位置</label>
+    <div class="location-box sd-ui-box">
+      <label class="title">🏡 告訴我們您的（所在）位置</label>
       <div class="select-group">
         <select id="citySelect" onchange="updateDistricts();"></select>
         <select id="districtSelect" onchange="saveLocation()"></select>
@@ -173,19 +414,24 @@
     </div>
 
     <div class="quick-search-box" id="quickSearchBox">
-      <input type="search" id="localSearchInput" placeholder="在下方結果中快速尋找商品名稱..." oninput="localFilterProducts()">
+      <input type="search" id="localSearchInput" placeholder="輸入關鍵字在櫥窗中搜尋商品..." oninput="localFilterProducts()">
     </div>
 
     <div id="productContainer" class="product-grid">
       <div class="initial-state">
-        <h2>歡迎來到特色商品專區</h2>
-        <p>請先設定您所在的縣市與區域<br>並點擊「搜尋鄰近郵局」</p>
+        <h2>歡迎來到高雄郵局郵風櫥窗 🌻</h2>
+        <p>請先設定您所在的縣市與區域<br>並點擊「搜尋鄰近郵局」來尋寶吧！</p>
       </div>
     </div>
   </div>
 
+  <!-- 版權宣告區 -->
+  <div class="footer">
+    © Design by Chiahsien
+  </div>
+
   <div id="branchModal" class="modal" onclick="closeBranchModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-content sd-ui-box" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span id="modalProductName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">鄰近販售據點</span>
         <button class="btn-close" onclick="closeBranchModal()">&times;</button>
@@ -197,10 +443,11 @@
   </div>
 
   <button id="scrollToTopBtn" onclick="scrollToTop()" title="回到最上方">
-    <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M12 4l-8 8h6v8h4v-8h6z"/></svg>
+    ⭐
   </button>
 
   <script>
+    // 資料與邏輯部分完全保留原樣
     const twData = {
       "基隆市": ["仁愛區", "信義區", "中正區", "中山區", "安樂區", "暖暖區", "七堵區"],
       "臺北市": ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"],
@@ -208,7 +455,7 @@
       "桃園市": ["中壢區", "平鎮區", "龍潭區", "楊梅區", "新屋區", "觀音區", "桃園區", "龜山區", "八德區", "大溪區", "復興區", "大園區", "蘆竹區"],
       "新竹縣": ["竹北市", "湖口鄉", "新豐鄉", "新埔鎮", "關西鎮", "芎林鄉", "寶山鄉", "竹東鎮", "五峰鄉", "橫山鄉", "尖石鄉", "北埔鄉", "峨眉鄉"],
       "新竹市": ["東區", "北區", "香山區"],
-      "苗栗縣": ["竹南鎮", "頭份市", "三灣鄉", "南庄鄉", "獅潭鄉", "後龍鎮", "通霄鎮", "苑裡鎮", "苗栗市", "造橋鄉", "頭屋鄉", "公館鄉", "大湖鄉", "泰安鄉", "銅鑼鄉", "三義鄉", "西湖鄉", "卓蘭鎮"],
+      "苗栗縣": ["竹南鎮", "頭份市", "三灣鄉", "南庄鄉", "獅潭鄉", "後龍鎮", "通霄鎮", "苑裡鎮", "苗栗市", "造橋鄉", "頭屋鄉", "公館鄉", "大湖鄉", "泰安鄉", "銅羅鄉", "三義鄉", "西湖鄉", "卓蘭鎮"],
       "臺中市": ["中區", "東區", "南區", "西區", "北區", "北屯區", "西屯區", "南屯區", "太平區", "大里區", "霧峰區", "烏日區", "豐原區", "后里區", "石岡區", "東勢區", "和平區", "新社區", "潭子區", "大雅區", "神岡區", "大肚區", "沙鹿區", "龍井區", "梧棲區", "清水區", "大甲區", "外埔區", "大安區"],
       "彰化縣": ["彰化市", "芬園鄉", "花壇鄉", "秀水鄉", "鹿港鎮", "福興鄉", "線西鄉", "和美鎮", "伸港鄉", "員林市", "社頭鄉", "永靖鄉", "埔心鄉", "溪湖鎮", "大村鄉", "埔鹽鄉", "田中鎮", "北斗鎮", "田尾鄉", "埤頭鄉", "溪州鄉", "竹塘鄉", "二林鎮", "大城鄉", "芳苑鄉", "二水鄉"],
       "南投縣": ["南投市", "中寮鄉", "草屯鎮", "國姓鄉", "埔里鎮", "仁愛鄉", "名間鄉", "集集鎮", "水里鄉", "魚池鄉", "信義鄉", "竹山鎮", "鹿谷鄉"],
@@ -361,7 +608,7 @@
       const container = document.getElementById('productContainer');
       
       if (!filteredList || filteredList.length === 0) {
-        container.innerHTML = '<div class="initial-state"><h2>找不到符合的商品</h2><p>請嘗試更換搜尋關鍵字，或郵局目前暫未提供該商品。</p></div>';
+        container.innerHTML = '<div class="initial-state"><h2>找不到符合的商品 🍂</h2><p>請嘗試更換搜尋關鍵字，或郵局目前暫未提供該商品。</p></div>';
         return;
       }
 
@@ -375,18 +622,18 @@
         let badgeHtml = '';
         if (hasStock && p.clicks > 0 && topBadgeCount < 3) {
           topBadgeCount++;
-          badgeHtml = `<div class="hot-badge">🔥 人氣 TOP ${topBadgeCount}</div>`;
+          badgeHtml = `<div class="hot-badge">⭐ 人氣商品 TOP ${topBadgeCount}</div>`;
         }
 
-        const outOfStockStyle = hasStock ? '' : 'opacity: 0.65; filter: grayscale(60%);';
+        const outOfStockStyle = hasStock ? '' : 'opacity: 0.75; filter: grayscale(40%);';
 
         const card = document.createElement('div');
-        card.className = 'p-card';
+        card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
         card.innerHTML = `
           ${badgeHtml}
           <div class="p-img-box">
-            <img src="${p.img}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=圖片載入失敗'">
+            <img src="${p.img}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=📦影像遺失'">
           </div>
           <div class="p-info">
             <h3 class="p-title">${p.name}</h3>
@@ -396,8 +643,8 @@
               <span class="p-price">${p.price}</span>
             </div>
           </div>
-          <button class="btn-view-branch" onclick="openBranchModal('${p.key}', '${p.name}')" ${!hasStock ? 'disabled style="background:#cbd5e0 !important; color:#fff !important; cursor:not-allowed; box-shadow:none; transform:none;"' : ''}>
-            ${hasStock ? '📍 查看鄰近販售郵局' : '補貨中'}
+          <button class="btn-view-branch" onclick="openBranchModal('${p.key}', '${p.name}')" ${!hasStock ? 'disabled style="background:#8c7562 !important; border-color:#4a3219 !important; color:#dcdcdc !important; cursor:not-allowed; box-shadow:none; transform:none;"' : ''}>
+            ${hasStock ? '📍 查看鄰近販售郵局' : '補貨中...'}
           </button>
         `;
         container.appendChild(card);
@@ -426,30 +673,29 @@
       
       listUl.innerHTML = '';
       if(branches.length === 0) {
-        listUl.innerHTML = '<li class="branch-item" style="text-align:center;color:#999;padding:40px;">目前此區域尚未查詢到庫存</li>';
+        listUl.innerHTML = '<li class="branch-item" style="text-align:center;color:var(--sd-text-muted);padding:40px;font-weight:bold;">目前此區域尚未查詢到庫存 🍂</li>';
       } else {
         branches.forEach((b, index) => {
           const qtyClass = b.qty <= 5 ? 'b-qty low-stock' : 'b-qty';
           const qtyLabel = b.qty <= 5 ? `即將完售 (${b.qty})` : `架上剩餘: ${b.qty}`;
 
-          // ★ 隱形引導：第一名專屬純視覺高亮樣式
           let highlightClass = index === 0 ? ' highlight' : '';
+          // 統一修改郵局名稱前的 Icon 為 🛖
+          let rankIcon = '🛖 ';
 
           listUl.innerHTML += `
             <li class="branch-item${highlightClass}">
               <div class="b-header">
                 <div class="b-name-wrapper">
-                  <span class="b-name">${b.name}</span>
+                  <span class="b-name">${rankIcon}${b.name}</span>
                 </div>
                 <span class="${qtyClass}">${qtyLabel}</span>
               </div>
               <div class="b-detail">
-                <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                <span>${b.address}</span>
+                <span>📍 ${b.address}</span>
               </div>
               <div class="b-detail">
-                <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-                <span>${b.phone}</span>
+                <span>📞 ${b.phone}</span>
               </div>
             </li>
           `;
