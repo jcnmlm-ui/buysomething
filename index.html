@@ -1,139 +1,485 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高雄郵局商品展示中心</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; }
-        .product-card:hover { transform: translateY(-5px); transition: all 0.3s ease; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>高雄郵局 - 特色商品查詢網</title>
+  
+  <script>
+    // =========================================================================
+    // ⚠️ 系統設定：請填入您在 Google Apps Script 發布「新版本部署」後取得的網址
+    // =========================================================================
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzrtagTPx0snmiq-ZcJAX41dt0nZONpteVR408H_eDNqmD_6reFhYs9rTAGe3blBVX1hg/exec";
+    // =========================================================================
+  </script>
+
+  <style>
+    /* 基礎重置與變數 */
+    :root {
+      --primary: #52796f;
+      --primary-dark: #354f52;
+      --bg: #f4f7f6;
+      --text-main: #2f3e46;
+      --text-muted: #84a59d;
+      --card-bg: #ffffff;
+      --border: #cad2c5;
+      --hot: #e63946;
+      --warning: #f4a261;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    /* 頂部導航 */
+    .header { background-color: var(--primary); color: white; padding: 16px 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100;}
+    .header h1 { margin: 0; font-size: 20px; font-weight: bold; letter-spacing: 1px;}
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    /* 位置設定區 */
+    .location-box { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px; border-left: 5px solid var(--primary); display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+    .location-box label.title { font-weight: bold; color: var(--text-main); font-size: 16px; width: 100%; margin-bottom: -5px; display: block; }
+    
+    .select-group { display: flex; gap: 10px; flex-grow: 1; min-width: 280px;}
+    .select-group select { flex: 1; padding: 12px 15px; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 16px; background: white; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2352796f%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 15px top 50%; background-size: 12px auto; }
+    .select-group select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(82, 121, 111, 0.2); }
+    
+    .checkbox-wrapper { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 15px; color: var(--text-muted); margin-right: auto; }
+    .checkbox-wrapper input { width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary); }
+    
+    .btn-search { background: var(--primary); color: white; border: none; padding: 12px 30px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; white-space: nowrap; box-shadow: 0 4px 6px rgba(82, 121, 111, 0.2); }
+    .btn-search:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn-search:active { transform: translateY(1px); }
+
+    /* 快速搜尋列 */
+    .quick-search-box { display: none; margin-bottom: 25px; width: 100%; position: relative;}
+    .quick-search-box input { width: 100%; padding: 14px 20px 14px 45px; border: 2px solid var(--border); border-radius: 30px; font-size: 16px; outline: none; transition: border-color 0.3s; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.03); -webkit-appearance: none; }
+    .quick-search-box input:focus { border-color: var(--primary); }
+    .quick-search-box::before { content: '🔍'; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; color: #888; z-index: 2;}
+
+    /* 商品網格與卡片 */
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .p-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; position: relative;}
+    .p-card:hover { transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    
+    .hot-badge { position: absolute; top: 12px; left: -5px; background: var(--hot); color: white; padding: 5px 15px; font-size: 12px; font-weight: bold; border-radius: 0 10px 10px 0; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); z-index: 10; letter-spacing: 0.5px;}
+    .hot-badge::after { content: ''; position: absolute; left: 0; bottom: -5px; border-top: 5px solid #9a0a15; border-left: 5px solid transparent; }
+
+    .p-img-box { width: 100%; height: 220px; background: #f8f9fa; overflow: hidden; position: relative; padding: 10px;}
+    .p-img-box img { width: 100%; height: 100%; object-fit: contain; mix-blend-mode: multiply; }
+    
+    .p-info { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; }
+    .p-title { font-size: 18px; font-weight: bold; margin: 0 0 10px 0; color: var(--text-main); line-height: 1.4;}
+    .p-desc { font-size: 14px; color: #666; margin-bottom: 16px; line-height: 1.6; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    
+    .p-meta { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px dashed #eee; }
+    .p-barcode { font-family: monospace; font-size: 12px; color: #888; background: #f1f5f9; padding: 4px 8px; border-radius: 4px;}
+    .p-price { font-size: 22px; font-weight: bold; color: #e07a5f; }
+    .p-price::before { content: 'NT$ '; font-size: 14px; color: #888; }
+
+    /* 按鈕顯眼化設計 */
+    .btn-view-branch { width: calc(100% - 32px); margin: 16px; background: var(--primary); color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 8px; transition: background 0.2s, transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 10px rgba(82, 121, 111, 0.25); display: flex; justify-content: center; align-items: center; gap: 6px; }
+    .btn-view-branch:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(82, 121, 111, 0.35); }
+    .btn-view-branch:active { transform: translateY(1px); }
+    
+    .initial-state { text-align: center; padding: 60px 20px; color: var(--text-muted); grid-column: 1 / -1; }
+    .initial-state h2 { color: var(--primary); margin-bottom: 15px; font-size: 22px;}
+    .initial-state p { font-size: 16px; line-height: 1.5;}
+
+    /* 彈出視窗 (Modal) */
+    .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; }
+    .modal-content { background: white; width: 90%; max-width: 500px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.2); border-radius: 16px; overflow: hidden; animation: fadeIn 0.3s ease; }
+    
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+
+    .modal-header { background: var(--primary); color: white; padding: 16px 20px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center; }
+    .btn-close { background: none; border: none; color: white; font-size: 28px; cursor: pointer; line-height: 1; padding: 0 5px; opacity: 0.8; transition: opacity 0.2s;}
+    .btn-close:hover { opacity: 1; }
+    .modal-body { padding: 0; overflow-y: auto; background: #fafbfc; flex-grow: 1;}
+    
+    /* 分局清單樣式 */
+    .branch-list { list-style: none; padding: 0; margin: 0; }
+    .branch-item { padding: 20px; border-bottom: 1px solid #eee; transition: background 0.2s; border-left: 5px solid transparent; }
+    .branch-item:hover { background: white; }
+    
+    /* ★ 隱形引導：第一名專屬純視覺高亮樣式 */
+    .branch-item.highlight { 
+      background-color: rgba(82, 121, 111, 0.06); 
+      border-left: 5px solid var(--primary); 
+    }
+    .branch-item.highlight:hover { background-color: rgba(82, 121, 111, 0.1); }
+
+    .b-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px;}
+    .b-name-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1;}
+    .b-name { font-weight: bold; color: var(--primary-dark); font-size: 17px; }
+
+    .b-qty { background: #e07a5f; color: white; padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: bold; white-space: nowrap; height: fit-content;}
+    .b-qty.low-stock { background: var(--warning); color: #fff;}
+    .b-detail { font-size: 15px; color: #555; display: flex; align-items: flex-start; gap: 10px; margin-top: 8px; line-height: 1.4;}
+    .b-detail svg { width: 18px; height: 18px; fill: #8da399; flex-shrink: 0; margin-top: 2px;}
+
+    /* 回到最上方按鈕 */
+    #scrollToTopBtn { position: fixed; bottom: 25px; right: 25px; width: 50px; height: 50px; background-color: var(--primary); color: white; border: none; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.2); cursor: pointer; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 999; }
+    #scrollToTopBtn:active { transform: translateY(2px); }
+    #scrollToTopBtn.show { opacity: 1; visibility: visible; }
+
+    #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.95); z-index: 1000; display:none; flex-direction:column; justify-content:center; align-items:center; }
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin-bottom: 15px;}
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* ========== RWD 手機版專屬優化 ========== */
+    @media (max-width: 600px) {
+      .container { padding: 15px; }
+      .location-box { padding: 15px; flex-direction: column; align-items: stretch; gap: 12px; }
+      .location-box label.title { margin-bottom: 0; }
+      .select-group { flex-direction: column; min-width: 100%; gap: 10px;}
+      .btn-search { width: 100%; padding: 14px; font-size: 18px;}
+      .checkbox-wrapper { margin-top: 5px; justify-content: center; margin-right: 0;}
+      
+      .product-grid { grid-template-columns: 1fr; gap: 15px; }
+      .p-img-box { height: 240px; }
+      
+      #scrollToTopBtn { bottom: 20px; right: 20px; width: 45px; height: 45px; }
+
+      .modal { align-items: flex-end; }
+      .modal-content { width: 100%; max-width: none; border-radius: 20px 20px 0 0; max-height: 85vh; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body>
 
-    <nav class="bg-green-700 text-white shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <span class="text-xl font-bold text-white">高雄郵局商品展示</span>
-            <div class="text-xs opacity-80 text-white">資料來源：庫存透視機即時連動</div>
-        </div>
-    </nav>
+  <div id="loader">
+    <div class="spinner"></div>
+    <div style="font-weight:bold; color:#52796f; font-size: 16px;">正在為您尋找商品...</div>
+  </div>
 
-    <header class="bg-white border-b py-10 text-center">
-        <h1 class="text-3xl font-bold mb-2">高雄支局熱銷推展品</h1>
-        <p class="text-gray-500 text-sm mb-6">點擊「庫存查詢」查看哪些支局還有現貨 (僅展示 08/12 類別)</p>
-        <div class="max-w-md mx-auto px-4">
-            <input type="text" id="searchInput" placeholder="輸入商品名稱搜尋..." 
-                   class="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-green-500 outline-none">
-        </div>
-    </header>
+  <div class="header">
+    <h1>高雄郵局 - 特色商品查詢</h1>
+  </div>
 
-    <div id="loading" class="py-20 text-center text-gray-400">正在連線資料庫...</div>
-
-    <main class="container mx-auto px-4 py-8">
-        <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
-    </main>
-
-    <!-- 彈窗 -->
-    <div id="stockModal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-[100] p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl">
-            <div class="p-5 border-b flex justify-between items-center">
-                <h3 class="font-bold text-lg" id="modalTitle">支局庫存詳情</h3>
-                <button onclick="closeModal()" class="text-gray-400 p-2">✕</button>
-            </div>
-            <div class="p-5 max-h-80 overflow-y-auto" id="modalContent"></div>
-            <div class="p-4 bg-gray-50 text-center">
-                <button onclick="closeModal()" class="w-full py-2 text-sm font-bold text-green-700 bg-white border border-green-200 rounded-lg">我知道了</button>
-            </div>
-        </div>
+  <div class="container">
+    <div class="location-box">
+      <label class="title">📍 請選擇您的所在位置</label>
+      <div class="select-group">
+        <select id="citySelect" onchange="updateDistricts();"></select>
+        <select id="districtSelect" onchange="saveLocation()"></select>
+      </div>
+      
+      <label class="checkbox-wrapper">
+        <input type="checkbox" id="rememberLoc" onchange="saveLocation()">
+        記住位置
+      </label>
+      
+      <button class="btn-search" onclick="fetchAndRenderProducts()">🔍 搜尋鄰近郵局</button>
     </div>
 
-    <script>
-        // 請務必將下方的網址替換成你最新的 GAS 部署網址
-        const API_URL = "https://script.google.com/macros/s/AKfycbyvR_69JF2edatKUmDHkJG5F2UNCUofjvGrDaw7ofzbdkDTu7hjgNRkd1y1EvfhRQUnNQ/exec?action=getPublicData"; 
-        let products = [];
-        let filteredProducts = [];
+    <div class="quick-search-box" id="quickSearchBox">
+      <input type="search" id="localSearchInput" placeholder="在下方結果中快速尋找商品名稱..." oninput="localFilterProducts()">
+    </div>
 
-        async function loadData() {
-            try {
-                const res = await fetch(API_URL);
-                const allData = await res.json();
-                
-                // 修正需求 2：僅展示類別 08 與 12
-                // 使用 String() 確保數字格式也能被正確過濾
-                products = allData.filter(p => {
-                    const cat = String(p.category).trim();
-                    return cat === "08" || cat === "12";
-                });
-                
-                filteredProducts = products;
-                document.getElementById('loading').style.display = 'none';
-                render(filteredProducts);
-            } catch (e) {
-                document.getElementById('loading').innerText = "連線失敗，請確認 GAS 權限與 API 網址。";
-            }
+    <div id="productContainer" class="product-grid">
+      <div class="initial-state">
+        <h2>歡迎來到特色商品專區</h2>
+        <p>請先設定您所在的縣市與區域<br>並點擊「搜尋鄰近郵局」</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="branchModal" class="modal" onclick="closeBranchModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span id="modalProductName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">鄰近販售據點</span>
+        <button class="btn-close" onclick="closeBranchModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <ul class="branch-list" id="modalBranchList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <button id="scrollToTopBtn" onclick="scrollToTop()" title="回到最上方">
+    <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M12 4l-8 8h6v8h4v-8h6z"/></svg>
+  </button>
+
+  <script>
+    const twData = {
+      "基隆市": ["仁愛區", "信義區", "中正區", "中山區", "安樂區", "暖暖區", "七堵區"],
+      "臺北市": ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"],
+      "新北市": ["萬里區", "金山區", "板橋區", "汐止區", "深坑區", "石碇區", "瑞芳區", "平溪區", "雙溪區", "貢寮區", "新店區", "坪林區", "烏來區", "永和區", "中和區", "土城區", "三峽區", "樹林區", "鶯歌區", "三重區", "新莊區", "泰山區", "林口區", "蘆洲區", "五股區", "八里區", "淡水區", "三芝區", "石門區"],
+      "桃園市": ["中壢區", "平鎮區", "龍潭區", "楊梅區", "新屋區", "觀音區", "桃園區", "龜山區", "八德區", "大溪區", "復興區", "大園區", "蘆竹區"],
+      "新竹縣": ["竹北市", "湖口鄉", "新豐鄉", "新埔鎮", "關西鎮", "芎林鄉", "寶山鄉", "竹東鎮", "五峰鄉", "橫山鄉", "尖石鄉", "北埔鄉", "峨眉鄉"],
+      "新竹市": ["東區", "北區", "香山區"],
+      "苗栗縣": ["竹南鎮", "頭份市", "三灣鄉", "南庄鄉", "獅潭鄉", "後龍鎮", "通霄鎮", "苑裡鎮", "苗栗市", "造橋鄉", "頭屋鄉", "公館鄉", "大湖鄉", "泰安鄉", "銅鑼鄉", "三義鄉", "西湖鄉", "卓蘭鎮"],
+      "臺中市": ["中區", "東區", "南區", "西區", "北區", "北屯區", "西屯區", "南屯區", "太平區", "大里區", "霧峰區", "烏日區", "豐原區", "后里區", "石岡區", "東勢區", "和平區", "新社區", "潭子區", "大雅區", "神岡區", "大肚區", "沙鹿區", "龍井區", "梧棲區", "清水區", "大甲區", "外埔區", "大安區"],
+      "彰化縣": ["彰化市", "芬園鄉", "花壇鄉", "秀水鄉", "鹿港鎮", "福興鄉", "線西鄉", "和美鎮", "伸港鄉", "員林市", "社頭鄉", "永靖鄉", "埔心鄉", "溪湖鎮", "大村鄉", "埔鹽鄉", "田中鎮", "北斗鎮", "田尾鄉", "埤頭鄉", "溪州鄉", "竹塘鄉", "二林鎮", "大城鄉", "芳苑鄉", "二水鄉"],
+      "南投縣": ["南投市", "中寮鄉", "草屯鎮", "國姓鄉", "埔里鎮", "仁愛鄉", "名間鄉", "集集鎮", "水里鄉", "魚池鄉", "信義鄉", "竹山鎮", "鹿谷鄉"],
+      "雲林縣": ["斗南鎮", "大埤鄉", "虎尾鎮", "土庫鎮", "褒忠鄉", "東勢鄉", "臺西鄉", "崙背鄉", "麥寮鄉", "斗六市", "林內鄉", "古坑鄉", "莿桐鄉", "西螺鎮", "二崙鄉", "北港鎮", "水林鄉", "口湖鄉", "四湖鄉", "元長鄉"],
+      "嘉義縣": ["番路鄉", "梅山鄉", "竹崎鄉", "阿里山鄉", "中埔鄉", "大埔鄉", "水上鄉", "鹿草鄉", "太保市", "朴子市", "東石鄉", "六腳鄉", "新港鄉", "民雄鄉", "大林鎮", "溪口鄉", "義竹鄉", "布袋鎮"],
+      "嘉義市": ["東區", "西區"],
+      "臺南市": ["中西區", "東區", "南區", "北區", "安平區", "安南區", "永康區", "歸仁區", "新化區", "左鎮區", "玉井區", "楠西區", "南化區", "仁德區", "關廟區", "龍崎區", "官田區", "麻豆區", "佳里區", "西港區", "七股區", "將軍區", "學甲區", "北門區", "新營區", "後壁區", "白河區", "東山區", "六甲區", "下營區", "柳營區", "鹽水區", "善化區", "大內區", "山上區", "新市區", "安定區"],
+      "高雄市": ["新興區", "前金區", "苓雅區", "鹽埕區", "鼓山區", "旗津區", "前鎮區", "三民區", "楠梓區", "小港區", "左營區", "仁武區", "大社區", "岡山區", "路竹區", "阿蓮區", "田寮區", "燕巢區", "橋頭區", "梓官區", "彌陀區", "永安區", "湖內區", "鳳山區", "大寮區", "林園區", "鳥松區", "大樹區", "旗山區", "美濃區", "六龜區", "內門區", "杉林區", "甲仙區", "桃源區", "那瑪夏區", "茂林區", "茄萣區"],
+      "屏東縣": ["屏東市", "三地門鄉", "霧臺鄉", "瑪家鄉", "九如鄉", "里港鄉", "高樹鄉", "鹽埔鄉", "長治鄉", "麟洛鄉", "竹田鄉", "內埔鄉", "萬丹鄉", "潮州鎮", "泰武鄉", "來義鄉", "萬巒鄉", "崁頂鄉", "新埤鄉", "南州鄉", "林邊鄉", "東港鎮", "琉球鄉", "佳冬鄉", "新園鄉", "枋寮鄉", "枋山鄉", "春日鄉", "獅子鄉", "車城鄉", "牡丹鄉", "恆春鎮", "滿州鄉"],
+      "宜蘭縣": ["宜蘭市", "頭城鎮", "礁溪鄉", "壯圍鄉", "員山鄉", "羅東鎮", "三星鄉", "大同鄉", "五結鄉", "冬山鄉", "蘇澳鎮", "南澳鄉"],
+      "花蓮縣": ["花蓮市", "新城鄉", "秀林鄉", "吉安鄉", "壽豐鄉", "鳳林鎮", "光復鄉", "豐濱鄉", "瑞穗鄉", "萬榮鄉", "玉里鎮", "卓溪鄉", "富里鄉"],
+      "臺東縣": ["臺東市", "綠島鄉", "蘭嶼鄉", "延平鄉", "卑南鄉", "鹿野鄉", "關山鎮", "海端鄉", "池上鄉", "東河鄉", "成功鎮", "長濱鄉", "太麻里鄉", "金峰鄉", "大武鄉", "達仁鄉"],
+      "澎湖縣": ["馬公市", "西嶼鄉", "望安鄉", "七美鄉", "白沙鄉", "湖西鄉"],
+      "金門縣": ["金沙鎮", "金湖鎮", "金寧鄉", "金城鎮", "烈嶼鄉", "烏坵鄉"],
+      "連江縣": ["南竿鄉", "北竿鄉", "莒光鄉", "東引鄉"]
+    };
+
+    let globalData = {}; 
+
+    window.onload = () => {
+      initLocationDropdowns();
+      if(GAS_API_URL.includes('請在此填入')) {
+         alert('⚠️ 系統提示：請務必在程式碼最上方的 GAS_API_URL 填入您的專屬網址！');
+      }
+    };
+
+    function initLocationDropdowns() {
+      const citySel = document.getElementById('citySelect');
+      citySel.innerHTML = '<option value="">請選擇縣市</option>';
+      for (let city in twData) {
+        citySel.add(new Option(city, city));
+      }
+
+      const savedCity = localStorage.getItem('cust_city');
+      const savedDist = localStorage.getItem('cust_dist');
+      const isRemember = localStorage.getItem('cust_remember') === 'true';
+
+      if (isRemember && savedCity) {
+        document.getElementById('rememberLoc').checked = true;
+        citySel.value = savedCity;
+        updateDistricts();
+        if (savedDist) {
+          document.getElementById('districtSelect').value = savedDist;
         }
+      } else {
+        updateDistricts();
+      }
+    }
 
-        function render(data) {
-            const grid = document.getElementById('productGrid');
-            if (data.length === 0) {
-                grid.innerHTML = '<p class="col-span-full text-center py-20 text-gray-400">目前無 08 或 12 類別之商品...</p>';
-                return;
-            }
-
-            grid.innerHTML = data.map((p, i) => `
-                <div class="product-card bg-white rounded-xl shadow-sm border overflow-hidden flex flex-col">
-                    <div class="h-40 bg-gray-100 flex items-center justify-center text-gray-300">
-                        <span class="text-xs">[ 暫無商品圖片 ]</span>
-                    </div>
-                    <div class="p-4 flex-1">
-                        <div class="flex justify-between text-[10px] mb-1">
-                            <span class="text-green-600 font-bold">類別 ${p.category}</span>
-                            <span class="${p.status === 'sold_out' ? 'text-red-500' : 'text-blue-500'} font-bold">
-                                ${p.status === 'sold_out' ? '已完售' : '尚有庫存'}
-                            </span>
-                        </div>
-                        <h2 class="font-bold text-gray-900 mb-1 h-12 overflow-hidden">${p.name}</h2>
-                        <p class="text-red-600 font-bold text-lg mb-4">NT$ ${p.price}</p>
-                        <button onclick="showDetail(${i})" class="w-full py-2 bg-green-50 text-green-700 rounded-lg text-sm font-bold border border-green-200 hover:bg-green-600 hover:text-white transition">
-                            庫存查詢 (${p.totalStock})
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function showDetail(index) {
-            const p = filteredProducts[index];
-            document.getElementById('modalTitle').innerText = p.name;
-            
-            // 修正需求 1：將原本的 b.branch 修改為 b.branchName
-            // 同時確認是否抓得到資料
-            const content = p.branches.map(b => `
-                <div class="flex justify-between py-2 border-b text-sm">
-                    <span class="text-gray-600 font-medium">${b.branchName || "未知支局"}</span>
-                    <span class="font-bold text-green-600">${b.stock} 件</span>
-                </div>
-            `).join('') || '<p class="text-center text-gray-400 py-4">目前無任何支局有庫存</p>';
-            
-            document.getElementById('modalContent').innerHTML = content;
-            document.getElementById('stockModal').classList.remove('hidden');
-            document.getElementById('stockModal').classList.add('flex');
-        }
-
-        function closeModal() {
-            document.getElementById('stockModal').classList.add('hidden');
-            document.getElementById('stockModal').classList.remove('flex');
-        }
-
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const val = e.target.value.toLowerCase();
-            filteredProducts = products.filter(p => p.name.includes(val));
-            render(filteredProducts);
+    function updateDistricts() {
+      const city = document.getElementById('citySelect').value;
+      const distSel = document.getElementById('districtSelect');
+      distSel.innerHTML = '<option value="">請選擇區域 (全區)</option>';
+      
+      if (city && twData[city]) {
+        twData[city].forEach(dist => {
+          distSel.add(new Option(dist, dist));
         });
+      }
+      saveLocation();
+    }
 
-        loadData();
-    </script>
+    function saveLocation() {
+      const isChecked = document.getElementById('rememberLoc').checked;
+      const city = document.getElementById('citySelect').value;
+      const dist = document.getElementById('districtSelect').value;
+
+      localStorage.setItem('cust_remember', isChecked);
+      if (isChecked) {
+        localStorage.setItem('cust_city', city);
+        localStorage.setItem('cust_dist', dist);
+      } else {
+        localStorage.removeItem('cust_city');
+        localStorage.removeItem('cust_dist');
+      }
+    }
+
+    function fetchAndRenderProducts() {
+      const city = document.getElementById('citySelect').value;
+      if (!city) return alert("請先選擇您所在的縣市，以利為您推薦最近的郵局！");
+
+      document.getElementById('loader').style.display = 'flex';
+      
+      fetch(GAS_API_URL + '?action=getCustomerData')
+        .then(response => response.json())
+        .then(res => {
+          document.getElementById('loader').style.display = 'none';
+          if(res.status === 'success') {
+            globalData = res;
+            document.getElementById('quickSearchBox').style.display = 'block';
+            document.getElementById('localSearchInput').value = ''; 
+            
+            renderProducts(globalData.products);
+          } else {
+            alert('資料載入失敗：' + res.message);
+          }
+        })
+        .catch(err => {
+          document.getElementById('loader').style.display = 'none';
+          alert('網路連線發生錯誤，請確認 GAS API 網址是否正確且已發布！\n' + err);
+        });
+    }
+
+    function getTop5Branches(productKey) {
+      const selCity = document.getElementById('citySelect').value;
+      const selDist = document.getElementById('districtSelect').value;
+      
+      const stockList = globalData.stockMap[productKey] || [];
+      if (stockList.length === 0) return []; 
+
+      let branchPool = stockList.map(stock => {
+        const info = globalData.branchInfo[stock.branchId];
+        if (!info) return null;
+        
+        let priority = 3; 
+        if (selCity && info.address.includes(selCity)) {
+          priority = 2; 
+          if (selDist && info.address.includes(selDist)) {
+            priority = 1; 
+          }
+        }
+        
+        return {
+          name: info.name,
+          address: info.address,
+          phone: info.phone,
+          qty: stock.qty,
+          priority: priority,
+          activeScore: info.baseActiveScore || 0 
+        };
+      }).filter(b => b !== null);
+
+      branchPool.sort((a, b) => {
+        if (a.priority !== b.priority) return a.priority - b.priority;
+
+        const aStockBonus = a.qty > 5 ? 10 : 0;
+        const bStockBonus = b.qty > 5 ? 10 : 0;
+        const aTotalScore = a.activeScore + aStockBonus;
+        const bTotalScore = b.activeScore + bStockBonus;
+
+        if (aTotalScore !== bTotalScore) return bTotalScore - aTotalScore; 
+
+        return b.qty - a.qty;
+      });
+
+      return branchPool.slice(0, 5);
+    }
+
+    function renderProducts(filteredList) {
+      const container = document.getElementById('productContainer');
+      
+      if (!filteredList || filteredList.length === 0) {
+        container.innerHTML = '<div class="initial-state"><h2>找不到符合的商品</h2><p>請嘗試更換搜尋關鍵字，或郵局目前暫未提供該商品。</p></div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      
+      let topBadgeCount = 0;
+      
+      filteredList.forEach((p) => {
+        const hasStock = (globalData.stockMap[p.key] || []).length > 0;
+        
+        let badgeHtml = '';
+        if (hasStock && p.clicks > 0 && topBadgeCount < 3) {
+          topBadgeCount++;
+          badgeHtml = `<div class="hot-badge">🔥 人氣 TOP ${topBadgeCount}</div>`;
+        }
+
+        const outOfStockStyle = hasStock ? '' : 'opacity: 0.65; filter: grayscale(60%);';
+
+        const card = document.createElement('div');
+        card.className = 'p-card';
+        card.style = outOfStockStyle;
+        card.innerHTML = `
+          ${badgeHtml}
+          <div class="p-img-box">
+            <img src="${p.img}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=圖片載入失敗'">
+          </div>
+          <div class="p-info">
+            <h3 class="p-title">${p.name}</h3>
+            <div class="p-desc">${p.desc}</div>
+            <div class="p-meta">
+              <span class="p-barcode">條碼: ${p.barcode}</span>
+              <span class="p-price">${p.price}</span>
+            </div>
+          </div>
+          <button class="btn-view-branch" onclick="openBranchModal('${p.key}', '${p.name}')" ${!hasStock ? 'disabled style="background:#cbd5e0 !important; color:#fff !important; cursor:not-allowed; box-shadow:none; transform:none;"' : ''}>
+            ${hasStock ? '📍 查看鄰近販售郵局' : '補貨中'}
+          </button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function localFilterProducts() {
+      const searchText = document.getElementById('localSearchInput').value.toLowerCase();
+      
+      const filteredResults = globalData.products.filter(p => {
+        const titleMatch = p.name.toLowerCase().includes(searchText);
+        const barcodeMatch = String(p.barcode).toLowerCase().includes(searchText);
+        return titleMatch || barcodeMatch;
+      });
+
+      renderProducts(filteredResults);
+    }
+
+    function openBranchModal(productKey, productName) {
+      fetch(GAS_API_URL + '?action=recordClick&productId=' + encodeURIComponent(productKey))
+        .catch(e => console.log('人氣紀錄錯誤:', e));
+
+      document.getElementById('modalProductName').innerText = `尋找「${productName}」`;
+      const listUl = document.getElementById('modalBranchList');
+      const branches = getTop5Branches(productKey);
+      
+      listUl.innerHTML = '';
+      if(branches.length === 0) {
+        listUl.innerHTML = '<li class="branch-item" style="text-align:center;color:#999;padding:40px;">目前此區域尚未查詢到庫存</li>';
+      } else {
+        branches.forEach((b, index) => {
+          const qtyClass = b.qty <= 5 ? 'b-qty low-stock' : 'b-qty';
+          const qtyLabel = b.qty <= 5 ? `即將完售 (${b.qty})` : `架上剩餘: ${b.qty}`;
+
+          // ★ 隱形引導：第一名專屬純視覺高亮樣式
+          let highlightClass = index === 0 ? ' highlight' : '';
+
+          listUl.innerHTML += `
+            <li class="branch-item${highlightClass}">
+              <div class="b-header">
+                <div class="b-name-wrapper">
+                  <span class="b-name">${b.name}</span>
+                </div>
+                <span class="${qtyClass}">${qtyLabel}</span>
+              </div>
+              <div class="b-detail">
+                <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                <span>${b.address}</span>
+              </div>
+              <div class="b-detail">
+                <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                <span>${b.phone}</span>
+              </div>
+            </li>
+          `;
+        });
+      }
+
+      document.getElementById('branchModal').style.display = 'flex';
+      document.body.style.overflow = 'hidden'; 
+    }
+
+    function closeBranchModal() {
+      document.getElementById('branchModal').style.display = 'none';
+      document.body.style.overflow = 'auto'; 
+    }
+
+    window.onscroll = function() {
+      const btn = document.getElementById('scrollToTopBtn');
+      if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+        btn.classList.add('show');
+      } else {
+        btn.classList.remove('show');
+      }
+    };
+
+    function scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  </script>
 </body>
 </html>
