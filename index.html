@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>高雄郵局郵風櫥窗</title>
+  <title>高雄郵風商品櫥窗</title>
   
   <!-- 引入 Google Fonts：清晰的 Noto Sans TC (中文) 與 VT323 (像素數字) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -315,6 +315,16 @@
     
     .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
 
+    /* 溫馨提示文字 */
+    .notice-text {
+      width: 100%;
+      text-align: right;
+      font-size: 15px;
+      color: var(--sd-text-muted);
+      font-weight: bold;
+      margin-top: -5px;
+    }
+
     /* 版權宣告樣式 */
     .footer {
       text-align: center;
@@ -374,6 +384,8 @@
       .btn-search { width: 100%; padding: 14px; font-size: 18px;}
       .checkbox-wrapper { margin-top: 5px; justify-content: center; margin-right: 0;}
       
+      .notice-text { text-align: center; margin-top: 5px; font-size: 14px; }
+      
       .product-grid { grid-template-columns: 1fr; gap: 20px; }
       .p-img-box { height: 220px; }
       
@@ -390,11 +402,11 @@
   <!-- 星露谷精靈載入動畫 -->
   <div id="loader">
     <div class="bouncing-star">✨</div>
-    <div style="font-weight:bold; color:var(--sd-text); font-size: 18px; background: #fff; padding: 10px 20px; border: 3px solid var(--sd-border); border-radius: 8px;">正在向精靈確認庫存清單... 📦</div>
+    <div style="font-weight:bold; color:var(--sd-text); font-size: 18px; background: #fff; padding: 10px 20px; border: 3px solid var(--sd-border); border-radius: 8px;">正在向小精靈確認庫存清單... 📦</div>
   </div>
 
   <div class="header">
-    <h1>🪧 高雄郵局郵風櫥窗</h1>
+    <h1>🪧 高雄郵風商品櫥窗</h1>
   </div>
 
   <div class="container">
@@ -411,6 +423,8 @@
       </label>
       
       <button class="btn-search" onclick="fetchAndRenderProducts()">🔍 搜尋鄰近郵局</button>
+      
+      <div class="notice-text">💡 溫馨提示~查詢結果僅供參考，建議前往購買前先洽電詢問庫存。</div>
     </div>
 
     <div class="quick-search-box" id="quickSearchBox">
@@ -419,7 +433,7 @@
 
     <div id="productContainer" class="product-grid">
       <div class="initial-state">
-        <h2>歡迎來到高雄郵局郵風櫥窗 🌻</h2>
+        <h2>🌻 歡迎來到高雄郵風商品櫥窗 🌻</h2>
         <p>請先設定您所在的縣市與區域<br>並點擊「搜尋鄰近郵局」來尋寶吧！</p>
       </div>
     </div>
@@ -474,6 +488,26 @@
     };
 
     let globalData = {}; 
+
+    // ★ 新增：三段式圖片保險機制 (GitHub圖 -> 試算表圖 -> GitHub預設圖)
+    window.handleImageError = function(imgElement, sheetImgUrl) {
+      // 1. 如果還沒試過試算表的連結，就試試看
+      if (!imgElement.dataset.triedSheet) {
+        imgElement.dataset.triedSheet = 'true';
+        if (sheetImgUrl && sheetImgUrl.trim() !== '' && !sheetImgUrl.includes('暫無商品圖片')) {
+            imgElement.src = sheetImgUrl;
+            return;
+        }
+      }
+      // 2. 如果試算表連結也破圖，換上最終預設圖
+      if (!imgElement.dataset.triedDefault) {
+        imgElement.dataset.triedDefault = 'true';
+        imgElement.src = './images/080000AA.jpg';
+        return;
+      }
+      // 3. 放棄治療，避免無限迴圈
+      imgElement.onerror = null; 
+    };
 
     window.onload = () => {
       initLocationDropdowns();
@@ -630,10 +664,12 @@
         const card = document.createElement('div');
         card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
+        
+        // ★ 套用三段式保險：出錯時呼叫 handleImageError
         card.innerHTML = `
           ${badgeHtml}
           <div class="p-img-box">
-            <img src="${p.img}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=📦影像遺失'">
+            <img src="./images/${p.barcode}.jpg" alt="${p.name}" onerror="handleImageError(this, '${p.img}')">
           </div>
           <div class="p-info">
             <h3 class="p-title">${p.name}</h3>
