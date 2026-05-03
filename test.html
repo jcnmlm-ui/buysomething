@@ -1,1013 +1,712 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高雄郵局商品屋 🌿</title>
-    <meta name="description" content="高雄郵局最新推展品展示，包含集郵精品、生活好物及限定商品。">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
-    <style>
-/* ============================================================
-   CSS 變數 — 牧場物語色系
-============================================================ */
-:root {
-    --soil:         #5c3d1e;
-    --soil-light:   #7a5230;
-    --wood:         #a0704a;
-    --wood-light:   #c49a6c;
-    --parchment:    #fdf3dc;
-    --parchment-2:  #f5e4bc;
-    --parchment-3:  #ede0c0;
-    --grass:        #5a9e3a;
-    --grass-dark:   #3d7226;
-    --grass-light:  #d4edca;
-    --sky:          #a8d8ea;
-    --sun:          #f5c842;
-    --sun-dark:     #d4a017;
-    --berry:        #c0392b;
-    --berry-light:  #fadbd8;
-    --mint:         #48c9b0;
-    --text-dark:    #3b2a1a;
-    --text-mid:     #6b4c2a;
-    --text-light:   #a07848;
-    --border-wood:  #8b5e3c;
-    --shadow-warm:  rgba(91,61,30,0.25);
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>高雄郵局 - 特色商品查詢網</title>
+  
+  <!-- 引入 Google Fonts 中比較有復古感的字體 -->
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 
-    --radius-btn:   12px;
-    --radius-card:  16px;
-    --radius-panel: 20px;
+  <script>
+    // =========================================================================
+    // ⚠️ 系統設定：請填入您在 Google Apps Script 發布「新版本部署」後取得的網址
+    // =========================================================================
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzrtagTPx0snmiq-ZcJAX41dt0nZONpteVR408H_eDNqmD_6reFhYs9rTAGe3blBVX1hg/exec";
+    // =========================================================================
+  </script>
 
-    --font-game: 'Nunito', sans-serif;
-    --font-tc:   'Noto Sans TC', sans-serif;
+  <style>
+    /* 星露谷物語風格變數 */
+    :root {
+      --sd-grass: #88c24c;          /* 草地綠背景 */
+      --sd-grass-dark: #6fa03d;     /* 草地陰影 */
+      --sd-wood: #c06c28;           /* 木頭亮面 */
+      --sd-wood-dark: #82380d;      /* 木頭邊框/暗面 */
+      --sd-parchment: #fdeca6;      /* 羊皮紙底色 (對話框) */
+      --sd-parchment-dark: #dcb360; /* 羊皮紙邊緣 */
+      --sd-border: #4a2100;         /* 粗黑棕色邊框 */
+      --sd-text: #41220b;           /* 主要文字顏色 */
+      --sd-text-muted: #734e2c;     /* 次要文字顏色 */
+      --sd-hot: #d9382e;            /* 熱門紅色 */
+      --sd-warning: #e58715;        /* 警告橘色 */
+    }
 
-    --pixel-border: 3px solid var(--border-wood);
-}
+    * { box-sizing: border-box; }
+    
+    body { 
+      /* 結合像素風英文字體與正黑體 */
+      font-family: 'DotGothic16', 'Microsoft JhengHei', 'PingFang TC', sans-serif; 
+      background-color: var(--sd-grass); 
+      /* 加上淡淡的草地網格紋理 */
+      background-image: 
+        linear-gradient(var(--sd-grass-dark) 1px, transparent 1px),
+        linear-gradient(90deg, var(--sd-grass-dark) 1px, transparent 1px);
+      background-size: 40px 40px;
+      color: var(--sd-text); 
+      margin: 0; 
+      padding: 0; 
+      -webkit-tap-highlight-color: transparent; 
+    }
+    
+    /* 木製招牌頂部導航 */
+    .header { 
+      background: linear-gradient(to bottom, #d6833b 0%, var(--sd-wood) 100%); 
+      color: #fff; 
+      padding: 18px 20px; 
+      text-align: center; 
+      border-bottom: 5px solid var(--sd-border);
+      position: sticky; 
+      top: 0; 
+      z-index: 100;
+      text-shadow: 2px 2px 0px var(--sd-border);
+      box-shadow: 0 6px 0px rgba(0,0,0,0.15);
+    }
+    
+    /* 招牌上的四顆鐵釘 */
+    .header::before, .header::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      background: #a3aeb1;
+      border: 2px solid var(--sd-border);
+      border-radius: 50%;
+      box-shadow: inset -1px -1px 2px rgba(0,0,0,0.5);
+    }
+    .header::before { left: 20px; }
+    .header::after { right: 20px; }
 
-/* ============================================================
-   Reset & Base
-============================================================ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-body {
-    font-family: var(--font-tc);
-    background-color: #7ab648;
-    background-image:
-        radial-gradient(circle at 20% 80%, rgba(90,158,58,0.5) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(168,216,234,0.4) 0%, transparent 40%);
-    min-height: 100vh;
-    color: var(--text-dark);
-    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ctext y='20' font-size='20'%3E🌱%3C/text%3E%3C/svg%3E") 0 20, auto;
-}
-button { cursor: inherit; border: none; background: none; font-family: inherit; }
-a { text-decoration: none; color: inherit; }
-img { display: block; max-width: 100%; }
+    .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 2px;}
+    .container { max-width: 1200px; margin: 0 auto; padding: 25px 20px; }
 
-/* ============================================================
-   草地地面裝飾
-============================================================ */
-.ground-strip {
-    height: 32px;
-    background: repeating-linear-gradient(
-        90deg,
-        var(--grass-dark) 0px, var(--grass-dark) 12px,
-        var(--grass) 12px, var(--grass) 24px
-    );
-    border-top: 4px solid var(--grass-dark);
-    border-bottom: 4px solid var(--soil);
-    position: relative;
-    overflow: hidden;
-}
-.ground-strip::after {
-    content: '🌻 🌿 🍄 🌼 🌿 🌻 🌿 🍄 🌼 🌿 🌻 🌿 🍄 🌼 🌿 🌻 🌿 🍄 🌼 🌿 🌻';
-    position: absolute;
-    top: -4px;
-    font-size: 18px;
-    letter-spacing: 12px;
-    white-space: nowrap;
-    animation: scroll-flowers 30s linear infinite;
-}
-@keyframes scroll-flowers {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
-}
+    /* 共用 UI 對話框風格 (木框 + 羊皮紙) */
+    .sd-ui-box {
+      background: var(--sd-parchment);
+      border: 4px solid var(--sd-border);
+      border-radius: 8px;
+      box-shadow: inset 0 0 0 3px var(--sd-parchment-dark), 0 8px 0 rgba(0,0,0,0.1);
+    }
 
-/* ============================================================
-   導覽列 — 木牌風格
-============================================================ */
-.navbar {
-    background: var(--soil);
-    border-bottom: 5px solid var(--soil-light);
-    box-shadow: 0 4px 12px var(--shadow-warm);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-.navbar__inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 24px;
-    height: 68px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-.navbar__brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.navbar__icon {
-    font-size: 2rem;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-    animation: bob 2.5s ease-in-out infinite;
-}
-@keyframes bob {
-    0%,100% { transform: translateY(0); }
-    50%      { transform: translateY(-4px); }
-}
-.navbar__title {
-    font-family: var(--font-game);
-    font-size: 1.25rem;
-    font-weight: 900;
-    color: var(--sun);
-    text-shadow: 2px 2px 0 var(--soil-light), 0 0 12px rgba(245,200,66,0.4);
-    letter-spacing: 0.03em;
-}
-.navbar__links {
-    display: flex;
-    gap: 8px;
-}
-.navbar__link {
-    font-family: var(--font-game);
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--parchment-2);
-    padding: 6px 14px;
-    border-radius: var(--radius-btn);
-    border: 2px solid rgba(255,255,255,0.1);
-    transition: all 0.2s;
-}
-.navbar__link:hover {
-    background: var(--wood);
-    color: var(--sun);
-    border-color: var(--sun-dark);
-    transform: translateY(-2px);
-}
+    /* 位置設定區 */
+    .location-box { 
+      padding: 22px; 
+      margin-bottom: 30px; 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 15px; 
+      align-items: center; 
+    }
+    .location-box label.title { font-weight: bold; color: var(--sd-text); font-size: 18px; width: 100%; margin-bottom: -5px; display: block; text-shadow: 1px 1px 0px rgba(255,255,255,0.5);}
+    
+    .select-group { display: flex; gap: 10px; flex-grow: 1; min-width: 280px;}
+    .select-group select { 
+      flex: 1; 
+      padding: 12px 15px; 
+      border: 3px solid var(--sd-wood-dark); 
+      border-radius: 6px; 
+      outline: none; 
+      font-size: 16px; 
+      font-weight: bold;
+      color: var(--sd-text);
+      background: #fff8d6; 
+      cursor: pointer; 
+      appearance: none; 
+      /* 木頭箭頭 */
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%3E%3Cpath%20fill%3D%22%2382380d%22%20d%3D%22M7%2010l5%205%205-5z%22%2F%3E%3C%2Fsvg%3E"); 
+      background-repeat: no-repeat; 
+      background-position: right 10px top 50%; 
+      background-size: 20px auto; 
+      box-shadow: inset 2px 2px 0 rgba(0,0,0,0.05);
+    }
+    .select-group select:focus { border-color: var(--sd-border); background: #fff;}
+    
+    .checkbox-wrapper { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 16px; font-weight: bold; color: var(--sd-text); margin-right: auto; }
+    .checkbox-wrapper input { width: 22px; height: 22px; cursor: pointer; accent-color: var(--sd-wood); border: 2px solid var(--sd-border);}
+    
+    /* 木板按鈕 */
+    .btn-search { 
+      background: var(--sd-wood); 
+      color: white; 
+      border: 3px solid var(--sd-border); 
+      padding: 12px 30px; 
+      border-radius: 6px; 
+      font-size: 16px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: 0.1s; 
+      white-space: nowrap; 
+      box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2), 0 4px 0 rgba(0,0,0,0.15); 
+      text-shadow: 1px 1px 0px var(--sd-border);
+    }
+    .btn-search:hover { background: #d37d36; }
+    .btn-search:active { box-shadow: inset 2px 4px 0px rgba(0,0,0,0.2); transform: translateY(4px); }
 
-/* ============================================================
-   Hero — 看板風格
-============================================================ */
-.hero {
-    padding: 40px 24px 0;
-    position: relative;
-}
-.hero__board {
-    max-width: 860px;
-    margin: 0 auto;
-    background: var(--parchment);
-    border-radius: var(--radius-panel);
-    border: 5px solid var(--wood);
-    box-shadow:
-        0 0 0 2px var(--soil),
-        6px 6px 0 var(--soil),
-        0 12px 40px var(--shadow-warm);
-    padding: 36px 40px 32px;
-    position: relative;
-    text-align: center;
-}
-/* 木板四角釘 */
-.hero__board::before,
-.hero__board::after {
-    content: '🔩';
-    position: absolute;
-    font-size: 1.4rem;
-    top: 12px;
-}
-.hero__board::before { left: 16px; }
-.hero__board::after  { right: 16px; }
-.hero__board-corner-bl,
-.hero__board-corner-br {
-    position: absolute;
-    font-size: 1.4rem;
-    bottom: 12px;
-}
-.hero__board-corner-bl { left: 16px; }
-.hero__board-corner-br { right: 16px; }
+    /* 快速搜尋列 */
+    .quick-search-box { display: none; margin-bottom: 25px; width: 100%; position: relative;}
+    .quick-search-box input { 
+      width: 100%; 
+      padding: 14px 20px 14px 45px; 
+      border: 4px solid var(--sd-border); 
+      background: var(--sd-parchment);
+      border-radius: 12px; 
+      font-size: 16px; 
+      font-weight: bold;
+      color: var(--sd-text);
+      outline: none; 
+      box-shadow: inset 0 0 0 3px var(--sd-parchment-dark), 0 4px 0 rgba(0,0,0,0.1); 
+      -webkit-appearance: none; 
+    }
+    .quick-search-box input:focus { background: #fff8d6; }
+    .quick-search-box::before { content: '🔎'; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; z-index: 2;}
 
-.hero__badge {
-    display: inline-block;
-    background: var(--grass);
-    color: #fff;
-    font-family: var(--font-game);
-    font-size: 0.75rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    padding: 5px 16px;
-    border-radius: 20px;
-    margin-bottom: 16px;
-    border: 2px solid var(--grass-dark);
-    box-shadow: 0 3px 0 var(--grass-dark);
-    text-transform: uppercase;
-}
-.hero__title {
-    font-family: var(--font-game);
-    font-size: clamp(1.6rem, 3.5vw, 2.4rem);
-    font-weight: 900;
-    color: var(--soil);
-    line-height: 1.3;
-    margin-bottom: 12px;
-    text-shadow: 1px 1px 0 var(--parchment-3);
-}
-.hero__title em {
-    color: var(--grass-dark);
-    font-style: normal;
-}
-.hero__desc {
-    font-size: 0.92rem;
-    color: var(--text-mid);
-    max-width: 500px;
-    margin: 0 auto 28px;
-    line-height: 1.7;
-}
+    /* 商品網格與卡片 */
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
+    .p-card { 
+      display: flex; 
+      flex-direction: column; 
+      position: relative;
+      transition: transform 0.2s;
+    }
+    .p-card:hover { transform: translateY(-6px); }
+    
+    /* 展覽會紅絲帶徽章 */
+    .hot-badge { 
+      position: absolute; 
+      top: -10px; 
+      left: -10px; 
+      background: var(--sd-hot); 
+      color: white; 
+      padding: 6px 15px; 
+      font-size: 13px; 
+      font-weight: bold; 
+      border: 3px solid var(--sd-border);
+      border-radius: 4px; 
+      box-shadow: 2px 4px 0px rgba(0,0,0,0.2); 
+      z-index: 10; 
+      text-shadow: 1px 1px 0px var(--sd-border);
+    }
 
-/* ============================================================
-   搜尋列
-============================================================ */
-.search-bar {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-.search-bar__input {
-    flex: 1;
-    min-width: 200px;
-    padding: 11px 18px;
-    border-radius: var(--radius-btn);
-    border: 3px solid var(--wood);
-    background: var(--parchment-2);
-    font-family: var(--font-tc);
-    font-size: 0.9rem;
-    color: var(--text-dark);
-    outline: none;
-    box-shadow: inset 0 2px 6px rgba(0,0,0,0.08), 0 3px 0 var(--border-wood);
-    transition: all 0.2s;
-}
-.search-bar__input::placeholder { color: var(--text-light); }
-.search-bar__input:focus {
-    border-color: var(--grass);
-    box-shadow: inset 0 2px 6px rgba(0,0,0,0.08), 0 3px 0 var(--grass-dark), 0 0 0 3px rgba(90,158,58,0.2);
-}
-.filter-btn {
-    font-family: var(--font-game);
-    font-size: 0.82rem;
-    font-weight: 800;
-    padding: 10px 18px;
-    border-radius: var(--radius-btn);
-    border: 3px solid var(--border-wood);
-    transition: all 0.15s;
-    position: relative;
-    top: 0;
-}
-.filter-btn--default {
-    background: var(--parchment-2);
-    color: var(--text-mid);
-    box-shadow: 0 4px 0 var(--border-wood);
-}
-.filter-btn--default:hover {
-    background: var(--parchment-3);
-    top: 2px;
-    box-shadow: 0 2px 0 var(--border-wood);
-}
-.filter-btn--active {
-    background: var(--grass);
-    color: #fff;
-    border-color: var(--grass-dark);
-    box-shadow: 0 4px 0 var(--grass-dark);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-}
-.filter-btn--active:hover {
-    top: 2px;
-    box-shadow: 0 2px 0 var(--grass-dark);
-}
+    .p-img-box { 
+      width: 100%; 
+      height: 200px; 
+      background: #fff; 
+      border-bottom: 4px solid var(--sd-border);
+      overflow: hidden; 
+      position: relative; 
+      padding: 10px;
+      border-radius: 4px 4px 0 0;
+    }
+    .p-img-box img { width: 100%; height: 100%; object-fit: contain; }
+    
+    .p-info { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; }
+    .p-title { font-size: 19px; font-weight: bold; margin: 0 0 10px 0; color: var(--sd-text); line-height: 1.4; text-shadow: 1px 1px 0px rgba(255,255,255,0.6);}
+    .p-desc { font-size: 15px; color: var(--sd-text-muted); margin-bottom: 16px; line-height: 1.6; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-weight: bold;}
+    
+    .p-meta { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 2px dashed var(--sd-wood-dark); }
+    .p-barcode { font-family: 'DotGothic16', monospace; font-size: 12px; color: #fff; background: var(--sd-wood-dark); padding: 4px 8px; border-radius: 4px; border: 2px solid var(--sd-border);}
+    .p-price { font-size: 24px; font-weight: bold; color: var(--sd-hot); text-shadow: 1px 1px 0px rgba(255,255,255,0.8);}
+    .p-price::before { content: '💰 '; font-size: 16px; }
 
-/* ============================================================
-   商店主區
-============================================================ */
-.shop {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 32px 24px 80px;
-}
-.shop__header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-.shop__header-title {
-    font-family: var(--font-game);
-    font-size: 1.1rem;
-    font-weight: 900;
-    color: var(--parchment);
-    text-shadow: 1px 2px 0 var(--soil);
-}
-.shop__count {
-    font-family: var(--font-game);
-    font-size: 0.8rem;
-    font-weight: 700;
-    background: var(--sun);
-    color: var(--soil);
-    padding: 2px 10px;
-    border-radius: 20px;
-    border: 2px solid var(--sun-dark);
-}
+    /* 按鈕顯眼化設計 */
+    .btn-view-branch { 
+      width: calc(100% - 32px); 
+      margin: 0 16px 16px 16px; 
+      background: var(--sd-wood); 
+      color: white; 
+      border: 3px solid var(--sd-border); 
+      padding: 12px; 
+      font-size: 16px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      border-radius: 6px; 
+      transition: transform 0.1s; 
+      box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2); 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      gap: 6px; 
+      text-shadow: 1px 1px 0px var(--sd-border);
+    }
+    .btn-view-branch:hover { background: #d37d36; }
+    .btn-view-branch:active { box-shadow: inset 2px 4px 0px rgba(0,0,0,0.2); transform: translateY(2px); }
+    
+    .initial-state { text-align: center; padding: 60px 20px; color: var(--sd-text); grid-column: 1 / -1; background: var(--sd-parchment); border: 4px dashed var(--sd-wood-dark); border-radius: 12px;}
+    .initial-state h2 { color: var(--sd-wood-dark); margin-bottom: 15px; font-size: 24px;}
+    .initial-state p { font-size: 18px; line-height: 1.6; font-weight: bold;}
 
-/* ============================================================
-   商品格線
-============================================================ */
-.product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 20px;
-    list-style: none;
-}
+    /* 彈出視窗 (Modal) */
+    .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); justify-content: center; align-items: center; }
+    .modal-content { 
+      width: 90%; 
+      max-width: 500px; 
+      max-height: 85vh; 
+      display: flex; 
+      flex-direction: column; 
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    }
+    
+    @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
-/* ============================================================
-   商品卡片 — 寶箱/商店貨架風格
-============================================================ */
-.card {
-    background: var(--parchment);
-    border-radius: var(--radius-card);
-    border: 4px solid var(--wood);
-    box-shadow: 0 5px 0 var(--border-wood), 0 8px 24px var(--shadow-warm);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    transition: all 0.2s ease;
-    animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-    position: relative;
-    top: 0;
-}
-.card:hover {
-    top: -6px;
-    box-shadow: 0 11px 0 var(--border-wood), 0 16px 32px var(--shadow-warm);
-}
-@keyframes popIn {
-    from { opacity: 0; transform: scale(0.85) translateY(12px); }
-    to   { opacity: 1; transform: scale(1) translateY(0); }
-}
+    .modal-header { 
+      background: var(--sd-wood); 
+      color: white; 
+      padding: 16px 20px; 
+      font-weight: bold; 
+      font-size: 18px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      border-bottom: 4px solid var(--sd-border);
+      text-shadow: 2px 2px 0px var(--sd-border);
+    }
+    /* 星露谷風格的關閉按鈕 (紅色方塊) */
+    .btn-close { 
+      background: var(--sd-hot); 
+      border: 3px solid var(--sd-border); 
+      color: white; 
+      font-size: 20px; 
+      font-weight: bold;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 4px;
+      cursor: pointer; 
+      box-shadow: inset -2px -2px 0px rgba(0,0,0,0.2);
+    }
+    .btn-close:active { box-shadow: inset 2px 2px 0px rgba(0,0,0,0.3); transform: translateY(2px);}
+    
+    .modal-body { padding: 0; overflow-y: auto; background: var(--sd-parchment); flex-grow: 1; border-radius: 0 0 4px 4px;}
+    
+    /* 分局清單樣式 */
+    .branch-list { list-style: none; padding: 0; margin: 0; }
+    .branch-item { padding: 20px; border-bottom: 2px dotted var(--sd-wood-dark); transition: background 0.2s; border-left: 6px solid transparent; }
+    .branch-item:last-child { border-bottom: none; }
+    .branch-item:hover { background: rgba(255, 255, 255, 0.4); }
+    
+    /* ★ 隱形引導：第一名高亮 (加強星露谷風格) */
+    .branch-item.highlight { 
+      background-color: rgba(255, 215, 0, 0.2); 
+      border-left: 6px solid #eab308; 
+    }
 
-/* 卡片頂部木紋條 */
-.card__img-wrap {
-    position: relative;
-    height: 180px;
-    overflow: hidden;
-    border-bottom: 4px solid var(--wood);
-    background: var(--grass-light);
-}
-.card__img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s ease;
-}
-.card:hover .card__img { transform: scale(1.08); }
+    .b-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px;}
+    .b-name-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1;}
+    .b-name { font-weight: bold; color: var(--sd-text); font-size: 18px; text-shadow: 1px 1px 0px #fff;}
 
-/* 角落裝飾 */
-.card__img-wrap::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom, transparent 60%, rgba(92,61,30,0.3));
-    pointer-events: none;
-}
+    .b-qty { 
+      background: var(--sd-grass-dark); 
+      color: white; 
+      padding: 4px 10px; 
+      border: 2px solid var(--sd-border);
+      border-radius: 4px; 
+      font-size: 14px; 
+      font-weight: bold; 
+      white-space: nowrap; 
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.15);
+    }
+    .b-qty.low-stock { background: var(--sd-warning); }
+    
+    .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
 
-.card__badge {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 2;
-    font-family: var(--font-game);
-    font-size: 0.7rem;
-    font-weight: 800;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 2px solid currentColor;
-    letter-spacing: 0.05em;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-.badge--in_stock  { background: #d4edca; color: var(--grass-dark); border-color: var(--grass); }
-.badge--low_stock { background: #fef9c3; color: #92400e; border-color: #d97706; }
-.badge--sold_out  { background: #fde8e6; color: var(--berry); border-color: var(--berry); }
+    /* 回到最上方按鈕 (變成小星星) */
+    #scrollToTopBtn { 
+      position: fixed; 
+      bottom: 25px; 
+      right: 25px; 
+      width: 55px; 
+      height: 55px; 
+      background-color: #fdeca6; 
+      color: var(--sd-text); 
+      font-size: 24px;
+      border: 3px solid var(--sd-border); 
+      border-radius: 50%; 
+      box-shadow: 0 4px 0px rgba(0,0,0,0.2), inset -2px -2px 0px #dcb360; 
+      cursor: pointer; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      opacity: 0; 
+      visibility: hidden; 
+      transition: all 0.3s ease; 
+      z-index: 999; 
+    }
+    #scrollToTopBtn:active { transform: translateY(4px); box-shadow: 0 0px 0px rgba(0,0,0,0.2), inset 2px 2px 0px #dcb360; }
+    #scrollToTopBtn.show { opacity: 1; visibility: visible; }
 
-.card__body {
-    padding: 16px 18px 18px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: var(--parchment);
-    position: relative;
-}
-/* 格子紙線條 */
-.card__body::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-        transparent, transparent 27px,
-        rgba(160,112,74,0.08) 27px, rgba(160,112,74,0.08) 28px
-    );
-    pointer-events: none;
-}
+    /* 祝尼魔 / 精靈 載入畫面 */
+    #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(253, 236, 166, 0.9); z-index: 1000; display:none; flex-direction:column; justify-content:center; align-items:center; }
+    
+    .bouncing-star {
+      font-size: 50px;
+      animation: bounce 0.6s infinite alternate cubic-bezier(0.5, 0.05, 1, 0.5);
+      margin-bottom: 20px;
+      text-shadow: 0 10px 10px rgba(0,0,0,0.2);
+    }
+    @keyframes bounce {
+      0% { transform: translateY(0) scale(1.1); }
+      100% { transform: translateY(-30px) scale(0.9); text-shadow: 0 40px 15px rgba(0,0,0,0.1); }
+    }
 
-.card__category {
-    font-family: var(--font-game);
-    font-size: 0.68rem;
-    font-weight: 800;
-    color: var(--grass);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 6px;
-    position: relative;
-}
-.card__name {
-    font-family: var(--font-game);
-    font-size: 1rem;
-    font-weight: 800;
-    color: var(--soil);
-    line-height: 1.4;
-    margin-bottom: 10px;
-    position: relative;
-}
-.card__price-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 14px;
-    position: relative;
-}
-.card__price-icon { font-size: 1.1rem; }
-.card__price {
-    font-family: var(--font-game);
-    font-size: 1.2rem;
-    font-weight: 900;
-    color: var(--soil);
-}
-.card__price-unit {
-    font-size: 0.75rem;
-    color: var(--text-light);
-}
+    /* ========== RWD 手機版專屬優化 ========== */
+    @media (max-width: 600px) {
+      .container { padding: 15px; }
+      .location-box { padding: 18px; flex-direction: column; align-items: stretch; gap: 12px; }
+      .location-box label.title { margin-bottom: 0; }
+      .select-group { flex-direction: column; min-width: 100%; gap: 10px;}
+      .btn-search { width: 100%; padding: 14px; font-size: 18px;}
+      .checkbox-wrapper { margin-top: 5px; justify-content: center; margin-right: 0;}
+      
+      .product-grid { grid-template-columns: 1fr; gap: 20px; }
+      .p-img-box { height: 220px; }
+      
+      #scrollToTopBtn { bottom: 20px; right: 20px; width: 50px; height: 50px; }
 
-.card__action { margin-top: auto; position: relative; }
-.btn-stock {
-    width: 100%;
-    padding: 11px;
-    border-radius: var(--radius-btn);
-    font-family: var(--font-game);
-    font-size: 0.85rem;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    transition: all 0.15s;
-    position: relative;
-    top: 0;
-    letter-spacing: 0.03em;
-}
-.btn-stock--active {
-    background: var(--sun);
-    color: var(--soil);
-    border: 3px solid var(--sun-dark);
-    box-shadow: 0 4px 0 var(--sun-dark);
-    text-shadow: 0 1px 0 rgba(255,255,255,0.4);
-}
-.btn-stock--active:hover {
-    top: 2px;
-    box-shadow: 0 2px 0 var(--sun-dark);
-    background: #f7d258;
-}
-.btn-stock--disabled {
-    background: var(--parchment-3);
-    color: #b8a88a;
-    border: 3px solid #d4c4a0;
-    box-shadow: 0 4px 0 #d4c4a0;
-    cursor: not-allowed;
-}
-
-/* ============================================================
-   空狀態
-============================================================ */
-.empty-state {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 64px 24px;
-    color: var(--parchment);
-    font-family: var(--font-game);
-}
-.empty-state__icon { font-size: 4rem; margin-bottom: 12px; animation: bob 2s ease-in-out infinite; }
-.empty-state__text { font-size: 1.1rem; font-weight: 700; text-shadow: 1px 2px 0 var(--soil); }
-
-/* ============================================================
-   Modal — 對話視窗
-============================================================ */
-.modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(30,15,5,0.7);
-    backdrop-filter: blur(3px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
-    padding: 24px;
-}
-.modal-backdrop.is-open { display: flex; }
-.modal {
-    background: var(--parchment);
-    border-radius: 24px;
-    border: 5px solid var(--wood);
-    max-width: 460px;
-    width: 100%;
-    overflow: hidden;
-    box-shadow:
-        0 0 0 2px var(--soil),
-        8px 8px 0 var(--soil),
-        0 24px 64px rgba(0,0,0,0.4);
-    animation: bounceIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
-}
-@keyframes bounceIn {
-    from { transform: scale(0.7) translateY(40px); opacity: 0; }
-    to   { transform: scale(1) translateY(0);    opacity: 1; }
-}
-.modal__header {
-    background: var(--wood);
-    padding: 18px 22px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    border-bottom: 4px solid var(--border-wood);
-}
-.modal__title-group { flex: 1; }
-.modal__subtitle {
-    font-family: var(--font-game);
-    font-size: 0.68rem;
-    font-weight: 700;
-    color: var(--parchment-2);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    margin-bottom: 3px;
-}
-.modal__title {
-    font-family: var(--font-game);
-    font-size: 1.05rem;
-    font-weight: 900;
-    color: var(--sun);
-    text-shadow: 1px 1px 0 var(--soil-light);
-}
-.modal__close {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: rgba(0,0,0,0.2);
-    border: 2px solid rgba(255,255,255,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    color: #fff;
-    transition: all 0.2s;
-    font-family: var(--font-game);
-    font-weight: 900;
-}
-.modal__close:hover {
-    background: var(--berry);
-    border-color: var(--berry);
-    transform: scale(1.1) rotate(15deg);
-}
-.modal__body {
-    padding: 20px 22px;
-    max-height: 52vh;
-    overflow-y: auto;
-    background: var(--parchment);
-}
-.modal__notice {
-    font-size: 0.78rem;
-    color: var(--text-mid);
-    background: var(--parchment-2);
-    border: 2px dashed var(--wood-light);
-    border-radius: 10px;
-    padding: 10px 14px;
-    margin-bottom: 16px;
-    font-family: var(--font-game);
-}
-.branch-list { display: flex; flex-direction: column; gap: 10px; }
-.branch-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 16px;
-    background: var(--parchment-2);
-    border: 3px solid var(--wood-light);
-    border-radius: 14px;
-    transition: all 0.2s;
-    box-shadow: 0 3px 0 var(--wood-light);
-    position: relative;
-    top: 0;
-}
-.branch-item:hover {
-    top: 2px;
-    box-shadow: 0 1px 0 var(--wood-light);
-    border-color: var(--grass);
-}
-.branch-item__name {
-    font-family: var(--font-game);
-    font-weight: 800;
-    font-size: 0.95rem;
-    color: var(--soil);
-    margin-bottom: 3px;
-}
-.branch-item__tel { font-size: 0.78rem; color: var(--text-light); }
-.branch-item__stock { text-align: right; }
-.branch-item__qty {
-    font-family: var(--font-game);
-    font-size: 1.1rem;
-    font-weight: 900;
-}
-.branch-item__qty--low  { color: var(--berry); }
-.branch-item__qty--ok   { color: var(--grass-dark); }
-.branch-item__updated { font-size: 0.68rem; color: #b8a88a; margin-top: 2px; }
-
-.modal__footer {
-    padding: 14px 22px;
-    background: var(--parchment-2);
-    border-top: 3px solid var(--wood-light);
-    display: flex;
-    justify-content: flex-end;
-}
-.btn-modal-close {
-    font-family: var(--font-game);
-    font-size: 0.85rem;
-    font-weight: 800;
-    padding: 9px 26px;
-    border-radius: var(--radius-btn);
-    background: var(--wood);
-    color: var(--parchment);
-    border: 3px solid var(--border-wood);
-    box-shadow: 0 4px 0 var(--border-wood);
-    transition: all 0.15s;
-    position: relative;
-    top: 0;
-}
-.btn-modal-close:hover {
-    top: 2px;
-    box-shadow: 0 2px 0 var(--border-wood);
-}
-
-/* ============================================================
-   頁尾
-============================================================ */
-.footer {
-    background: var(--soil);
-    border-top: 5px solid var(--soil-light);
-    padding: 36px 24px;
-    text-align: center;
-}
-.footer__brand {
-    font-family: var(--font-game);
-    font-size: 1rem;
-    font-weight: 900;
-    color: var(--sun);
-    text-shadow: 1px 1px 0 var(--soil-light);
-    margin-bottom: 14px;
-}
-.footer__links {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    font-family: var(--font-game);
-    font-size: 0.8rem;
-    color: var(--parchment-2);
-    margin-bottom: 18px;
-}
-.footer__links a:hover { color: var(--sun); }
-.footer__copy { font-size: 0.72rem; color: var(--text-light); }
-.footer__deco { font-size: 1.6rem; letter-spacing: 8px; margin-bottom: 12px; }
-
-/* ============================================================
-   RWD
-============================================================ */
-@media (max-width: 600px) {
-    .navbar__links { display: none; }
-    .hero__board { padding: 28px 20px 24px; }
-    .hero__board::before, .hero__board::after { display: none; }
-    .hero__board-corner-bl, .hero__board-corner-br { display: none; }
-}
-    </style>
+      .modal { align-items: flex-end; }
+      .modal-content { width: 100%; max-width: none; border-radius: 12px 12px 0 0; max-height: 85vh; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; border-bottom: none;}
+      @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    }
+  </style>
 </head>
 <body>
 
-<!-- 草地裝飾條 -->
-<div class="ground-strip" aria-hidden="true"></div>
+  <!-- 星露谷精靈載入動畫 -->
+  <div id="loader">
+    <div class="bouncing-star">✨</div>
+    <div style="font-weight:bold; color:var(--sd-text); font-size: 18px; background: #fff; padding: 10px 20px; border: 3px solid var(--sd-border); border-radius: 8px;">正在向精靈確認庫存清單... 📦</div>
+  </div>
 
-<!-- 導覽列 -->
-<nav class="navbar">
-    <div class="navbar__inner">
-        <div class="navbar__brand">
-            <div class="navbar__icon">📮</div>
-            <span class="navbar__title">高雄郵局商品屋</span>
-        </div>
-        <nav class="navbar__links">
-            <a class="navbar__link" href="#">🏠 首頁</a>
-            <a class="navbar__link" href="#">📢 公告</a>
-            <a class="navbar__link" href="#">📦 庫存</a>
-        </nav>
+  <div class="header">
+    <h1>✉️ 高雄郵局 - 雜貨小舖查詢</h1>
+  </div>
+
+  <div class="container">
+    <div class="location-box sd-ui-box">
+      <label class="title">🏡 告訴我們您的農場（所在）位置</label>
+      <div class="select-group">
+        <select id="citySelect" onchange="updateDistricts();"></select>
+        <select id="districtSelect" onchange="saveLocation()"></select>
+      </div>
+      
+      <label class="checkbox-wrapper">
+        <input type="checkbox" id="rememberLoc" onchange="saveLocation()">
+        記住位置
+      </label>
+      
+      <button class="btn-search" onclick="fetchAndRenderProducts()">🔍 搜尋鄰近郵局</button>
     </div>
-</nav>
 
-<!-- Hero 看板 -->
-<header class="hero">
-    <div class="hero__board">
-        <div class="hero__board-corner-bl" aria-hidden="true">🔩</div>
-        <div class="hero__board-corner-br" aria-hidden="true">🔩</div>
-
-        <div class="hero__badge">🌿 新品上架中</div>
-        <h1 class="hero__title">歡迎來到<br><em>高雄郵局商品屋！</em></h1>
-        <p class="hero__desc">
-            這裡有各種集郵精品與生活好物～<br>點擊「庫存透視」，馬上看哪間支局有貨！
-        </p>
-        <div class="search-bar">
-            <input type="text" id="searchInput" class="search-bar__input" placeholder="🔍 搜尋商品名稱…" aria-label="搜尋商品">
-            <button class="filter-btn filter-btn--active"  data-cat="all"  onclick="setFilter('all', this)">全部</button>
-            <button class="filter-btn filter-btn--default" data-cat="集郵" onclick="setFilter('集郵', this)">📮 集郵</button>
-            <button class="filter-btn filter-btn--default" data-cat="生活" onclick="setFilter('生活', this)">🎒 生活</button>
-        </div>
+    <div class="quick-search-box" id="quickSearchBox">
+      <input type="search" id="localSearchInput" placeholder="在皮埃爾的清單中搜尋商品名稱..." oninput="localFilterProducts()">
     </div>
-</header>
 
-<!-- 商店主區 -->
-<main class="shop">
-    <div class="shop__header">
-        <span class="shop__header-title">🛒 商品一覽</span>
-        <span class="shop__count" id="productCount">0</span>
+    <div id="productContainer" class="product-grid">
+      <div class="initial-state">
+        <h2>歡迎來到特色商品專區 🌻</h2>
+        <p>請先設定您所在的縣市與區域<br>並點擊「搜尋鄰近郵局」來尋寶吧！</p>
+      </div>
     </div>
-    <ul id="productGrid" class="product-grid" role="list" aria-label="商品列表"></ul>
-</main>
+  </div>
 
-<!-- 庫存 Modal -->
-<div id="stockModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal">
-        <div class="modal__header">
-            <div class="modal__title-group">
-                <div class="modal__subtitle">📦 庫存透視結果</div>
-                <div class="modal__title" id="modalTitle">商品名稱</div>
-            </div>
-            <button class="modal__close" onclick="UI.closeModal()" aria-label="關閉">✕</button>
-        </div>
-        <div class="modal__body">
-            <div class="modal__notice">⚠️ 資料僅供參考，前往前請先致電確認喔！</div>
-            <ul id="stockList" class="branch-list" aria-label="支局庫存列表"></ul>
-        </div>
-        <div class="modal__footer">
-            <button class="btn-modal-close" onclick="UI.closeModal()">✅ 知道了</button>
-        </div>
+  <div id="branchModal" class="modal" onclick="closeBranchModal()">
+    <div class="modal-content sd-ui-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span id="modalProductName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">鄰近販售據點</span>
+        <button class="btn-close" onclick="closeBranchModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <ul class="branch-list" id="modalBranchList"></ul>
+      </div>
     </div>
-</div>
+  </div>
 
-<!-- 頁尾 -->
-<footer class="footer">
-    <div class="footer__deco">🌻🍄🌿🌼🍄</div>
-    <div class="footer__brand">中華郵政 高雄郵局 — 數位展示平台</div>
-    <div class="footer__links">
-        <a href="#">隱私權政策</a>
-        <a href="#">聯絡我們</a>
-        <a href="#">庫存後台</a>
-    </div>
-    <div class="footer__copy">© 2024 Kaohsiung Post. Designed for Excellence.</div>
-</footer>
+  <button id="scrollToTopBtn" onclick="scrollToTop()" title="回到最上方">
+    ⭐
+  </button>
 
-<script>
-/* =====================================================
-   資料層
-===================================================== */
-const STATUS = { IN_STOCK: 'in_stock', LOW_STOCK: 'low_stock', SOLD_OUT: 'sold_out' };
+  <script>
+    // 資料與邏輯部分完全保留原樣，僅修改部分渲染文字
+    const twData = {
+      "基隆市": ["仁愛區", "信義區", "中正區", "中山區", "安樂區", "暖暖區", "七堵區"],
+      "臺北市": ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"],
+      "新北市": ["萬里區", "金山區", "板橋區", "汐止區", "深坑區", "石碇區", "瑞芳區", "平溪區", "雙溪區", "貢寮區", "新店區", "坪林區", "烏來區", "永和區", "中和區", "土城區", "三峽區", "樹林區", "鶯歌區", "三重區", "新莊區", "泰山區", "林口區", "蘆洲區", "五股區", "八里區", "淡水區", "三芝區", "石門區"],
+      "桃園市": ["中壢區", "平鎮區", "龍潭區", "楊梅區", "新屋區", "觀音區", "桃園區", "龜山區", "八德區", "大溪區", "復興區", "大園區", "蘆竹區"],
+      "新竹縣": ["竹北市", "湖口鄉", "新豐鄉", "新埔鎮", "關西鎮", "芎林鄉", "寶山鄉", "竹東鎮", "五峰鄉", "橫山鄉", "尖石鄉", "北埔鄉", "峨眉鄉"],
+      "新竹市": ["東區", "北區", "香山區"],
+      "苗栗縣": ["竹南鎮", "頭份市", "三灣鄉", "南庄鄉", "獅潭鄉", "後龍鎮", "通霄鎮", "苑裡鎮", "苗栗市", "造橋鄉", "頭屋鄉", "公館鄉", "大湖鄉", "泰安鄉", "銅鑼鄉", "三義鄉", "西湖鄉", "卓蘭鎮"],
+      "臺中市": ["中區", "東區", "南區", "西區", "北區", "北屯區", "西屯區", "南屯區", "太平區", "大里區", "霧峰區", "烏日區", "豐原區", "后里區", "石岡區", "東勢區", "和平區", "新社區", "潭子區", "大雅區", "神岡區", "大肚區", "沙鹿區", "龍井區", "梧棲區", "清水區", "大甲區", "外埔區", "大安區"],
+      "彰化縣": ["彰化市", "芬園鄉", "花壇鄉", "秀水鄉", "鹿港鎮", "福興鄉", "線西鄉", "和美鎮", "伸港鄉", "員林市", "社頭鄉", "永靖鄉", "埔心鄉", "溪湖鎮", "大村鄉", "埔鹽鄉", "田中鎮", "北斗鎮", "田尾鄉", "埤頭鄉", "溪州鄉", "竹塘鄉", "二林鎮", "大城鄉", "芳苑鄉", "二水鄉"],
+      "南投縣": ["南投市", "中寮鄉", "草屯鎮", "國姓鄉", "埔里鎮", "仁愛鄉", "名間鄉", "集集鎮", "水里鄉", "魚池鄉", "信義鄉", "竹山鎮", "鹿谷鄉"],
+      "雲林縣": ["斗南鎮", "大埤鄉", "虎尾鎮", "土庫鎮", "褒忠鄉", "東勢鄉", "臺西鄉", "崙背鄉", "麥寮鄉", "斗六市", "林內鄉", "古坑鄉", "莿桐鄉", "西螺鎮", "二崙鄉", "北港鎮", "水林鄉", "口湖鄉", "四湖鄉", "元長鄉"],
+      "嘉義縣": ["番路鄉", "梅山鄉", "竹崎鄉", "阿里山鄉", "中埔鄉", "大埔鄉", "水上鄉", "鹿草鄉", "太保市", "朴子市", "東石鄉", "六腳鄉", "新港鄉", "民雄鄉", "大林鎮", "溪口鄉", "義竹鄉", "布袋鎮"],
+      "嘉義市": ["東區", "西區"],
+      "臺南市": ["中西區", "東區", "南區", "北區", "安平區", "安南區", "永康區", "歸仁區", "新化區", "左鎮區", "玉井區", "楠西區", "南化區", "仁德區", "關廟區", "龍崎區", "官田區", "麻豆區", "佳里區", "西港區", "七股區", "將軍區", "學甲區", "北門區", "新營區", "後壁區", "白河區", "東山區", "六甲區", "下營區", "柳營區", "鹽水區", "善化區", "大內區", "山上區", "新市區", "安定區"],
+      "高雄市": ["新興區", "前金區", "苓雅區", "鹽埕區", "鼓山區", "旗津區", "前鎮區", "三民區", "楠梓區", "小港區", "左營區", "仁武區", "大社區", "岡山區", "路竹區", "阿蓮區", "田寮區", "燕巢區", "橋頭區", "梓官區", "彌陀區", "永安區", "湖內區", "鳳山區", "大寮區", "林園區", "鳥松區", "大樹區", "旗山區", "美濃區", "六龜區", "內門區", "杉林區", "甲仙區", "桃源區", "那瑪夏區", "茂林區", "茄萣區"],
+      "屏東縣": ["屏東市", "三地門鄉", "霧臺鄉", "瑪家鄉", "九如鄉", "里港鄉", "高樹鄉", "鹽埔鄉", "長治鄉", "麟洛鄉", "竹田鄉", "內埔鄉", "萬丹鄉", "潮州鎮", "泰武鄉", "來義鄉", "萬巒鄉", "崁頂鄉", "新埤鄉", "南州鄉", "林邊鄉", "東港鎮", "琉球鄉", "佳冬鄉", "新園鄉", "枋寮鄉", "枋山鄉", "春日鄉", "獅子鄉", "車城鄉", "牡丹鄉", "恆春鎮", "滿州鄉"],
+      "宜蘭縣": ["宜蘭市", "頭城鎮", "礁溪鄉", "壯圍鄉", "員山鄉", "羅東鎮", "三星鄉", "大同鄉", "五結鄉", "冬山鄉", "蘇澳鎮", "南澳鄉"],
+      "花蓮縣": ["花蓮市", "新城鄉", "秀林鄉", "吉安鄉", "壽豐鄉", "鳳林鎮", "光復鄉", "豐濱鄉", "瑞穗鄉", "萬榮鄉", "玉里鎮", "卓溪鄉", "富里鄉"],
+      "臺東縣": ["臺東市", "綠島鄉", "蘭嶼鄉", "延平鄉", "卑南鄉", "鹿野鄉", "關山鎮", "海端鄉", "池上鄉", "東河鄉", "成功鎮", "長濱鄉", "太麻里鄉", "金峰鄉", "大武鄉", "達仁鄉"],
+      "澎湖縣": ["馬公市", "西嶼鄉", "望安鄉", "七美鄉", "白沙鄉", "湖西鄉"],
+      "金門縣": ["金沙鎮", "金湖鎮", "金寧鄉", "金城鎮", "烈嶼鄉", "烏坵鄉"],
+      "連江縣": ["南竿鄉", "北竿鄉", "莒光鄉", "東引鄉"]
+    };
 
-const PRODUCTS = [
-    {
-        id: 1,
-        name: "鋼鐵人 限量郵摺",
-        category: "集郵",
-        price: 450,
-        status: STATUS.IN_STOCK,
-        img: "https://images.unsplash.com/photo-1594819047050-99defca82545?w=400&q=80",
-        branches: [
-            { name: "新興郵局", stock: 12, tel: "07-231xxxx" },
-            { name: "左營郵局", stock: 3,  tel: "07-581xxxx" },
-            { name: "鳳山郵局", stock: 25, tel: "07-746xxxx" },
-        ]
-    },
-    {
-        id: 2,
-        name: "SNOOPY 聯名手提袋",
-        category: "生活",
-        price: 299,
-        status: STATUS.LOW_STOCK,
-        img: "https://images.unsplash.com/photo-1544816155-12df9643f363?w=400&q=80",
-        branches: [
-            { name: "鼓山郵局", stock: 1, tel: "07-531xxxx" },
-            { name: "三民郵局", stock: 2, tel: "07-311xxxx" },
-        ]
-    },
-    {
-        id: 3,
-        name: "波波鴿 絨毛娃娃",
-        category: "生活",
-        price: 150,
-        status: STATUS.SOLD_OUT,
-        img: "https://images.unsplash.com/photo-1559440666-37421326444e?w=400&q=80",
-        branches: []
-    },
-    {
-        id: 4,
-        name: "高雄風景經典明信片組",
-        category: "集郵",
-        price: 120,
-        status: STATUS.IN_STOCK,
-        img: "https://images.unsplash.com/photo-1579541814924-49fef17c5be5?w=400&q=80",
-        branches: [
-            { name: "旗津郵局", stock: 50, tel: "07-571xxxx" },
-            { name: "美濃郵局", stock: 30, tel: "07-681xxxx" },
-        ]
+    let globalData = {}; 
+
+    window.onload = () => {
+      initLocationDropdowns();
+      if(GAS_API_URL.includes('請在此填入')) {
+         alert('⚠️ 系統提示：請務必在程式碼最上方的 GAS_API_URL 填入您的專屬網址！');
+      }
+    };
+
+    function initLocationDropdowns() {
+      const citySel = document.getElementById('citySelect');
+      citySel.innerHTML = '<option value="">請選擇縣市</option>';
+      for (let city in twData) {
+        citySel.add(new Option(city, city));
+      }
+
+      const savedCity = localStorage.getItem('cust_city');
+      const savedDist = localStorage.getItem('cust_dist');
+      const isRemember = localStorage.getItem('cust_remember') === 'true';
+
+      if (isRemember && savedCity) {
+        document.getElementById('rememberLoc').checked = true;
+        citySel.value = savedCity;
+        updateDistricts();
+        if (savedDist) {
+          document.getElementById('districtSelect').value = savedDist;
+        }
+      } else {
+        updateDistricts();
+      }
     }
-];
 
-/* =====================================================
-   設定層
-===================================================== */
-const CONFIG = {
-    lowStockThreshold: 5,
-    updatedLabel: "更新於 10 分鐘前",
-    statusLabel: {
-        [STATUS.IN_STOCK]:  "✨ 在售中",
-        [STATUS.LOW_STOCK]: "⚡ 即將完售",
-        [STATUS.SOLD_OUT]:  "💨 已完售",
-    },
-    statusClass: {
-        [STATUS.IN_STOCK]:  "badge--in_stock",
-        [STATUS.LOW_STOCK]: "badge--low_stock",
-        [STATUS.SOLD_OUT]:  "badge--sold_out",
+    function updateDistricts() {
+      const city = document.getElementById('citySelect').value;
+      const distSel = document.getElementById('districtSelect');
+      distSel.innerHTML = '<option value="">請選擇區域 (全區)</option>';
+      
+      if (city && twData[city]) {
+        twData[city].forEach(dist => {
+          distSel.add(new Option(dist, dist));
+        });
+      }
+      saveLocation();
     }
-};
 
-/* =====================================================
-   樣板層
-===================================================== */
-const Templates = {
-    card(product, index) {
-        const isSoldOut  = product.status === STATUS.SOLD_OUT;
-        const badgeClass = CONFIG.statusClass[product.status];
-        const badgeLabel = CONFIG.statusLabel[product.status];
-        const btnClass   = isSoldOut ? 'btn-stock--disabled' : 'btn-stock--active';
-        const btnLabel   = isSoldOut ? '💨 已全數售罄' : '🔍 庫存透視';
-        const price      = product.price.toLocaleString('zh-TW');
-        const delay      = index * 0.06;
+    function saveLocation() {
+      const isChecked = document.getElementById('rememberLoc').checked;
+      const city = document.getElementById('citySelect').value;
+      const dist = document.getElementById('districtSelect').value;
 
-        return `
-            <li class="card" role="listitem" style="animation-delay:${delay}s">
-                <div class="card__img-wrap">
-                    <img class="card__img" src="${product.img}" alt="${product.name}" loading="lazy">
-                    <span class="card__badge ${badgeClass}">${badgeLabel}</span>
-                </div>
-                <div class="card__body">
-                    <p class="card__category">🌿 ${product.category}</p>
-                    <h2 class="card__name">${product.name}</h2>
-                    <div class="card__price-row">
-                        <span class="card__price-icon">🪙</span>
-                        <span class="card__price">NT$ ${price}</span>
-                        <span class="card__price-unit">/ 件</span>
-                    </div>
-                    <div class="card__action">
-                        <button class="btn-stock ${btnClass}"
-                                ${isSoldOut
-                                    ? 'disabled aria-disabled="true"'
-                                    : `onclick="UI.openModal(${product.id})"`}
-                                aria-label="${isSoldOut ? '已售罄' : `查看${product.name}庫存`}">
-                            ${btnLabel}
-                        </button>
-                    </div>
-                </div>
-            </li>`;
-    },
-
-    branchItem(branch) {
-        const isLow    = branch.stock < CONFIG.lowStockThreshold;
-        const qtyClass = isLow ? 'branch-item__qty--low' : 'branch-item__qty--ok';
-        const qtyIcon  = isLow ? '🔴' : '🟢';
-        return `
-            <li class="branch-item">
-                <div>
-                    <div class="branch-item__name">🏪 ${branch.name}</div>
-                    <div class="branch-item__tel">📞 ${branch.tel}</div>
-                </div>
-                <div class="branch-item__stock">
-                    <div class="branch-item__qty ${qtyClass}">${qtyIcon} ${branch.stock} 件</div>
-                    <div class="branch-item__updated">${CONFIG.updatedLabel}</div>
-                </div>
-            </li>`;
-    },
-
-    empty() {
-        return `<li class="empty-state">
-            <div class="empty-state__icon">🌾</div>
-            <div class="empty-state__text">找不到符合條件的商品…</div>
-        </li>`;
+      localStorage.setItem('cust_remember', isChecked);
+      if (isChecked) {
+        localStorage.setItem('cust_city', city);
+        localStorage.setItem('cust_dist', dist);
+      } else {
+        localStorage.removeItem('cust_city');
+        localStorage.removeItem('cust_dist');
+      }
     }
-};
 
-/* =====================================================
-   狀態層
-===================================================== */
-const State = {
-    filter: 'all',
-    query:  '',
-    getFiltered() {
-        return PRODUCTS.filter(p => {
-            const matchCat   = this.filter === 'all' || p.category === this.filter;
-            const matchQuery = p.name.toLowerCase().includes(this.query.toLowerCase());
-            return matchCat && matchQuery;
+    function fetchAndRenderProducts() {
+      const city = document.getElementById('citySelect').value;
+      if (!city) return alert("請先選擇您所在的縣市，以利為您推薦最近的郵局！");
+
+      document.getElementById('loader').style.display = 'flex';
+      
+      fetch(GAS_API_URL + '?action=getCustomerData')
+        .then(response => response.json())
+        .then(res => {
+          document.getElementById('loader').style.display = 'none';
+          if(res.status === 'success') {
+            globalData = res;
+            document.getElementById('quickSearchBox').style.display = 'block';
+            document.getElementById('localSearchInput').value = ''; 
+            
+            renderProducts(globalData.products);
+          } else {
+            alert('資料載入失敗：' + res.message);
+          }
+        })
+        .catch(err => {
+          document.getElementById('loader').style.display = 'none';
+          alert('網路連線發生錯誤，請確認 GAS API 網址是否正確且已發布！\n' + err);
         });
     }
-};
 
-/* =====================================================
-   UI 控制層
-===================================================== */
-const UI = {
-    grid:   document.getElementById('productGrid'),
-    count:  document.getElementById('productCount'),
-    modal:  document.getElementById('stockModal'),
-    mTitle: document.getElementById('modalTitle'),
-    mList:  document.getElementById('stockList'),
+    function getTop5Branches(productKey) {
+      const selCity = document.getElementById('citySelect').value;
+      const selDist = document.getElementById('districtSelect').value;
+      
+      const stockList = globalData.stockMap[productKey] || [];
+      if (stockList.length === 0) return []; 
 
-    render() {
-        const data = State.getFiltered();
-        this.count.textContent = data.length;
-        this.grid.innerHTML = data.length
-            ? data.map((p, i) => Templates.card(p, i)).join('')
-            : Templates.empty();
-    },
+      let branchPool = stockList.map(stock => {
+        const info = globalData.branchInfo[stock.branchId];
+        if (!info) return null;
+        
+        let priority = 3; 
+        if (selCity && info.address.includes(selCity)) {
+          priority = 2; 
+          if (selDist && info.address.includes(selDist)) {
+            priority = 1; 
+          }
+        }
+        
+        return {
+          name: info.name,
+          address: info.address,
+          phone: info.phone,
+          qty: stock.qty,
+          priority: priority,
+          activeScore: info.baseActiveScore || 0 
+        };
+      }).filter(b => b !== null);
 
-    openModal(id) {
-        const product = PRODUCTS.find(p => p.id === id);
-        if (!product || product.status === STATUS.SOLD_OUT) return;
+      branchPool.sort((a, b) => {
+        if (a.priority !== b.priority) return a.priority - b.priority;
 
-        this.mTitle.textContent = product.name;
-        this.mList.innerHTML = product.branches.length
-            ? product.branches.map(b => Templates.branchItem(b)).join('')
-            : '<li style="text-align:center;padding:24px;color:var(--text-light);font-family:var(--font-game)">🌾 查無支局庫存資訊</li>';
+        const aStockBonus = a.qty > 5 ? 10 : 0;
+        const bStockBonus = b.qty > 5 ? 10 : 0;
+        const aTotalScore = a.activeScore + aStockBonus;
+        const bTotalScore = b.activeScore + bStockBonus;
 
-        this.modal.classList.add('is-open');
-        document.body.style.overflow = 'hidden';
-    },
+        if (aTotalScore !== bTotalScore) return bTotalScore - aTotalScore; 
 
-    closeModal() {
-        this.modal.classList.remove('is-open');
-        document.body.style.overflow = '';
+        return b.qty - a.qty;
+      });
+
+      return branchPool.slice(0, 5);
     }
-};
 
-/* =====================================================
-   事件綁定
-===================================================== */
-function setFilter(cat, btn) {
-    State.filter = cat;
-    document.querySelectorAll('.filter-btn').forEach(b => {
-        b.classList.toggle('filter-btn--active',  b === btn);
-        b.classList.toggle('filter-btn--default', b !== btn);
-    });
-    UI.render();
-}
+    function renderProducts(filteredList) {
+      const container = document.getElementById('productContainer');
+      
+      if (!filteredList || filteredList.length === 0) {
+        container.innerHTML = '<div class="initial-state"><h2>找不到符合的商品 🍂</h2><p>請嘗試更換搜尋關鍵字，或郵局目前暫未提供該商品。</p></div>';
+        return;
+      }
 
-document.getElementById('searchInput').addEventListener('input', e => {
-    State.query = e.target.value;
-    UI.render();
-});
+      container.innerHTML = '';
+      
+      let topBadgeCount = 0;
+      
+      filteredList.forEach((p) => {
+        const hasStock = (globalData.stockMap[p.key] || []).length > 0;
+        
+        let badgeHtml = '';
+        if (hasStock && p.clicks > 0 && topBadgeCount < 3) {
+          topBadgeCount++;
+          badgeHtml = `<div class="hot-badge">⭐ 明星商品 TOP ${topBadgeCount}</div>`;
+        }
 
-document.getElementById('stockModal').addEventListener('click', e => {
-    if (e.target === document.getElementById('stockModal')) UI.closeModal();
-});
+        const outOfStockStyle = hasStock ? '' : 'opacity: 0.75; filter: grayscale(40%);';
 
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') UI.closeModal();
-});
+        const card = document.createElement('div');
+        card.className = 'p-card sd-ui-box';
+        card.style = outOfStockStyle;
+        card.innerHTML = `
+          ${badgeHtml}
+          <div class="p-img-box">
+            <img src="${p.img}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=📦影像遺失'">
+          </div>
+          <div class="p-info">
+            <h3 class="p-title">${p.name}</h3>
+            <div class="p-desc">${p.desc}</div>
+            <div class="p-meta">
+              <span class="p-barcode">條碼: ${p.barcode}</span>
+              <span class="p-price">${p.price}</span>
+            </div>
+          </div>
+          <button class="btn-view-branch" onclick="openBranchModal('${p.key}', '${p.name}')" ${!hasStock ? 'disabled style="background:#8c7562 !important; border-color:#4a3219 !important; color:#dcdcdc !important; cursor:not-allowed; box-shadow:none; transform:none;"' : ''}>
+            ${hasStock ? '📍 查看鄰近販售郵局' : '補貨中...'}
+          </button>
+        `;
+        container.appendChild(card);
+      });
+    }
 
-/* =====================================================
-   初始化
-===================================================== */
-UI.render();
-</script>
+    function localFilterProducts() {
+      const searchText = document.getElementById('localSearchInput').value.toLowerCase();
+      
+      const filteredResults = globalData.products.filter(p => {
+        const titleMatch = p.name.toLowerCase().includes(searchText);
+        const barcodeMatch = String(p.barcode).toLowerCase().includes(searchText);
+        return titleMatch || barcodeMatch;
+      });
+
+      renderProducts(filteredResults);
+    }
+
+    function openBranchModal(productKey, productName) {
+      fetch(GAS_API_URL + '?action=recordClick&productId=' + encodeURIComponent(productKey))
+        .catch(e => console.log('人氣紀錄錯誤:', e));
+
+      document.getElementById('modalProductName').innerText = `尋找「${productName}」`;
+      const listUl = document.getElementById('modalBranchList');
+      const branches = getTop5Branches(productKey);
+      
+      listUl.innerHTML = '';
+      if(branches.length === 0) {
+        listUl.innerHTML = '<li class="branch-item" style="text-align:center;color:var(--sd-text-muted);padding:40px;font-weight:bold;">目前此區域尚未查詢到庫存 🍂</li>';
+      } else {
+        branches.forEach((b, index) => {
+          const qtyClass = b.qty <= 5 ? 'b-qty low-stock' : 'b-qty';
+          const qtyLabel = b.qty <= 5 ? `即將完售 (${b.qty})` : `架上剩餘: ${b.qty}`;
+
+          let highlightClass = index === 0 ? ' highlight' : '';
+          let rankIcon = index === 0 ? '🏆 ' : '📫 ';
+
+          listUl.innerHTML += `
+            <li class="branch-item${highlightClass}">
+              <div class="b-header">
+                <div class="b-name-wrapper">
+                  <span class="b-name">${rankIcon}${b.name}</span>
+                </div>
+                <span class="${qtyClass}">${qtyLabel}</span>
+              </div>
+              <div class="b-detail">
+                <span>📍 ${b.address}</span>
+              </div>
+              <div class="b-detail">
+                <span>📞 ${b.phone}</span>
+              </div>
+            </li>
+          `;
+        });
+      }
+
+      document.getElementById('branchModal').style.display = 'flex';
+      document.body.style.overflow = 'hidden'; 
+    }
+
+    function closeBranchModal() {
+      document.getElementById('branchModal').style.display = 'none';
+      document.body.style.overflow = 'auto'; 
+    }
+
+    window.onscroll = function() {
+      const btn = document.getElementById('scrollToTopBtn');
+      if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+        btn.classList.add('show');
+      } else {
+        btn.classList.remove('show');
+      }
+    };
+
+    function scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  </script>
 </body>
 </html>
