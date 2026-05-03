@@ -5,6 +5,50 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>高雄郵風商品櫥窗</title>
   
+  <!-- ================= SEO Meta Tags 開始 ================= -->
+  <!-- 網站描述，這會顯示在 Google 搜尋結果的標題下方 -->
+  <meta name="description" content="高雄郵政特色商品櫥窗，快速查詢各郵局特色商品與庫存，尋找離您最近的販售據點。星露谷風格溫馨介面，讓您輕鬆尋寶！">
+  <!-- 網站關鍵字 -->
+  <meta name="keywords" content="高雄郵局, 郵政商品, 郵局代售商品, 郵局庫存查詢, 高雄郵風, 紀念品, 尋寶">
+  <meta name="author" content="Chiahsien">
+  <!-- 允許搜尋引擎抓取與建立索引 -->
+  <meta name="robots" content="index, follow">
+  <!-- 設定標準網址，避免搜尋引擎因為網址結尾有無斜線而判定為重複內容 -->
+  <link rel="canonical" href="https://jcnmlm-ui.github.io/buysomething/">
+
+  <!-- Open Graph 標籤 (用於 Facebook, LINE, Twitter 分享時的精美卡片預覽) -->
+  <meta property="og:title" content="高雄郵風商品櫥窗 - 尋找特色郵局商品">
+  <meta property="og:description" content="快速查詢高雄各地郵局的特色商品與庫存，尋找離您最近的販售據點！">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://jcnmlm-ui.github.io/buysomething/">
+  <!-- 預覽縮圖，建議放一張代表性的圖片網址，這裡暫時使用您的其中一張圖片作為預設 -->
+  <meta property="og:image" content="https://jcnmlm-ui.github.io/buysomething/images/080000AA.jpg">
+  
+  <!-- ================= SEO 進階加分設定 開始 ================= -->
+  <!-- 加分 1：網站圖示 (Favicon)。這會顯示在 Google 搜尋結果的標題旁邊，增加點擊率。這裡用一個簡單的包裹 Emoji 代替 -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
+  
+  <!-- 加分 2：預先連線 (Preconnect)。告訴瀏覽器提早準備連線 GAS，提升網頁載入速度 (速度快 = SEO 加分) -->
+  <link rel="preconnect" href="https://script.google.com">
+  
+  <!-- 加分 3：結構化資料 (JSON-LD)。這就像遞名片給 Google 機器人，用它最懂的格式告訴它這是一個什麼網站 -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "高雄郵風商品櫥窗",
+    "url": "https://jcnmlm-ui.github.io/buysomething/",
+    "description": "快速查詢高雄各郵局特色商品、紀念品與代售商品庫存，尋找離您最近的販售據點。",
+    "keywords": "高雄郵局, 郵政商品, 庫存查詢",
+    "inLanguage": "zh-TW"
+  }
+  </script>
+  <!-- ================= SEO 進階加分設定 結束 ================= -->
+
+  <!-- ⚠️ 注意：稍後請將 Google Search Console 提供的驗證標籤貼在下方 ⚠️ -->
+  <!-- <meta name="google-site-verification" content="您從 GSC 取得的驗證碼" /> -->
+  <!-- ================= SEO Meta Tags 結束 ================= -->
+
   <!-- 引入 Google Fonts：清晰的 Noto Sans TC (中文) 與 VT323 (像素數字) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -441,6 +485,10 @@
 
   <!-- 版權宣告區 -->
   <div class="footer">
+    <!-- 加分 4：靜態文字佈局。因為商品是動態載入的，我們在頁尾補上一些靜態的 SEO 關鍵字，讓爬蟲第一時間就能抓到字 -->
+    <p style="font-size: 13px; color: var(--sd-text-muted); margin-bottom: 10px; font-weight: normal;">
+      本站提供台灣各地區（含高雄、台北、台中等）郵局代售商品、集郵票品、特色紀念品之即時庫存查詢與據點導航服務。
+    </p>
     © Design by Chiahsien
   </div>
 
@@ -448,7 +496,8 @@
     <div class="modal-content sd-ui-box" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span id="modalProductName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">鄰近販售據點</span>
-        <button class="btn-close" onclick="closeBranchModal()">&times;</button>
+        <!-- 加分 5：無障礙屬性 (aria-label)。加上這個可以讓網頁對視障人士更友善，Google 對於高無障礙分數的網站會給予較好的排名 -->
+        <button class="btn-close" onclick="closeBranchModal()" aria-label="關閉視窗">&times;</button>
       </div>
       <div class="modal-body">
         <ul class="branch-list" id="modalBranchList"></ul>
@@ -456,7 +505,7 @@
     </div>
   </div>
 
-  <button id="scrollToTopBtn" onclick="scrollToTop()" title="回到最上方">
+  <button id="scrollToTopBtn" onclick="scrollToTop()" title="回到最上方" aria-label="回到網頁最上方">
     ⭐
   </button>
 
