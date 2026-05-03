@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>高雄郵局 - 特色商品查詢網</title>
   
-  <!-- 引入 Google Fonts 中比較有復古感的字體 -->
-  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+  <!-- 引入 Google Fonts：清晰的 Noto Sans TC (中文) 與 VT323 (像素數字) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=VT323&display=swap" rel="stylesheet">
 
   <script>
     // =========================================================================
@@ -35,8 +37,8 @@
     * { box-sizing: border-box; }
     
     body { 
-      /* 結合像素風英文字體與正黑體 */
-      font-family: 'DotGothic16', 'Microsoft JhengHei', 'PingFang TC', sans-serif; 
+      /* 換成清晰好讀的無襯線字體 */
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif; 
       background-color: var(--sd-grass); 
       /* 加上淡淡的草地網格紋理 */
       background-image: 
@@ -206,9 +208,9 @@
     .p-desc { font-size: 15px; color: var(--sd-text-muted); margin-bottom: 16px; line-height: 1.6; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-weight: bold;}
     
     .p-meta { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 2px dashed var(--sd-wood-dark); }
-    .p-barcode { font-family: 'DotGothic16', monospace; font-size: 12px; color: #fff; background: var(--sd-wood-dark); padding: 4px 8px; border-radius: 4px; border: 2px solid var(--sd-border);}
-    .p-price { font-size: 24px; font-weight: bold; color: var(--sd-hot); text-shadow: 1px 1px 0px rgba(255,255,255,0.8);}
-    .p-price::before { content: '💰 '; font-size: 16px; }
+    .p-barcode { font-family: 'VT323', monospace; font-size: 16px; color: #fff; background: var(--sd-wood-dark); padding: 4px 8px; border-radius: 4px; border: 2px solid var(--sd-border); letter-spacing: 1px;}
+    .p-price { font-family: 'VT323', monospace; font-size: 28px; font-weight: normal; color: var(--sd-hot); text-shadow: 1px 1px 0px rgba(255,255,255,0.8); letter-spacing: 1px;}
+    .p-price::before { content: '💰 '; font-size: 18px; font-family: 'Noto Sans TC', sans-serif; }
 
     /* 按鈕顯眼化設計 */
     .btn-view-branch { 
