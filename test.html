@@ -630,10 +630,13 @@
         const card = document.createElement('div');
         card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
+        
+        // 將圖片來源改為 ./image/{條碼}.jpg，若載入失敗則觸發 onerror 替換為預設圖 080000AA.jpg
+        // 加入 this.onerror=null; 是為了防止如果連預設圖都不存在時，造成無限迴圈的錯誤
         card.innerHTML = `
           ${badgeHtml}
           <div class="p-img-box">
-            <img src="${p.img}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/300x200?text=📦影像遺失'">
+            <img src="./image/${p.barcode}.jpg" alt="${p.name}" onerror="this.onerror=null; this.src='./image/080000AA.jpg';">
           </div>
           <div class="p-info">
             <h3 class="p-title">${p.name}</h3>
