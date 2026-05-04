@@ -262,6 +262,7 @@
       align-items: center;
       opacity: 0;
       transition: opacity 0.2s;
+      pointer-events: none; /* ★ 修正 1：加上讓滑鼠點擊「穿透」黑霧的屬性 */
     }
     .p-img-box:hover::after {
       opacity: 1;
@@ -394,6 +395,12 @@
       color: white; margin-top: 20px; font-size: 22px; font-weight: bold; 
       text-shadow: 2px 2px 4px black; text-align: center;
     }
+    /* ★ 修正 2：補回燈箱說明的 CSS 樣式 */
+    .gallery-desc {
+      color: #e2e8f0; margin-top: 8px; font-size: 14px; font-weight: normal; 
+      text-shadow: 1px 1px 3px black; text-align: center; max-width: 90vw;
+      line-height: 1.5; padding: 0 15px; white-space: pre-wrap;
+    }
     .gallery-counter {
       color: var(--sd-parchment); font-size: 18px; margin-top: 5px; 
       font-family: 'VT323', monospace; letter-spacing: 2px;
@@ -507,6 +514,8 @@
     </div>
     
     <div id="galleryTitle" class="gallery-title"></div>
+    <!-- ★ 修正 3：補回燈箱說明的 HTML 區塊 -->
+    <div id="galleryDesc" class="gallery-desc"></div>
     <div id="galleryCounter" class="gallery-counter"></div>
   </div>
 
@@ -768,33 +777,31 @@
 
         const outOfStockStyle = hasStock ? '' : 'opacity: 0.75; filter: grayscale(40%);';
 
-        // ★ 新增：精準判斷「補貨中」與「已售罄」
         let btnText = '📍 查看鄰近販售郵局';
         let btnStyle = '';
         
         if (!hasStock) {
           if (p.totalInvQty === 0) {
-            // 庫存表裡完全沒有數量 = 已售罄 (更深的灰色)
             btnText = '已售罄 🪧';
             btnStyle = 'disabled style="background:#5c5c5c !important; border-color:#383838 !important; color:#a3a3a3 !important; cursor:not-allowed; box-shadow:none; transform:none;"';
           } else {
-            // 庫存表有數量，只是支局經理還沒打勾上架 = 補貨中
             btnText = '補貨中...';
             btnStyle = 'disabled style="background:#8c7562 !important; border-color:#4a3219 !important; color:#dcdcdc !important; cursor:not-allowed; box-shadow:none; transform:none;"';
           }
         }
 
-        // ★ 修正：將說明文字安全化，避免單雙引號或換行破壞 HTML 結構
-        const safeDesc = p.desc ? String(p.desc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, "\\n").replace(/\r/g, "") : "暫無說明";
+        // ★ 終極安全防線：用 encodeURIComponent 把文字徹底轉碼，絕對不會弄破 HTML 結構
+        const safeName = encodeURIComponent(p.name || "未命名商品");
+        const safeDesc = encodeURIComponent(p.desc || "目前尚未提供商品詳細說明，款式與規格請依現場實物為主。");
 
         const card = document.createElement('div');
         card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
         
-        // ★ 修正：把 safeDesc 加入 openGallery 的第三個參數中
+        // ★ 修正 4：把轉碼過的安全字串傳遞給 openGallery
         card.innerHTML = `
           ${badgeHtml}
-          <div class="p-img-box" onclick="openGallery('${p.barcode}', '${p.name}', '${safeDesc}', this.querySelector('img').src)">
+          <div class="p-img-box" onclick="openGallery('${p.barcode}', '${safeName}', '${safeDesc}', this.querySelector('img').src)">
             <img src="./images/${p.barcode}.jpg" alt="${p.name}" onerror="handleImageError(this, '${p.img}')">
           </div>
           <div class="p-info">
@@ -825,44 +832,33 @@
       renderProducts(filteredResults);
     }
 
-    // ==========================================
-    // ★ 全新功能：自動抓取多張圖片的畫廊 (Lightbox)
-    // ==========================================
     let currentGalleryImgs = [];
     let currentGalleryIdx = 0;
 
-    // ★ 修正：接收編碼後的 name 與 desc，並用 decodeURIComponent 解碼
+    // ★ 修正 5：在燈箱展開時，使用 decodeURIComponent 把文字解碼還原回來
     function openGallery(barcode, encName, encDesc, activeImgSrc) {
-      // 1. 初始化資料
-      currentGalleryImgs = [activeImgSrc]; // 第一張圖就是畫面上成功顯示的那張
+      currentGalleryImgs = [activeImgSrc]; 
       currentGalleryIdx = 0;
       
-      // 2. 更新燈箱 UI (將文字解碼還原)
       document.getElementById('galleryTitle').innerText = decodeURIComponent(encName);
       document.getElementById('galleryDesc').innerText = decodeURIComponent(encDesc); 
       document.getElementById('galleryImg').src = activeImgSrc;
       document.getElementById('galleryLightbox').style.display = 'flex';
       
-      // 先關閉箭頭，等確認有圖才打開
       updateGalleryArrows();
-
-      // 3. 自動在背景往 Github 尋找有沒有附加圖片 (條碼-1.jpg, 條碼-2.jpg...)
       checkExtraImages(barcode, 1);
     }
 
     function checkExtraImages(barcode, fileIndex) {
       let testImg = new Image();
       testImg.onload = function() {
-        // 如果找到了，把圖片塞進陣列
         currentGalleryImgs.push(this.src);
         updateGalleryArrows();
-        // 繼續找下一張
         checkExtraImages(barcode, fileIndex + 1);
       };
       testImg.onerror = function() {
-        // 找不到，代表沒有更多圖片了，停止偵測
+        // 偵測結束
       };
-      // 測試路徑： /images/條碼-1.jpg
       testImg.src = `./images/${barcode}-${fileIndex}.jpg`;
     }
 
@@ -881,7 +877,6 @@
 
     function changeGalleryImage(step) {
       currentGalleryIdx += step;
-      // 邊界防呆
       if (currentGalleryIdx < 0) currentGalleryIdx = 0;
       if (currentGalleryIdx >= currentGalleryImgs.length) currentGalleryIdx = currentGalleryImgs.length - 1;
       
@@ -894,7 +889,6 @@
       currentGalleryImgs = [];
     }
 
-    // 鍵盤支援：按左右鍵切換圖片，按 Esc 關閉
     document.addEventListener('keydown', function(event) {
       if (document.getElementById('galleryLightbox').style.display === 'flex') {
         if (event.key === 'ArrowLeft') changeGalleryImage(-1);
@@ -905,7 +899,6 @@
         if (event.key === 'Escape') closeBranchModal();
       }
     });
-    // ==========================================
 
     function openBranchModal(productKey, productName) {
       fetch(GAS_API_URL + '?action=recordClick&productId=' + encodeURIComponent(productKey))
