@@ -784,14 +784,17 @@
           }
         }
 
+        // ★ 修正：將說明文字安全化，避免單雙引號或換行破壞 HTML 結構
+        const safeDesc = p.desc ? String(p.desc).replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/\n/g, "\\n").replace(/\r/g, "") : "暫無說明";
+
         const card = document.createElement('div');
         card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
         
-        // ★ 圖片區塊加入 onclick 開啟畫廊。注意：我們傳入 this.querySelector('img').src 確保抓到正確顯示的那張圖
+        // ★ 修正：把 safeDesc 加入 openGallery 的第三個參數中
         card.innerHTML = `
           ${badgeHtml}
-          <div class="p-img-box" onclick="openGallery('${p.barcode}', '${p.name}', this.querySelector('img').src)">
+          <div class="p-img-box" onclick="openGallery('${p.barcode}', '${p.name}', '${safeDesc}', this.querySelector('img').src)">
             <img src="./images/${p.barcode}.jpg" alt="${p.name}" onerror="handleImageError(this, '${p.img}')">
           </div>
           <div class="p-info">
