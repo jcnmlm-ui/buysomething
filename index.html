@@ -45,10 +45,6 @@
   </script>
   <!-- ================= SEO 進階加分設定 結束 ================= -->
 
-  <!-- ⚠️ 注意：稍後請將 Google Search Console 提供的驗證標籤貼在下方 ⚠️ -->
-  <!-- <meta name="google-site-verification" content="您從 GSC 取得的驗證碼" /> -->
-  <!-- ================= SEO Meta Tags 結束 ================= -->
-
   <!-- 引入 Google Fonts：清晰的 Noto Sans TC (中文) 與 VT323 (像素數字) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -81,10 +77,8 @@
     * { box-sizing: border-box; }
     
     body { 
-      /* 換成清晰好讀的無襯線字體 */
       font-family: 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif; 
       background-color: var(--sd-grass); 
-      /* 加上淡淡的草地網格紋理 */
       background-image: 
         linear-gradient(var(--sd-grass-dark) 1px, transparent 1px),
         linear-gradient(90deg, var(--sd-grass-dark) 1px, transparent 1px);
@@ -109,7 +103,6 @@
       box-shadow: 0 6px 0px rgba(0,0,0,0.15);
     }
     
-    /* 招牌上的四顆鐵釘 */
     .header::before, .header::after {
       content: '';
       position: absolute;
@@ -128,7 +121,7 @@
     .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 2px;}
     .container { max-width: 1200px; margin: 0 auto; padding: 25px 20px; }
 
-    /* 共用 UI 對話框風格 (木框 + 羊皮紙) */
+    /* 共用 UI 對話框風格 */
     .sd-ui-box {
       background: var(--sd-parchment);
       border: 4px solid var(--sd-border);
@@ -160,7 +153,6 @@
       background: #fff8d6; 
       cursor: pointer; 
       appearance: none; 
-      /* 木頭箭頭 */
       background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%3E%3Cpath%20fill%3D%22%2382380d%22%20d%3D%22M7%2010l5%205%205-5z%22%2F%3E%3C%2Fsvg%3E"); 
       background-repeat: no-repeat; 
       background-position: right 10px top 50%; 
@@ -172,7 +164,6 @@
     .checkbox-wrapper { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 16px; font-weight: bold; color: var(--sd-text); margin-right: auto; }
     .checkbox-wrapper input { width: 22px; height: 22px; cursor: pointer; accent-color: var(--sd-wood); border: 2px solid var(--sd-border);}
     
-    /* 木板按鈕 */
     .btn-search { 
       background: var(--sd-wood); 
       color: white; 
@@ -190,7 +181,16 @@
     .btn-search:hover { background: #d37d36; }
     .btn-search:active { box-shadow: inset 2px 4px 0px rgba(0,0,0,0.2); transform: translateY(4px); }
 
-    /* 快速搜尋列 */
+    /* 溫馨提示文字 */
+    .notice-text {
+      width: 100%;
+      text-align: right;
+      font-size: 15px;
+      color: var(--sd-text-muted);
+      font-weight: bold;
+      margin-top: -5px;
+    }
+
     .quick-search-box { display: none; margin-bottom: 25px; width: 100%; position: relative;}
     .quick-search-box input { 
       width: 100%; 
@@ -218,7 +218,6 @@
     }
     .p-card:hover { transform: translateY(-6px); }
     
-    /* 展覽會紅絲帶徽章 */
     .hot-badge { 
       position: absolute; 
       top: -10px; 
@@ -235,6 +234,7 @@
       text-shadow: 1px 1px 0px var(--sd-border);
     }
 
+    /* ★ 圖片點擊放大特效 */
     .p-img-box { 
       width: 100%; 
       height: 200px; 
@@ -244,8 +244,28 @@
       position: relative; 
       padding: 10px;
       border-radius: 4px 4px 0 0;
+      cursor: pointer; /* 滑鼠變成手指 */
     }
     .p-img-box img { width: 100%; height: 100%; object-fit: contain; }
+    
+    /* 懸浮時的黑霧與提示文字 */
+    .p-img-box::after {
+      content: '🔍 點擊放大';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .p-img-box:hover::after {
+      opacity: 1;
+    }
     
     .p-info { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; }
     .p-title { font-size: 19px; font-weight: bold; margin: 0 0 10px 0; color: var(--sd-text); line-height: 1.4; text-shadow: 1px 1px 0px rgba(255,255,255,0.6);}
@@ -256,7 +276,6 @@
     .p-price { font-family: 'VT323', monospace; font-size: 28px; font-weight: normal; color: var(--sd-hot); text-shadow: 1px 1px 0px rgba(255,255,255,0.8); letter-spacing: 1px;}
     .p-price::before { content: '💰 '; font-size: 18px; font-family: 'Noto Sans TC', sans-serif; }
 
-    /* 按鈕顯眼化設計 */
     .btn-view-branch { 
       width: calc(100% - 32px); 
       margin: 0 16px 16px 16px; 
@@ -283,7 +302,7 @@
     .initial-state h2 { color: var(--sd-wood-dark); margin-bottom: 15px; font-size: 24px;}
     .initial-state p { font-size: 18px; line-height: 1.6; font-weight: bold;}
 
-    /* 彈出視窗 (Modal) */
+    /* 分局彈出視窗 (Modal) */
     .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); justify-content: center; align-items: center; }
     .modal-content { 
       width: 90%; 
@@ -308,7 +327,6 @@
       border-bottom: 4px solid var(--sd-border);
       text-shadow: 2px 2px 0px var(--sd-border);
     }
-    /* 星露谷風格的關閉按鈕 (紅色方塊) */
     .btn-close { 
       background: var(--sd-hot); 
       border: 3px solid var(--sd-border); 
@@ -328,13 +346,11 @@
     
     .modal-body { padding: 0; overflow-y: auto; background: var(--sd-parchment); flex-grow: 1; border-radius: 0 0 4px 4px;}
     
-    /* 分局清單樣式 */
     .branch-list { list-style: none; padding: 0; margin: 0; }
     .branch-item { padding: 20px; border-bottom: 2px dotted var(--sd-wood-dark); transition: background 0.2s; border-left: 6px solid transparent; }
     .branch-item:last-child { border-bottom: none; }
     .branch-item:hover { background: rgba(255, 255, 255, 0.4); }
     
-    /* ★ 隱形引導：第一名高亮 (加強星露谷風格) */
     .branch-item.highlight { 
       background-color: rgba(255, 215, 0, 0.2); 
       border-left: 6px solid #eab308; 
@@ -356,20 +372,53 @@
       box-shadow: 2px 2px 0px rgba(0,0,0,0.15);
     }
     .b-qty.low-stock { background: var(--sd-warning); }
-    
     .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
 
-    /* 溫馨提示文字 */
-    .notice-text {
-      width: 100%;
-      text-align: right;
-      font-size: 15px;
-      color: var(--sd-text-muted);
-      font-weight: bold;
-      margin-top: -5px;
+    /* ★ 圖片畫廊 (Lightbox) 樣式 */
+    #galleryLightbox {
+      display: none; position: fixed; z-index: 10005; inset: 0;
+      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
+      justify-content: center; align-items: center; flex-direction: column;
     }
+    .gallery-container {
+      position: relative; width: 90vw; max-width: 800px; max-height: 80vh;
+      display: flex; justify-content: center; align-items: center;
+    }
+    .gallery-img {
+      max-width: 100%; max-height: 80vh; 
+      border: 6px solid var(--sd-wood); border-radius: 8px; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5); object-fit: contain;
+      background: white;
+    }
+    .gallery-title {
+      color: white; margin-top: 20px; font-size: 22px; font-weight: bold; 
+      text-shadow: 2px 2px 4px black; text-align: center;
+    }
+    .gallery-counter {
+      color: var(--sd-parchment); font-size: 18px; margin-top: 5px; 
+      font-family: 'VT323', monospace; letter-spacing: 2px;
+    }
+    .gallery-close {
+      position: absolute; top: 20px; right: 25px; font-size: 45px; 
+      color: white; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      z-index: 10010; line-height: 1; transition: 0.2s;
+    }
+    .gallery-close:hover { color: var(--sd-hot); transform: scale(1.1); }
+    
+    .gallery-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.2); color: white; 
+      border: 3px solid white; width: 55px; height: 55px; border-radius: 50%; 
+      font-size: 26px; cursor: pointer; display: flex; justify-content: center; 
+      align-items: center; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 10010;
+    }
+    .gallery-btn:hover { background: rgba(255, 255, 255, 0.6); color: var(--sd-text); border-color: var(--sd-text); }
+    .gallery-btn:active { transform: translateY(-50%) scale(0.9); }
+    .gallery-prev { left: -70px; }
+    .gallery-next { right: -70px; }
 
-    /* 版權宣告樣式 */
+    /* 版權宣告 */
     .footer {
       text-align: center;
       padding: 30px 20px;
@@ -380,34 +429,18 @@
       letter-spacing: 1px;
     }
 
-    /* 回到最上方按鈕 (變成小星星) */
     #scrollToTopBtn { 
-      position: fixed; 
-      bottom: 25px; 
-      right: 25px; 
-      width: 55px; 
-      height: 55px; 
-      background-color: #fdeca6; 
-      color: var(--sd-text); 
-      font-size: 24px;
-      border: 3px solid var(--sd-border); 
-      border-radius: 50%; 
+      position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; 
+      background-color: #fdeca6; color: var(--sd-text); font-size: 24px;
+      border: 3px solid var(--sd-border); border-radius: 50%; 
       box-shadow: 0 4px 0px rgba(0,0,0,0.2), inset -2px -2px 0px #dcb360; 
-      cursor: pointer; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      opacity: 0; 
-      visibility: hidden; 
-      transition: all 0.3s ease; 
-      z-index: 999; 
+      cursor: pointer; display: flex; justify-content: center; align-items: center; 
+      opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 999; 
     }
     #scrollToTopBtn:active { transform: translateY(4px); box-shadow: 0 0px 0px rgba(0,0,0,0.2), inset 2px 2px 0px #dcb360; }
     #scrollToTopBtn.show { opacity: 1; visibility: visible; }
 
-    /* 祝尼魔 / 精靈 載入畫面 */
     #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(253, 236, 166, 0.9); z-index: 1000; display:none; flex-direction:column; justify-content:center; align-items:center; }
-    
     .bouncing-star {
       font-size: 50px;
       animation: bounce 0.6s infinite alternate cubic-bezier(0.5, 0.05, 1, 0.5);
@@ -419,7 +452,13 @@
       100% { transform: translateY(-30px) scale(0.9); text-shadow: 0 40px 15px rgba(0,0,0,0.1); }
     }
 
-    /* ========== RWD 手機版專屬優化 ========== */
+    @media (max-width: 768px) {
+      .gallery-prev { left: 10px; }
+      .gallery-next { right: 10px; }
+      .gallery-container { width: 100vw; }
+      .gallery-img { border-width: 3px; }
+    }
+
     @media (max-width: 600px) {
       .container { padding: 15px; }
       .location-box { padding: 18px; flex-direction: column; align-items: stretch; gap: 12px; }
@@ -430,9 +469,20 @@
       
       .notice-text { text-align: center; margin-top: 5px; font-size: 14px; }
       
-      .product-grid { grid-template-columns: 1fr; gap: 20px; }
-      .p-img-box { height: 220px; }
-      
+      /* ★ 手機版雙排卡片優化開始 */
+      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .p-img-box { height: 140px; padding: 5px; }
+      .p-info { padding: 10px; }
+      .p-title { font-size: 15px; margin-bottom: 6px; }
+      .p-desc { font-size: 12px; margin-bottom: 10px; -webkit-line-clamp: 2; } /* 說明文字改為最多兩行 */
+      .p-meta { flex-direction: column; align-items: flex-start; gap: 6px; padding-top: 8px; } /* 條碼價格改為上下排 */
+      .p-barcode { font-size: 11px; padding: 2px 4px; }
+      .p-price { font-size: 20px; }
+      .p-price::before { font-size: 14px; }
+      .btn-view-branch { margin: 0 10px 10px 10px; padding: 10px 5px; font-size: 13px; width: calc(100% - 20px); }
+      .hot-badge { font-size: 11px; padding: 4px 8px; top: -8px; left: -8px; }
+      /* ★ 手機版雙排卡片優化結束 */
+
       #scrollToTopBtn { bottom: 20px; right: 20px; width: 50px; height: 50px; }
 
       .modal { align-items: flex-end; }
@@ -443,7 +493,23 @@
 </head>
 <body>
 
-  <!-- 星露谷精靈載入動畫 -->
+  <!-- 圖片畫廊 Lightbox -->
+  <div id="galleryLightbox" onclick="closeGallery()">
+    <div class="gallery-close" onclick="closeGallery()">&times;</div>
+    
+    <div class="gallery-container" onclick="event.stopPropagation()">
+      <!-- 左右切換按鈕 -->
+      <div id="btnPrevImg" class="gallery-btn gallery-prev" onclick="changeGalleryImage(-1)">&#10094;</div>
+      
+      <img id="galleryImg" class="gallery-img" src="" alt="放大圖片">
+      
+      <div id="btnNextImg" class="gallery-btn gallery-next" onclick="changeGalleryImage(1)">&#10095;</div>
+    </div>
+    
+    <div id="galleryTitle" class="gallery-title"></div>
+    <div id="galleryCounter" class="gallery-counter"></div>
+  </div>
+
   <div id="loader">
     <div class="bouncing-star">✨</div>
     <div style="font-weight:bold; color:var(--sd-text); font-size: 18px; background: #fff; padding: 10px 20px; border: 3px solid var(--sd-border); border-radius: 8px;">正在向小精靈確認庫存清單... 📦</div>
@@ -483,9 +549,7 @@
     </div>
   </div>
 
-  <!-- 版權宣告區 -->
   <div class="footer">
-    <!-- 加分 4：靜態文字佈局。因為商品是動態載入的，我們在頁尾補上一些靜態的 SEO 關鍵字，讓爬蟲第一時間就能抓到字 -->
     <p style="font-size: 13px; color: var(--sd-text-muted); margin-bottom: 10px; font-weight: normal;">
       本站提供郵局商品在高雄地區郵局販售的庫存查詢，方便消費者可以前往購買。
     </p>
@@ -496,7 +560,6 @@
     <div class="modal-content sd-ui-box" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span id="modalProductName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">鄰近販售據點</span>
-        <!-- 加分 5：無障礙屬性 (aria-label)。加上這個可以讓網頁對視障人士更友善，Google 對於高無障礙分數的網站會給予較好的排名 -->
         <button class="btn-close" onclick="closeBranchModal()" aria-label="關閉視窗">&times;</button>
       </div>
       <div class="modal-body">
@@ -510,7 +573,6 @@
   </button>
 
   <script>
-    // 資料與邏輯部分完全保留原樣
     const twData = {
       "基隆市": ["仁愛區", "信義區", "中正區", "中山區", "安樂區", "暖暖區", "七堵區"],
       "臺北市": ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"],
@@ -538,9 +600,8 @@
 
     let globalData = {}; 
 
-    // ★ 新增：三段式圖片保險機制 (GitHub圖 -> 試算表圖 -> GitHub預設圖)
+    // 三段式圖片保險機制
     window.handleImageError = function(imgElement, sheetImgUrl) {
-      // 1. 如果還沒試過試算表的連結，就試試看
       if (!imgElement.dataset.triedSheet) {
         imgElement.dataset.triedSheet = 'true';
         if (sheetImgUrl && sheetImgUrl.trim() !== '' && !sheetImgUrl.includes('暫無商品圖片')) {
@@ -548,13 +609,11 @@
             return;
         }
       }
-      // 2. 如果試算表連結也破圖，換上最終預設圖
       if (!imgElement.dataset.triedDefault) {
         imgElement.dataset.triedDefault = 'true';
         imgElement.src = './images/080000AA.jpg';
         return;
       }
-      // 3. 放棄治療，避免無限迴圈
       imgElement.onerror = null; 
     };
 
@@ -696,7 +755,6 @@
       }
 
       container.innerHTML = '';
-      
       let topBadgeCount = 0;
       
       filteredList.forEach((p) => {
@@ -710,14 +768,30 @@
 
         const outOfStockStyle = hasStock ? '' : 'opacity: 0.75; filter: grayscale(40%);';
 
+        // ★ 新增：精準判斷「補貨中」與「已售罄」
+        let btnText = '📍 查看鄰近販售郵局';
+        let btnStyle = '';
+        
+        if (!hasStock) {
+          if (p.totalInvQty === 0) {
+            // 庫存表裡完全沒有數量 = 已售罄 (更深的灰色)
+            btnText = '已售罄 🪧';
+            btnStyle = 'disabled style="background:#5c5c5c !important; border-color:#383838 !important; color:#a3a3a3 !important; cursor:not-allowed; box-shadow:none; transform:none;"';
+          } else {
+            // 庫存表有數量，只是支局經理還沒打勾上架 = 補貨中
+            btnText = '補貨中...';
+            btnStyle = 'disabled style="background:#8c7562 !important; border-color:#4a3219 !important; color:#dcdcdc !important; cursor:not-allowed; box-shadow:none; transform:none;"';
+          }
+        }
+
         const card = document.createElement('div');
         card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
         
-        // ★ 套用三段式保險：出錯時呼叫 handleImageError
+        // ★ 圖片區塊加入 onclick 開啟畫廊。注意：我們傳入 this.querySelector('img').src 確保抓到正確顯示的那張圖
         card.innerHTML = `
           ${badgeHtml}
-          <div class="p-img-box">
+          <div class="p-img-box" onclick="openGallery('${p.barcode}', '${p.name}', this.querySelector('img').src)">
             <img src="./images/${p.barcode}.jpg" alt="${p.name}" onerror="handleImageError(this, '${p.img}')">
           </div>
           <div class="p-info">
@@ -728,8 +802,8 @@
               <span class="p-price">${p.price}</span>
             </div>
           </div>
-          <button class="btn-view-branch" onclick="openBranchModal('${p.key}', '${p.name}')" ${!hasStock ? 'disabled style="background:#8c7562 !important; border-color:#4a3219 !important; color:#dcdcdc !important; cursor:not-allowed; box-shadow:none; transform:none;"' : ''}>
-            ${hasStock ? '📍 查看鄰近販售郵局' : '補貨中...'}
+          <button class="btn-view-branch" onclick="openBranchModal('${p.key}', '${p.name}')" ${btnStyle}>
+            ${btnText}
           </button>
         `;
         container.appendChild(card);
@@ -748,6 +822,86 @@
       renderProducts(filteredResults);
     }
 
+    // ==========================================
+    // ★ 全新功能：自動抓取多張圖片的畫廊 (Lightbox)
+    // ==========================================
+    let currentGalleryImgs = [];
+    let currentGalleryIdx = 0;
+
+    function openGallery(barcode, name, activeImgSrc) {
+      // 1. 初始化資料
+      currentGalleryImgs = [activeImgSrc]; // 第一張圖就是畫面上成功顯示的那張
+      currentGalleryIdx = 0;
+      
+      // 2. 更新燈箱 UI
+      document.getElementById('galleryTitle').innerText = name;
+      document.getElementById('galleryImg').src = activeImgSrc;
+      document.getElementById('galleryLightbox').style.display = 'flex';
+      
+      // 先關閉箭頭，等確認有圖才打開
+      updateGalleryArrows();
+
+      // 3. 自動在背景往 Github 尋找有沒有附加圖片 (條碼-1.jpg, 條碼-2.jpg...)
+      checkExtraImages(barcode, 1);
+    }
+
+    function checkExtraImages(barcode, fileIndex) {
+      let testImg = new Image();
+      testImg.onload = function() {
+        // 如果找到了，把圖片塞進陣列
+        currentGalleryImgs.push(this.src);
+        updateGalleryArrows();
+        // 繼續找下一張
+        checkExtraImages(barcode, fileIndex + 1);
+      };
+      testImg.onerror = function() {
+        // 找不到，代表沒有更多圖片了，停止偵測
+      };
+      // 測試路徑： /images/條碼-1.jpg
+      testImg.src = `./images/${barcode}-${fileIndex}.jpg`;
+    }
+
+    function updateGalleryArrows() {
+      const total = currentGalleryImgs.length;
+      document.getElementById('btnPrevImg').style.display = currentGalleryIdx > 0 ? 'flex' : 'none';
+      document.getElementById('btnNextImg').style.display = currentGalleryIdx < total - 1 ? 'flex' : 'none';
+      
+      if (total > 1) {
+        document.getElementById('galleryCounter').innerText = `${currentGalleryIdx + 1} / ${total}`;
+        document.getElementById('galleryCounter').style.display = 'block';
+      } else {
+        document.getElementById('galleryCounter').style.display = 'none';
+      }
+    }
+
+    function changeGalleryImage(step) {
+      currentGalleryIdx += step;
+      // 邊界防呆
+      if (currentGalleryIdx < 0) currentGalleryIdx = 0;
+      if (currentGalleryIdx >= currentGalleryImgs.length) currentGalleryIdx = currentGalleryImgs.length - 1;
+      
+      document.getElementById('galleryImg').src = currentGalleryImgs[currentGalleryIdx];
+      updateGalleryArrows();
+    }
+
+    function closeGallery() {
+      document.getElementById('galleryLightbox').style.display = 'none';
+      currentGalleryImgs = [];
+    }
+
+    // 鍵盤支援：按左右鍵切換圖片，按 Esc 關閉
+    document.addEventListener('keydown', function(event) {
+      if (document.getElementById('galleryLightbox').style.display === 'flex') {
+        if (event.key === 'ArrowLeft') changeGalleryImage(-1);
+        if (event.key === 'ArrowRight') changeGalleryImage(1);
+        if (event.key === 'Escape') closeGallery();
+      }
+      if (document.getElementById('branchModal').style.display === 'flex') {
+        if (event.key === 'Escape') closeBranchModal();
+      }
+    });
+    // ==========================================
+
     function openBranchModal(productKey, productName) {
       fetch(GAS_API_URL + '?action=recordClick&productId=' + encodeURIComponent(productKey))
         .catch(e => console.log('人氣紀錄錯誤:', e));
@@ -765,7 +919,6 @@
           const qtyLabel = b.qty <= 5 ? `即將完售 (${b.qty})` : `架上剩餘: ${b.qty}`;
 
           let highlightClass = index === 0 ? ' highlight' : '';
-          // 統一修改郵局名稱前的 Icon 為 🛖
           let rankIcon = '🛖 ';
 
           listUl.innerHTML += `
