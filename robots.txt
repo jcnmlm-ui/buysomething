@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://jcnmlm-ui.github.io/buysomething/sitemap.xml
+Sitemap: https://jcnmlm-ui.github.io/khpostgoods/sitemap.xml
