@@ -831,15 +831,15 @@
     let currentGalleryImgs = [];
     let currentGalleryIdx = 0;
 
-    // ★ 修正：加入 desc 參數
-    function openGallery(barcode, name, desc, activeImgSrc) {
+    // ★ 修正：接收編碼後的 name 與 desc，並用 decodeURIComponent 解碼
+    function openGallery(barcode, encName, encDesc, activeImgSrc) {
       // 1. 初始化資料
       currentGalleryImgs = [activeImgSrc]; // 第一張圖就是畫面上成功顯示的那張
       currentGalleryIdx = 0;
       
-      // 2. 更新燈箱 UI
-      document.getElementById('galleryTitle').innerText = name;
-      document.getElementById('galleryDesc').innerText = desc; // ★ 將說明文字寫入燈箱
+      // 2. 更新燈箱 UI (將文字解碼還原)
+      document.getElementById('galleryTitle').innerText = decodeURIComponent(encName);
+      document.getElementById('galleryDesc').innerText = decodeURIComponent(encDesc); 
       document.getElementById('galleryImg').src = activeImgSrc;
       document.getElementById('galleryLightbox').style.display = 'flex';
       
