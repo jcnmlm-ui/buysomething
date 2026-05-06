@@ -262,6 +262,7 @@
       align-items: center;
       opacity: 0;
       transition: opacity 0.2s;
+      pointer-events: none; /* ★ 修正 1：加上讓滑鼠點擊「穿透」黑霧的屬性 */
     }
     .p-img-box:hover::after {
       opacity: 1;
@@ -374,6 +375,25 @@
     .b-qty.low-stock { background: var(--sd-warning); }
     .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
 
+    /* ★ 留言按鈕樣式 */
+    .btn-comment {
+      background: #fdeca6;
+      color: var(--sd-text);
+      border: 2px solid var(--sd-border);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: inset -2px -2px 0px rgba(0,0,0,0.1), 1px 2px 0px rgba(0,0,0,0.15);
+      transition: 0.1s;
+      white-space: nowrap;
+    }
+    .btn-comment:active {
+      transform: translateY(2px);
+      box-shadow: inset 1px 2px 0px rgba(0,0,0,0.1);
+    }
+
     /* ★ 圖片畫廊 (Lightbox) 樣式 */
     #galleryLightbox {
       display: none; position: fixed; z-index: 10005; inset: 0;
@@ -393,6 +413,12 @@
     .gallery-title {
       color: white; margin-top: 20px; font-size: 22px; font-weight: bold; 
       text-shadow: 2px 2px 4px black; text-align: center;
+    }
+    /* ★ 修正 2：補回燈箱說明的 CSS 樣式 */
+    .gallery-desc {
+      color: #e2e8f0; margin-top: 8px; font-size: 14px; font-weight: normal; 
+      text-shadow: 1px 1px 3px black; text-align: center; max-width: 90vw;
+      line-height: 1.5; padding: 0 15px; white-space: pre-wrap;
     }
     .gallery-counter {
       color: var(--sd-parchment); font-size: 18px; margin-top: 5px; 
@@ -461,15 +487,71 @@
 
     @media (max-width: 600px) {
       .container { padding: 15px; }
-      .location-box { padding: 18px; flex-direction: column; align-items: stretch; gap: 12px; }
-      .location-box label.title { margin-bottom: 0; }
-      .select-group { flex-direction: column; min-width: 100%; gap: 10px;}
-      .btn-search { width: 100%; padding: 14px; font-size: 18px;}
-      .checkbox-wrapper { margin-top: 5px; justify-content: center; margin-right: 0;}
       
-      .notice-text { text-align: center; margin-top: 5px; font-size: 14px; }
-      .product-grid { grid-template-columns: 1fr; gap: 20px; }
-      .p-img-box { height: 220px; }
+      /* ★ 修改：手機版改用 Grid 網格重新排版，切分 10 等分來控制精細比例 */
+      .location-box { 
+        padding: 16px; 
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        gap: 12px 10px;
+        align-items: stretch;
+      }
+      .location-box label.title { grid-area: 1 / 1 / 2 / 11; margin-bottom: 0; }
+      
+      /* 上半部：選單佔 6份，按鈕佔 4份 (維持按鈕合理的點擊寬度) */
+      .select-group { grid-area: 2 / 1 / 3 / 7; flex-direction: column; min-width: 0; gap: 10px;}
+      .select-group select { font-size: 15px; padding: 10px 12px; background-position: right 8px top 50%; height: auto;}
+      
+      .btn-search { 
+        grid-area: 2 / 7 / 3 / 11;
+        width: 100%; 
+        height: auto; 
+        padding: 8px 4px; 
+        font-size: 15px; /* 微調大小防止破字 */
+        white-space: normal; 
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        line-height: 1.3;
+        box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2), 0 3px 0 rgba(0,0,0,0.15);
+      }
+      
+      /* 下半部：提示文字佔 6份，打勾記住位置佔 4份 (達成完美上下對齊) */
+      .notice-text { 
+        grid-area: 3 / 1 / 4 / 7;
+        text-align: left; 
+        margin: 0; 
+        font-size: 12px; 
+        line-height: 1.4;
+        display: flex;
+        align-items: center;
+      }
+
+      .checkbox-wrapper { 
+        grid-area: 3 / 7 / 4 / 11; 
+        margin: 0; 
+        justify-content: center; 
+        align-items: center; 
+        font-size: 14px; 
+        padding-top: 0;
+      }
+      .checkbox-wrapper input { width: 18px; height: 18px; flex-shrink: 0; margin-top: 0; margin-right: 6px;}
+      
+      /* ★ 手機版雙排卡片優化開始 */
+      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .p-img-box { height: 140px; padding: 5px; }
+      .p-info { padding: 10px; }
+      .p-title { font-size: 15px; margin-bottom: 6px; }
+      .p-desc { font-size: 12px; margin-bottom: 10px; -webkit-line-clamp: 2; } /* 說明文字改為最多兩行 */
+      .p-meta { flex-direction: column; align-items: flex-start; gap: 6px; padding-top: 8px; } /* 條碼價格改為上下排 */
+      .p-barcode { font-size: 11px; padding: 2px 4px; }
+      .p-price { font-size: 20px; }
+      .p-price::before { font-size: 14px; }
+      .btn-view-branch { margin: 0 10px 10px 10px; padding: 10px 5px; font-size: 13px; width: calc(100% - 20px); }
+      .hot-badge { font-size: 11px; padding: 4px 8px; top: -8px; left: -8px; }
+      /* ★ 手機版雙排卡片優化結束 */
+
       #scrollToTopBtn { bottom: 20px; right: 20px; width: 50px; height: 50px; }
 
       .modal { align-items: flex-end; }
@@ -494,6 +576,8 @@
     </div>
     
     <div id="galleryTitle" class="gallery-title"></div>
+    <!-- ★ 修正 3：補回燈箱說明的 HTML 區塊 -->
+    <div id="galleryDesc" class="gallery-desc"></div>
     <div id="galleryCounter" class="gallery-counter"></div>
   </div>
 
@@ -755,30 +839,31 @@
 
         const outOfStockStyle = hasStock ? '' : 'opacity: 0.75; filter: grayscale(40%);';
 
-        // ★ 新增：精準判斷「補貨中」與「已售罄」
         let btnText = '📍 查看鄰近販售郵局';
         let btnStyle = '';
         
         if (!hasStock) {
           if (p.totalInvQty === 0) {
-            // 庫存表裡完全沒有數量 = 已售罄 (更深的灰色)
             btnText = '已售罄 🪧';
             btnStyle = 'disabled style="background:#5c5c5c !important; border-color:#383838 !important; color:#a3a3a3 !important; cursor:not-allowed; box-shadow:none; transform:none;"';
           } else {
-            // 庫存表有數量，只是支局經理還沒打勾上架 = 補貨中
             btnText = '補貨中...';
             btnStyle = 'disabled style="background:#8c7562 !important; border-color:#4a3219 !important; color:#dcdcdc !important; cursor:not-allowed; box-shadow:none; transform:none;"';
           }
         }
 
+        // ★ 終極安全防線：用 encodeURIComponent 把文字徹底轉碼，絕對不會弄破 HTML 結構
+        const safeName = encodeURIComponent(p.name || "未命名商品");
+        const safeDesc = encodeURIComponent(p.desc || "目前尚未提供商品詳細說明，款式與規格請依現場實物為主。");
+
         const card = document.createElement('div');
         card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
         
-        // ★ 圖片區塊加入 onclick 開啟畫廊。注意：我們傳入 this.querySelector('img').src 確保抓到正確顯示的那張圖
+        // ★ 修正 4：把轉碼過的安全字串傳遞給 openGallery
         card.innerHTML = `
           ${badgeHtml}
-          <div class="p-img-box" onclick="openGallery('${p.barcode}', '${p.name}', this.querySelector('img').src)">
+          <div class="p-img-box" onclick="openGallery('${p.barcode}', '${safeName}', '${safeDesc}', this.querySelector('img').src)">
             <img src="./images/${p.barcode}.jpg" alt="${p.name}" onerror="handleImageError(this, '${p.img}')">
           </div>
           <div class="p-info">
@@ -809,42 +894,33 @@
       renderProducts(filteredResults);
     }
 
-    // ==========================================
-    // ★ 全新功能：自動抓取多張圖片的畫廊 (Lightbox)
-    // ==========================================
     let currentGalleryImgs = [];
     let currentGalleryIdx = 0;
 
-    function openGallery(barcode, name, activeImgSrc) {
-      // 1. 初始化資料
-      currentGalleryImgs = [activeImgSrc]; // 第一張圖就是畫面上成功顯示的那張
+    // ★ 修正 5：在燈箱展開時，使用 decodeURIComponent 把文字解碼還原回來
+    function openGallery(barcode, encName, encDesc, activeImgSrc) {
+      currentGalleryImgs = [activeImgSrc]; 
       currentGalleryIdx = 0;
       
-      // 2. 更新燈箱 UI
-      document.getElementById('galleryTitle').innerText = name;
+      document.getElementById('galleryTitle').innerText = decodeURIComponent(encName);
+      document.getElementById('galleryDesc').innerText = decodeURIComponent(encDesc); 
       document.getElementById('galleryImg').src = activeImgSrc;
       document.getElementById('galleryLightbox').style.display = 'flex';
       
-      // 先關閉箭頭，等確認有圖才打開
       updateGalleryArrows();
-
-      // 3. 自動在背景往 Github 尋找有沒有附加圖片 (條碼-1.jpg, 條碼-2.jpg...)
       checkExtraImages(barcode, 1);
     }
 
     function checkExtraImages(barcode, fileIndex) {
       let testImg = new Image();
       testImg.onload = function() {
-        // 如果找到了，把圖片塞進陣列
         currentGalleryImgs.push(this.src);
         updateGalleryArrows();
-        // 繼續找下一張
         checkExtraImages(barcode, fileIndex + 1);
       };
       testImg.onerror = function() {
-        // 找不到，代表沒有更多圖片了，停止偵測
+        // 偵測結束
       };
-      // 測試路徑： /images/條碼-1.jpg
       testImg.src = `./images/${barcode}-${fileIndex}.jpg`;
     }
 
@@ -863,7 +939,6 @@
 
     function changeGalleryImage(step) {
       currentGalleryIdx += step;
-      // 邊界防呆
       if (currentGalleryIdx < 0) currentGalleryIdx = 0;
       if (currentGalleryIdx >= currentGalleryImgs.length) currentGalleryIdx = currentGalleryImgs.length - 1;
       
@@ -876,7 +951,6 @@
       currentGalleryImgs = [];
     }
 
-    // 鍵盤支援：按左右鍵切換圖片，按 Esc 關閉
     document.addEventListener('keydown', function(event) {
       if (document.getElementById('galleryLightbox').style.display === 'flex') {
         if (event.key === 'ArrowLeft') changeGalleryImage(-1);
@@ -887,7 +961,6 @@
         if (event.key === 'Escape') closeBranchModal();
       }
     });
-    // ==========================================
 
     function openBranchModal(productKey, productName) {
       fetch(GAS_API_URL + '?action=recordClick&productId=' + encodeURIComponent(productKey))
@@ -919,8 +992,9 @@
               <div class="b-detail">
                 <span>📍 ${b.address}</span>
               </div>
-              <div class="b-detail">
+              <div class="b-detail" style="align-items: center; justify-content: space-between;">
                 <span>📞 ${b.phone}</span>
+                <button class="btn-comment" onclick="alert('留言功能即將開放，敬請期待！')">💬 留言</button>
               </div>
             </li>
           `;
