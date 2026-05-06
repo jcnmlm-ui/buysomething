@@ -9,7 +9,7 @@
   <!-- 網站描述，這會顯示在 Google 搜尋結果的標題下方 -->
   <meta name="description" content="高雄郵政特色商品櫥窗，快速查詢各郵局特色商品與庫存，尋找離您最近的販售據點。星露谷風格溫馨介面，讓您輕鬆尋寶！">
   <!-- 網站關鍵字 -->
-  <meta name="keywords" content="高雄郵局, 郵政商品, 郵局代售商品, 郵局庫存查詢, 高雄郵風, 紀念品, 尋寶">
+  <meta name="keywords" content"高雄郵局, 集郵商品, 集郵票品, 郵政商品, 郵局代售商品, 郵局庫存查詢, 高雄郵風MALL, 紀念品, 尋寶">
   <meta name="author" content="Chiahsien">
   <!-- 允許搜尋引擎抓取與建立索引 -->
   <meta name="robots" content="index, follow">
@@ -592,7 +592,7 @@
 
   <div class="container">
     <div class="location-box sd-ui-box">
-      <label class="title">🏡 告訴我們您的（所在）位置</label>
+      <label class="title">🏡 告訴我們您的位置</label>
       <div class="select-group">
         <select id="citySelect" onchange="updateDistricts();"></select>
         <select id="districtSelect" onchange="saveLocation()"></select>
@@ -603,7 +603,7 @@
         記住位置
       </label>
       
-      <button class="btn-search" onclick="fetchAndRenderProducts()">🔍 搜尋鄰近郵局</button>
+      <button class="btn-search" onclick="fetchAndRenderProducts()">🔍 鄰近郵局</button>
       
       <div class="notice-text">💡 溫馨提示~查詢結果僅供參考，建議前往購買前先洽電詢問庫存。</div>
     </div>
@@ -615,16 +615,16 @@
     <div id="productContainer" class="product-grid">
       <div class="initial-state">
         <h2>🌻 歡迎來到高雄郵風商品櫥窗 🌻</h2>
-        <p>請先設定您所在的縣市與區域<br>並點擊「搜尋鄰近郵局」來尋寶吧！</p>
+        <p>請先設定您所在的縣市與區域<br>並點擊「🔍 鄰近郵局」來尋寶吧！</p>
       </div>
     </div>
   </div>
 
   <div class="footer">
     <p style="font-size: 13px; color: var(--sd-text-muted); margin-bottom: 10px; font-weight: normal;">
-      本站提供郵局商品在高雄地區郵局販售的庫存查詢，方便消費者可以前往購買。
+      本站由 高雄郵局企劃行銷科 維護管理，提供郵局商品在高雄地區郵局販售的庫存查詢，方便消費者可以前往購買。
     </p>
-    © Design by Chiahsien  高雄郵局企劃行銷科 維護管理
+    © Design by Chiahsien
   </div>
 
   <div id="branchModal" class="modal" onclick="closeBranchModal()">
