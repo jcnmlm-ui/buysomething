@@ -468,13 +468,52 @@
 
     @media (max-width: 600px) {
       .container { padding: 15px; }
-      .location-box { padding: 18px; flex-direction: column; align-items: stretch; gap: 12px; }
-      .location-box label.title { margin-bottom: 0; }
-      .select-group { flex-direction: column; min-width: 100%; gap: 10px;}
-      .btn-search { width: 100%; padding: 14px; font-size: 18px;}
-      .checkbox-wrapper { margin-top: 5px; justify-content: center; margin-right: 0;}
       
-      .notice-text { text-align: center; margin-top: 5px; font-size: 14px; }
+      /* ★ 修改：手機版改用 Grid 網格重新排版，節省垂直空間 */
+      .location-box { 
+        padding: 16px; 
+        display: grid;
+        grid-template-columns: 1.3fr 1fr; /* 左邊選單佔 1.3，右邊按鈕佔 1 */
+        grid-template-areas: 
+          "title title"
+          "selects search"
+          "check notice";
+        gap: 12px 10px;
+        align-items: stretch;
+      }
+      .location-box label.title { grid-area: title; margin-bottom: 0; }
+      
+      .select-group { grid-area: selects; flex-direction: column; min-width: 0; gap: 10px;}
+      .select-group select { font-size: 15px; padding: 10px 12px; background-position: right 8px top 50%; }
+      
+      .btn-search { 
+        grid-area: search;
+        width: 100%; 
+        height: 100%; /* 自動延展對齊左側兩個選單的高度 */
+        padding: 10px 5px; 
+        font-size: 16px;
+        white-space: normal; /* 允許文字換行 */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        line-height: 1.3;
+        box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2), 0 3px 0 rgba(0,0,0,0.15); /* 微調陰影比例 */
+      }
+      
+      .checkbox-wrapper { grid-area: check; margin: 0; justify-content: flex-start; align-items: center; font-size: 15px;}
+      .checkbox-wrapper input { width: 20px; height: 20px; }
+      
+      .notice-text { 
+        grid-area: notice;
+        text-align: left; 
+        margin: 0; 
+        font-size: 12px; 
+        line-height: 1.3;
+        display: flex;
+        align-items: center;
+      }
       
       /* ★ 手機版雙排卡片優化開始 */
       .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
