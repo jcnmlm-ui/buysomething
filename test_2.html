@@ -6,32 +6,21 @@
   <title>高雄郵風商品櫥窗</title>
   
   <!-- ================= SEO Meta Tags 開始 ================= -->
-  <!-- 網站描述，這會顯示在 Google 搜尋結果的標題下方 -->
   <meta name="description" content="高雄郵政特色商品櫥窗，快速查詢各郵局特色商品與庫存，尋找離您最近的販售據點。星露谷風格溫馨介面，讓您輕鬆尋寶！">
-  <!-- 網站關鍵字 -->
   <meta name="keywords" content="高雄郵局, 集郵商品, 集郵票品, 郵政商品, 郵局代售商品, 郵局庫存查詢, 高雄郵風MALL, 紀念品, 尋寶">
   <meta name="author" content="Chiahsien">
-  <!-- 允許搜尋引擎抓取與建立索引 -->
   <meta name="robots" content="index, follow">
-  <!-- 設定標準網址，避免搜尋引擎因為網址結尾有無斜線而判定為重複內容 -->
   <link rel="canonical" href="https://jcnmlm-ui.github.io/khpostgoods/">
 
-  <!-- Open Graph 標籤 (用於 Facebook, LINE, Twitter 分享時的精美卡片預覽) -->
   <meta property="og:title" content="高雄郵風商品櫥窗 - 尋找特色郵局商品">
   <meta property="og:description" content="快速查詢高雄各地郵局的特色商品與庫存，尋找離您最近的販售據點！">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://jcnmlm-ui.github.io/khpostgoods/">
-  <!-- 預覽縮圖，建議放一張代表性的圖片網址，這裡暫時使用您的其中一張圖片作為預設 -->
   <meta property="og:image" content="https://jcnmlm-ui.github.io/khpostgoods/images/preview_web.jpg">
   
   <!-- ================= SEO 進階加分設定 開始 ================= -->
-  <!-- 加分 1：網站圖示 (Favicon)。這會顯示在 Google 搜尋結果的標題旁邊，增加點擊率。這裡用一個簡單的包裹 Emoji 代替 -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
-  
-  <!-- 加分 2：預先連線 (Preconnect)。告訴瀏覽器提早準備連線 GAS，提升網頁載入速度 (速度快 = SEO 加分) -->
   <link rel="preconnect" href="https://script.google.com">
-  
-  <!-- 加分 3：結構化資料 (JSON-LD)。這就像遞名片給 Google 機器人，用它最懂的格式告訴它這是一個什麼網站 -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -1089,6 +1078,7 @@
       document.getElementById('commentModal').style.display = 'none';
     }
 
+    // ★ 修改：實際使用 fetch 將資料 POST 到您的 Google Apps Script 後端
     function submitComment() {
       const name = document.getElementById('commentName').value.trim();
       const phone = document.getElementById('commentPhone').value.trim();
@@ -1097,7 +1087,49 @@
       if (!name) return alert('請輸入您的稱呼喔！');
       if (!text) return alert('請輸入想詢問的留言內容喔！');
 
-      alert('✅ 前端表單填寫測試成功！\n\n您準備傳送給：' + currentCommentTarget.branchName + '\n詢問：' + currentCommentTarget.productName + '\n留言：' + text + '\n\n【下一步我們再來串接後端功能。】');
+      const btn = document.getElementById('btnSubmitComment');
+      btn.innerText = '傳送中... ⏳';
+      btn.disabled = true;
+
+      // 準備要傳送給後端的資料封包
+      const payload = {
+        action: 'submitComment',
+        data: {
+          branchId: currentCommentTarget.branchId,
+          branchName: currentCommentTarget.branchName,
+          productName: currentCommentTarget.productName,
+          name: name,
+          phone: phone,
+          text: text
+        }
+      };
+
+      // 傳送 POST 請求
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: {
+          // 使用 text/plain 避免觸發嚴格的 CORS 預檢請求，GAS 的 e.postData.contents 依然可以解析
+          'Content-Type': 'text/plain;charset=utf-8', 
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(res => {
+        btn.innerText = '📤 送出留言給郵局';
+        btn.disabled = false;
+        
+        if (res.status === 'success') {
+          alert('✅ 您的留言已成功送出給「' + currentCommentTarget.branchName + '」！\n請您稍候，郵局人員確認後會盡快處理。');
+          closeCommentModal();
+        } else {
+          alert('傳送失敗，請稍後再試：' + res.message);
+        }
+      })
+      .catch(err => {
+        btn.innerText = '📤 送出留言給郵局';
+        btn.disabled = false;
+        alert('網路連線發生錯誤，請確認網路狀態後再試！\n' + err);
+      });
     }
 
     /* ==================================================== */
