@@ -6,32 +6,21 @@
   <title>高雄郵風商品櫥窗</title>
   
   <!-- ================= SEO Meta Tags 開始 ================= -->
-  <!-- 網站描述，這會顯示在 Google 搜尋結果的標題下方 -->
   <meta name="description" content="高雄郵政特色商品櫥窗，快速查詢各郵局特色商品與庫存，尋找離您最近的販售據點。星露谷風格溫馨介面，讓您輕鬆尋寶！">
-  <!-- 網站關鍵字 -->
   <meta name="keywords" content="高雄郵局, 集郵商品, 集郵票品, 郵政商品, 郵局代售商品, 郵局庫存查詢, 高雄郵風MALL, 紀念品, 尋寶">
   <meta name="author" content="Chiahsien">
-  <!-- 允許搜尋引擎抓取與建立索引 -->
   <meta name="robots" content="index, follow">
-  <!-- 設定標準網址，避免搜尋引擎因為網址結尾有無斜線而判定為重複內容 -->
   <link rel="canonical" href="https://jcnmlm-ui.github.io/khpostgoods/">
 
-  <!-- Open Graph 標籤 (用於 Facebook, LINE, Twitter 分享時的精美卡片預覽) -->
-  <meta property="og:title" content="高雄郵風商品櫥窗 - 尋找特色郵風商品">
+  <meta property="og:title" content="高雄郵風商品櫥窗 - 尋找特色郵局商品">
   <meta property="og:description" content="快速查詢高雄各地郵局的特色商品與庫存，尋找離您最近的販售據點！">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://jcnmlm-ui.github.io/khpostgoods/">
-  <!-- 預覽縮圖，建議放一張代表性的圖片網址，這裡暫時使用您的其中一張圖片作為預設 -->
-  <meta property="og:image" content="https://jcnmlm-ui.github.io/khpostgoods/images/preview_web.png">
+  <meta property="og:image" content="https://jcnmlm-ui.github.io/khpostgoods/images/preview_web.jpg">
   
   <!-- ================= SEO 進階加分設定 開始 ================= -->
-  <!-- 加分 1：網站圖示 (Favicon)。這會顯示在 Google 搜尋結果的標題旁邊，增加點擊率。這裡用一個簡單的包裹 Emoji 代替 -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
-  
-  <!-- 加分 2：預先連線 (Preconnect)。告訴瀏覽器提早準備連線 GAS，提升網頁載入速度 (速度快 = SEO 加分) -->
   <link rel="preconnect" href="https://script.google.com">
-  
-  <!-- 加分 3：結構化資料 (JSON-LD)。這就像遞名片給 Google 機器人，用它最懂的格式告訴它這是一個什麼網站 -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -39,7 +28,7 @@
     "name": "高雄郵風商品櫥窗",
     "url": "https://jcnmlm-ui.github.io/khpostgoods/",
     "description": "快速查詢高雄各郵局特色商品、紀念品與代售商品庫存，尋找離您最近的販售據點。",
-    "keywords": "高雄郵局, 集郵商品, 集郵票品, 郵政商品, 郵局代售商品, 郵局庫存查詢, 高雄郵風MALL, 紀念品, 尋寶",
+    "keywords": "高雄郵局, 郵政商品, 庫存查詢",
     "inLanguage": "zh-TW"
   }
   </script>
@@ -375,6 +364,34 @@
     .b-qty.low-stock { background: var(--sd-warning); }
     .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
 
+    /* ★ 留言按鈕與表單樣式 */
+    .btn-comment {
+      background: #fdeca6;
+      color: var(--sd-text);
+      border: 2px solid var(--sd-border);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: inset -2px -2px 0px rgba(0,0,0,0.1), 1px 2px 0px rgba(0,0,0,0.15);
+      transition: 0.1s;
+      white-space: nowrap;
+    }
+    .btn-comment:active {
+      transform: translateY(2px);
+      box-shadow: inset 1px 2px 0px rgba(0,0,0,0.1);
+    }
+    
+    .form-group { margin-bottom: 15px; text-align: left; }
+    .form-group label { display: block; font-weight: bold; color: var(--sd-text); margin-bottom: 5px; font-size: 15px; }
+    .form-input { width: 100%; padding: 12px; border: 3px solid var(--sd-wood-dark); border-radius: 6px; font-size: 15px; outline: none; background: #fff8d6; color: var(--sd-text); font-family: inherit; font-weight: bold; box-shadow: inset 2px 2px 0 rgba(0,0,0,0.05); }
+    .form-input:focus { border-color: var(--sd-border); background: #fff; }
+    textarea.form-input { resize: vertical; min-height: 90px; line-height: 1.5; }
+    .btn-submit { width: 100%; background: var(--sd-grass-dark); color: white; border: 3px solid var(--sd-border); padding: 14px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 6px; transition: 0.1s; box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2), 0 4px 0 rgba(0,0,0,0.1); margin-top: 5px; text-shadow: 1px 1px 0px var(--sd-border); }
+    .btn-submit:hover { background: var(--sd-grass); }
+    .btn-submit:active { transform: translateY(4px); box-shadow: inset 2px 4px 0px rgba(0,0,0,0.2); }
+
     /* ★ 圖片畫廊 (Lightbox) 樣式 */
     #galleryLightbox {
       display: none; position: fixed; z-index: 10005; inset: 0;
@@ -557,7 +574,6 @@
     </div>
     
     <div id="galleryTitle" class="gallery-title"></div>
-    <!-- ★ 修正 3：補回燈箱說明的 HTML 區塊 -->
     <div id="galleryDesc" class="gallery-desc"></div>
     <div id="galleryCounter" class="gallery-counter"></div>
   </div>
@@ -595,19 +611,20 @@
 
     <div id="productContainer" class="product-grid">
       <div class="initial-state">
-        <h2>歡迎來到<br>🌻 高雄郵風商品櫥窗 🌻</h2>
-        <p>請先設定您所在的縣市與區域<br>並點擊「搜尋鄰近郵局」來尋寶吧！</p>
+        <h2>🌻 歡迎來到高雄郵風商品櫥窗 🌻</h2>
+        <p>請先設定您所在的縣市與區域<br>並點擊「🔍 鄰近郵局」來尋寶吧！</p>
       </div>
     </div>
   </div>
 
   <div class="footer">
     <p style="font-size: 13px; color: var(--sd-text-muted); margin-bottom: 10px; font-weight: normal;">
-      本站提供郵局商品在高雄地區郵局販售的庫存查詢，方便消費者可以前往購買。由高雄郵局企劃行銷科 維護管理
+      本站由 高雄郵局企劃行銷科 維護管理，提供郵局商品在高雄地區郵局販售的庫存查詢，方便消費者可以前往購買。
     </p>
     © Design by Chiahsien
   </div>
 
+  <!-- 鄰近郵局彈出視窗 -->
   <div id="branchModal" class="modal" onclick="closeBranchModal()">
     <div class="modal-content sd-ui-box" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -616,6 +633,39 @@
       </div>
       <div class="modal-body">
         <ul class="branch-list" id="modalBranchList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ★ 新增：留言填寫彈出視窗 -->
+  <div id="commentModal" class="modal" onclick="closeCommentModal()" style="z-index: 10000;">
+    <div class="modal-content sd-ui-box" onclick="event.stopPropagation()">
+      <div class="modal-header" style="background: var(--sd-grass-dark);">
+        <span>我要留言 / 詢問</span>
+        <button class="btn-close" onclick="closeCommentModal()" aria-label="關閉視窗">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <div style="background: #fff; border: 2px dashed var(--sd-wood-dark); padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; color: var(--sd-text-muted); line-height: 1.5;">
+          <div style="font-weight: bold; color: var(--sd-text); margin-bottom: 4px;">📍 傳送對象：<span id="commentBranchName" style="color: var(--sd-wood-dark);"></span></div>
+          <div style="font-weight: bold; color: var(--sd-text);">📦 詢問商品：<span id="commentProductName" style="color: var(--sd-wood-dark);"></span></div>
+        </div>
+        
+        <div class="form-group">
+          <label>您的稱呼：</label>
+          <input type="text" id="commentName" class="form-input" placeholder="例如：王先生 / 陳小姐">
+        </div>
+        
+        <div class="form-group">
+          <label>聯絡電話 (選填)：</label>
+          <input type="tel" id="commentPhone" class="form-input" placeholder="若需回電請留下號碼...">
+        </div>
+        
+        <div class="form-group">
+          <label>留言內容：</label>
+          <textarea id="commentText" class="form-input" placeholder="例如：請問架上還有貨嗎？我想預留一個傍晚過去拿！"></textarea>
+        </div>
+        
+        <button class="btn-submit" onclick="submitComment()" id="btnSubmitComment">📤 送出留言給郵局</button>
       </div>
     </div>
   </div>
@@ -772,7 +822,9 @@
           }
         }
         
+        // ★ 確保我們有把 branchId 傳遞出來，後面留言表單會用到
         return {
+          branchId: stock.branchId,
           name: info.name,
           address: info.address,
           phone: info.phone,
@@ -833,7 +885,6 @@
           }
         }
 
-        // ★ 終極安全防線：用 encodeURIComponent 把文字徹底轉碼，絕對不會弄破 HTML 結構
         const safeName = encodeURIComponent(p.name || "未命名商品");
         const safeDesc = encodeURIComponent(p.desc || "目前尚未提供商品詳細說明，款式與規格請依現場實物為主。");
 
@@ -841,7 +892,6 @@
         card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
         
-        // ★ 修正 4：把轉碼過的安全字串傳遞給 openGallery
         card.innerHTML = `
           ${badgeHtml}
           <div class="p-img-box" onclick="openGallery('${p.barcode}', '${safeName}', '${safeDesc}', this.querySelector('img').src)">
@@ -878,7 +928,6 @@
     let currentGalleryImgs = [];
     let currentGalleryIdx = 0;
 
-    // ★ 修正 5：在燈箱展開時，使用 decodeURIComponent 把文字解碼還原回來
     function openGallery(barcode, encName, encDesc, activeImgSrc) {
       currentGalleryImgs = [activeImgSrc]; 
       currentGalleryIdx = 0;
@@ -941,6 +990,9 @@
       if (document.getElementById('branchModal').style.display === 'flex') {
         if (event.key === 'Escape') closeBranchModal();
       }
+      if (document.getElementById('commentModal').style.display === 'flex') {
+        if (event.key === 'Escape') closeCommentModal();
+      }
     });
 
     function openBranchModal(productKey, productName) {
@@ -962,6 +1014,10 @@
           let highlightClass = index === 0 ? ' highlight' : '';
           let rankIcon = '🛖 ';
 
+          // ★ 修正：將支局名稱與商品名稱編碼後傳入開窗函式
+          const safeBranchName = encodeURIComponent(b.name);
+          const safeProductName = encodeURIComponent(productName);
+
           listUl.innerHTML += `
             <li class="branch-item${highlightClass}">
               <div class="b-header">
@@ -973,8 +1029,9 @@
               <div class="b-detail">
                 <span>📍 ${b.address}</span>
               </div>
-              <div class="b-detail">
+              <div class="b-detail" style="align-items: center; justify-content: space-between;">
                 <span>📞 ${b.phone}</span>
+                <button class="btn-comment" onclick="openCommentModal('${b.branchId}', '${safeBranchName}', '${safeProductName}')">💬 留言</button>
               </div>
             </li>
           `;
@@ -987,8 +1044,95 @@
 
     function closeBranchModal() {
       document.getElementById('branchModal').style.display = 'none';
-      document.body.style.overflow = 'auto'; 
+      // 只有在沒有其他 modal 打開時，才恢復背景滾動
+      if (document.getElementById('commentModal').style.display !== 'flex') {
+        document.body.style.overflow = 'auto'; 
+      }
     }
+
+    /* ==================================================== */
+    /* ★ 留言表單相關邏輯                                  */
+    /* ==================================================== */
+    let currentCommentTarget = { branchId: '', branchName: '', productName: '' };
+
+    function openCommentModal(branchId, encBranchName, encProductName) {
+      // 解碼安全字串
+      const branchName = decodeURIComponent(encBranchName);
+      const productName = decodeURIComponent(encProductName);
+      
+      currentCommentTarget = { branchId, branchName, productName };
+      
+      // 更新視窗上的顯示文字
+      document.getElementById('commentBranchName').innerText = branchName;
+      document.getElementById('commentProductName').innerText = productName;
+      
+      // 清空先前的輸入
+      document.getElementById('commentName').value = '';
+      document.getElementById('commentPhone').value = '';
+      document.getElementById('commentText').value = '';
+      
+      document.getElementById('commentModal').style.display = 'flex';
+    }
+
+    function closeCommentModal() {
+      document.getElementById('commentModal').style.display = 'none';
+    }
+
+    // ★ 修改：實際使用 fetch 將資料 POST 到您的 Google Apps Script 後端
+    function submitComment() {
+      const name = document.getElementById('commentName').value.trim();
+      const phone = document.getElementById('commentPhone').value.trim();
+      const text = document.getElementById('commentText').value.trim();
+      
+      if (!name) return alert('請輸入您的稱呼喔！');
+      if (!text) return alert('請輸入想詢問的留言內容喔！');
+
+      const btn = document.getElementById('btnSubmitComment');
+      btn.innerText = '傳送中... ⏳';
+      btn.disabled = true;
+
+      // 準備要傳送給後端的資料封包
+      const payload = {
+        action: 'submitComment',
+        data: {
+          branchId: currentCommentTarget.branchId,
+          branchName: currentCommentTarget.branchName,
+          productName: currentCommentTarget.productName,
+          name: name,
+          phone: phone,
+          text: text
+        }
+      };
+
+      // 傳送 POST 請求
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: {
+          // 使用 text/plain 避免觸發嚴格的 CORS 預檢請求，GAS 的 e.postData.contents 依然可以解析
+          'Content-Type': 'text/plain;charset=utf-8', 
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(res => {
+        btn.innerText = '📤 送出留言給郵局';
+        btn.disabled = false;
+        
+        if (res.status === 'success') {
+          alert('✅ 您的留言已成功送出給「' + currentCommentTarget.branchName + '」！\n請您稍候，郵局人員確認後會盡快處理。');
+          closeCommentModal();
+        } else {
+          alert('傳送失敗，請稍後再試：' + res.message);
+        }
+      })
+      .catch(err => {
+        btn.innerText = '📤 送出留言給郵局';
+        btn.disabled = false;
+        alert('網路連線發生錯誤，請確認網路狀態後再試！\n' + err);
+      });
+    }
+
+    /* ==================================================== */
 
     window.onscroll = function() {
       const btn = document.getElementById('scrollToTopBtn');
