@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>高雄郵局｜郵風商品櫥窗</title>
   
+  <!-- ================= SEO Meta Tags 開始 ================= -->
   <meta name="description" content="高雄郵局官方推出的「郵風商品櫥窗」，提供快速查詢高雄各支局特色集郵票品、紀念品與代售商品即時庫存。透過溫馨便利的介面，輕鬆尋找離您最近的郵局販售據點，尋寶不撲空！">
   <meta name="keywords" content="中華郵政, 高雄郵局, 集郵商品, 集郵票品, 郵政商品, 郵局代售商品, 郵局庫存查詢, 高雄郵風MALL, 紀念品, 尋寶">
   <meta name="author" content="Chiahsien">
@@ -23,6 +24,7 @@
   <meta name="twitter:description" content="提供快速查詢高雄各地郵局特色商品與庫存，尋找離您最近的販售據點！">
   <meta name="twitter:image" content="https://jcnmlm-ui.github.io/khpostgoods/images/preview_web.jpg">
   
+  <!-- ================= SEO 進階加分設定 開始 ================= -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
   <link rel="preconnect" href="https://script.google.com">
   <link rel="dns-prefetch" href="https://script.google.com">
@@ -50,6 +52,9 @@
     ]
   }
   </script>
+  <!-- ================= SEO 進階加分設定 結束 ================= -->
+
+  <!-- 引入 Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=VT323&display=swap" rel="stylesheet">
@@ -376,34 +381,6 @@
     .b-qty.low-stock { background: var(--sd-warning); }
     .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
 
-    /* ★ 留言按鈕與表單樣式 */
-    .btn-comment {
-      background: #fdeca6;
-      color: var(--sd-text);
-      border: 2px solid var(--sd-border);
-      padding: 6px 14px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: inset -2px -2px 0px rgba(0,0,0,0.1), 1px 2px 0px rgba(0,0,0,0.15);
-      transition: 0.1s;
-      white-space: nowrap;
-    }
-    .btn-comment:active {
-      transform: translateY(2px);
-      box-shadow: inset 1px 2px 0px rgba(0,0,0,0.1);
-    }
-    
-    .form-group { margin-bottom: 15px; text-align: left; }
-    .form-group label { display: block; font-weight: bold; color: var(--sd-text); margin-bottom: 5px; font-size: 15px; }
-    .form-input { width: 100%; padding: 12px; border: 3px solid var(--sd-wood-dark); border-radius: 6px; font-size: 15px; outline: none; background: #fff8d6; color: var(--sd-text); font-family: inherit; font-weight: bold; box-shadow: inset 2px 2px 0 rgba(0,0,0,0.05); }
-    .form-input:focus { border-color: var(--sd-border); background: #fff; }
-    textarea.form-input { resize: vertical; min-height: 90px; line-height: 1.5; }
-    .btn-submit { width: 100%; background: var(--sd-grass-dark); color: white; border: 3px solid var(--sd-border); padding: 14px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 6px; transition: 0.1s; box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2), 0 4px 0 rgba(0,0,0,0.1); margin-top: 5px; text-shadow: 1px 1px 0px var(--sd-border); }
-    .btn-submit:hover { background: var(--sd-grass); }
-    .btn-submit:active { transform: translateY(4px); box-shadow: inset 2px 4px 0px rgba(0,0,0,0.2); }
-
     /* ★ 圖片畫廊 (Lightbox) 樣式 */
     #galleryLightbox {
       display: none; position: fixed; z-index: 10005; inset: 0;
@@ -566,6 +543,7 @@
 </head>
 <body>
 
+  <!-- 圖片畫廊 Lightbox -->
   <div id="galleryLightbox" onclick="closeGallery()">
     <button class="gallery-close" aria-label="關閉預覽" onclick="closeGallery()">&times;</button>
     
@@ -628,6 +606,7 @@
     © Design by Chiahsien
   </footer>
 
+  <!-- 鄰近郵局彈出視窗 -->
   <div id="branchModal" class="modal" onclick="closeBranchModal()">
     <div class="modal-content sd-ui-box" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -636,38 +615,6 @@
       </div>
       <div class="modal-body">
         <ul class="branch-list" id="modalBranchList"></ul>
-      </div>
-    </div>
-  </div>
-
-  <div id="commentModal" class="modal" onclick="closeCommentModal()" style="z-index: 10000;">
-    <div class="modal-content sd-ui-box" onclick="event.stopPropagation()">
-      <div class="modal-header" style="background: var(--sd-grass-dark);">
-        <span style="font-weight: bold;">我要留言 / 詢問</span>
-        <button class="btn-close" onclick="closeCommentModal()" aria-label="關閉視窗">&times;</button>
-      </div>
-      <div class="modal-body" style="padding: 20px;">
-        <div style="background: #fff; border: 2px dashed var(--sd-wood-dark); padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; color: var(--sd-text-muted); line-height: 1.5;">
-          <div style="font-weight: bold; color: var(--sd-text); margin-bottom: 4px;">📍 傳送對象：<span id="commentBranchName" style="color: var(--sd-wood-dark);"></span></div>
-          <div style="font-weight: bold; color: var(--sd-text);">📦 詢問商品：<span id="commentProductName" style="color: var(--sd-wood-dark);"></span></div>
-        </div>
-        
-        <div class="form-group">
-          <label for="commentName">您的稱呼：</label>
-          <input type="text" id="commentName" class="form-input" placeholder="例如：王先生 / 陳小姐">
-        </div>
-        
-        <div class="form-group">
-          <label for="commentPhone">聯絡電話 (選填)：</label>
-          <input type="tel" id="commentPhone" class="form-input" placeholder="若需回電請留下號碼...">
-        </div>
-        
-        <div class="form-group">
-          <label for="commentText">留言內容：</label>
-          <textarea id="commentText" class="form-input" placeholder="例如：請問架上還有貨嗎？我想預留一個傍晚過去拿！"></textarea>
-        </div>
-        
-        <button class="btn-submit" onclick="submitComment()" id="btnSubmitComment" aria-label="送出留言">📤 送出留言給郵局</button>
       </div>
     </div>
   </div>
@@ -704,7 +651,6 @@
 
     let globalData = {}; 
 
-    // 三段式圖片保險機制
     window.handleImageError = function(imgElement, sheetImgUrl) {
       if (!imgElement.dataset.triedSheet) {
         imgElement.dataset.triedSheet = 'true';
@@ -825,7 +771,6 @@
         }
         
         return {
-          branchId: stock.branchId,
           name: info.name,
           address: info.address,
           phone: info.phone,
@@ -991,9 +936,6 @@
       if (document.getElementById('branchModal').style.display === 'flex') {
         if (event.key === 'Escape') closeBranchModal();
       }
-      if (document.getElementById('commentModal').style.display === 'flex') {
-        if (event.key === 'Escape') closeCommentModal();
-      }
     });
 
     function openBranchModal(productKey, productName) {
@@ -1015,9 +957,6 @@
           let highlightClass = index === 0 ? ' highlight' : '';
           let rankIcon = '🛖 ';
 
-          const safeBranchName = encodeURIComponent(b.name);
-          const safeProductName = encodeURIComponent(productName);
-
           listUl.innerHTML += `
             <li class="branch-item${highlightClass}">
               <div class="b-header">
@@ -1029,9 +968,8 @@
               <div class="b-detail">
                 <span>📍 ${b.address}</span>
               </div>
-              <div class="b-detail" style="align-items: center; justify-content: space-between;">
+              <div class="b-detail">
                 <span>📞 ${b.phone}</span>
-                <button class="btn-comment" aria-label="傳送留言給 ${b.name}" onclick="openCommentModal('${b.branchId}', '${safeBranchName}', '${safeProductName}')">💬 留言</button>
               </div>
             </li>
           `;
@@ -1044,87 +982,8 @@
 
     function closeBranchModal() {
       document.getElementById('branchModal').style.display = 'none';
-      if (document.getElementById('commentModal').style.display !== 'flex') {
-        document.body.style.overflow = 'auto'; 
-      }
+      document.body.style.overflow = 'auto'; 
     }
-
-    /* ==================================================== */
-    /* ★ 留言表單相關邏輯                                  */
-    /* ==================================================== */
-    let currentCommentTarget = { branchId: '', branchName: '', productName: '' };
-
-    function openCommentModal(branchId, encBranchName, encProductName) {
-      const branchName = decodeURIComponent(encBranchName);
-      const productName = decodeURIComponent(encProductName);
-      
-      currentCommentTarget = { branchId, branchName, productName };
-      
-      document.getElementById('commentBranchName').innerText = branchName;
-      document.getElementById('commentProductName').innerText = productName;
-      
-      document.getElementById('commentName').value = '';
-      document.getElementById('commentPhone').value = '';
-      document.getElementById('commentText').value = '';
-      
-      document.getElementById('commentModal').style.display = 'flex';
-    }
-
-    function closeCommentModal() {
-      document.getElementById('commentModal').style.display = 'none';
-    }
-
-    function submitComment() {
-      const name = document.getElementById('commentName').value.trim();
-      const phone = document.getElementById('commentPhone').value.trim();
-      const text = document.getElementById('commentText').value.trim();
-      
-      if (!name) return alert('請輸入您的稱呼喔！');
-      if (!text) return alert('請輸入想詢問的留言內容喔！');
-
-      const btn = document.getElementById('btnSubmitComment');
-      btn.innerText = '傳送中... ⏳';
-      btn.disabled = true;
-
-      const payload = {
-        action: 'submitComment',
-        data: {
-          branchId: currentCommentTarget.branchId,
-          branchName: currentCommentTarget.branchName,
-          productName: currentCommentTarget.productName,
-          name: name,
-          phone: phone,
-          text: text
-        }
-      };
-
-      fetch(GAS_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain;charset=utf-8', 
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(res => res.json())
-      .then(res => {
-        btn.innerText = '📤 送出留言給郵局';
-        btn.disabled = false;
-        
-        if (res.status === 'success') {
-          alert('✅ 您的留言已成功送出給「' + currentCommentTarget.branchName + '」！\n請您稍候，郵局人員確認後會盡快處理。');
-          closeCommentModal();
-        } else {
-          alert('傳送失敗，請稍後再試：' + res.message);
-        }
-      })
-      .catch(err => {
-        btn.innerText = '📤 送出留言給郵局';
-        btn.disabled = false;
-        alert('網路連線發生錯誤，請確認網路狀態後再試！\n' + err);
-      });
-    }
-
-    /* ==================================================== */
 
     window.onscroll = function() {
       const btn = document.getElementById('scrollToTopBtn');
