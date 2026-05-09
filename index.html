@@ -147,7 +147,6 @@
       gap: 15px; 
       align-items: center; 
     }
-    /* ★ 修復：將原本 .location-box label.title 修改為 .location-box .title 以相容 h2 標籤 */
     .location-box .title { font-weight: bold; color: var(--sd-text); font-size: 18px; width: 100%; margin-bottom: -5px; display: block; text-shadow: 1px 1px 0px rgba(255,255,255,0.5);}
     
     .select-group { display: flex; gap: 10px; flex-grow: 1; min-width: 280px;}
@@ -475,25 +474,47 @@
     @media (max-width: 600px) {
       .container { padding: 15px; }
       
-      /* ★ 修改：手機版改用 Grid 網格重新排版，切分 10 等分來控制精細比例 */
+      /* ★ 修改：手機版改用更穩定的 Flexbox 排版，徹底解決跑版問題 */
       .location-box { 
         padding: 16px; 
-        display: grid;
-        grid-template-columns: repeat(10, 1fr);
-        gap: 12px 10px;
-        align-items: stretch;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
       }
-      .location-box .title { grid-area: 1 / 1 / 2 / 11; margin-bottom: 0; }
+      /* 標題自己佔滿第一行 */
+      .location-box .title { width: 100%; order: 1; margin-bottom: 0; }
       
-      /* 上半部：選單佔 6份，按鈕佔 4份 (維持按鈕合理的點擊寬度) */
-      .select-group { grid-area: 2 / 1 / 3 / 7; flex-direction: row; min-width: 0; gap: 5px;}
-      .select-group select { font-size: 14px; padding: 10px 8px; background-position: right 5px top 50%; height: auto;}
-      
-      .btn-search { 
-        grid-area: 2 / 7 / 3 / 11;
+      /* 兩個下拉選單佔滿第二行，並呈現完美的橫向並排 */
+      .select-group { 
         width: 100%; 
+        order: 2; 
+        flex-direction: row; 
+        gap: 10px;
+        min-width: 0; 
+      }
+      .select-group select { width: 50%; font-size: 15px; padding: 10px 12px; background-position: right 8px top 50%; height: auto;}
+      
+      /* 記住位置 與 搜尋按鈕 共用第三行 */
+      .checkbox-wrapper { 
+        width: auto; 
+        order: 3;
+        margin: 0; 
+        justify-content: flex-start; 
+        align-items: center; 
+        font-size: 14px; 
+        padding-top: 0;
+      }
+      .checkbox-wrapper input { width: 18px; height: 18px; flex-shrink: 0; margin-top: 0; margin-right: 6px;}
+
+      .btn-search { 
+        width: auto; 
+        flex-grow: 1;
+        margin-left: 10px;
+        order: 4;
         height: auto; 
-        padding: 8px 4px; 
+        padding: 10px 15px; 
         font-size: 15px; 
         white-space: normal; 
         display: flex;
@@ -504,26 +525,17 @@
         box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2), 0 3px 0 rgba(0,0,0,0.15);
       }
       
+      /* 溫馨提示放在最後一行 */
       .notice-text { 
-        grid-area: 3 / 1 / 4 / 7;
+        width: 100%; 
+        order: 5;
         text-align: left; 
         margin: 0; 
         font-size: 12px; 
         line-height: 1.4;
-        display: flex;
-        align-items: center;
       }
 
-      .checkbox-wrapper { 
-        grid-area: 3 / 7 / 4 / 11; 
-        margin: 0; 
-        justify-content: center; 
-        align-items: center; 
-        font-size: 14px; 
-        padding-top: 0;
-      }
-      .checkbox-wrapper input { width: 18px; height: 18px; flex-shrink: 0; margin-top: 0; margin-right: 6px;}
-      
+      /* 手機版雙排卡片優化 */
       .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
       .p-img-box { height: 140px; padding: 5px; }
       .p-info { padding: 10px; }
