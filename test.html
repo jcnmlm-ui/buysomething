@@ -2,50 +2,59 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>高雄郵風商品櫥窗</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>高雄郵局｜郵風商品櫥窗</title>
   
   <!-- ================= SEO Meta Tags 開始 ================= -->
-  <!-- 網站描述，這會顯示在 Google 搜尋結果的標題下方 -->
-  <meta name="description" content="高雄郵政特色商品櫥窗，快速查詢各郵局特色商品與庫存，尋找離您最近的販售據點。星露谷風格溫馨介面，讓您輕鬆尋寶！">
-  <!-- 網站關鍵字 -->
-  <meta name="keywords" content"高雄郵局, 集郵商品, 集郵票品, 郵政商品, 郵局代售商品, 郵局庫存查詢, 高雄郵風MALL, 紀念品, 尋寶">
+  <meta name="description" content="高雄郵局官方推出的「郵風商品櫥窗」，提供快速查詢高雄各地角落的郵局特色集郵票品、紀念品與代售商品即時庫存。透過溫馨便利的介面，輕鬆尋找離您最近的郵局販售據點，尋寶不撲空！">
+  <meta name="keywords" content="中華郵政, 高雄郵局, 集郵商品, 集郵票品, 郵政商品, 郵風商品, 郵局代售商品, 郵局庫存查詢, 高雄郵風MALL, 紀念品, 尋寶">
   <meta name="author" content="Chiahsien">
-  <!-- 允許搜尋引擎抓取與建立索引 -->
-  <meta name="robots" content="index, follow">
-  <!-- 設定標準網址，避免搜尋引擎因為網址結尾有無斜線而判定為重複內容 -->
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <link rel="canonical" href="https://jcnmlm-ui.github.io/khpostgoods/">
 
-  <!-- Open Graph 標籤 (用於 Facebook, LINE, Twitter 分享時的精美卡片預覽) -->
-  <meta property="og:title" content="高雄郵風商品櫥窗 - 尋找特色郵局商品">
-  <meta property="og:description" content="快速查詢高雄各地郵局的特色商品與庫存，尋找離您最近的販售據點！">
+  <meta property="og:site_name" content="高雄郵局｜郵風商品櫥窗">
+  <meta property="og:title" content="高雄郵局｜郵風商品櫥窗 - 尋找特色郵局商品">
+  <meta property="og:description" content="快速查詢在高雄各地角落的郵局特色商品與庫存，尋找離您最近的販售據點！">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://jcnmlm-ui.github.io/khpostgoods/">
-  <!-- 預覽縮圖，建議放一張代表性的圖片網址，這裡暫時使用您的其中一張圖片作為預設 -->
   <meta property="og:image" content="https://jcnmlm-ui.github.io/khpostgoods/images/preview_web.jpg">
   
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="高雄郵局｜郵風商品櫥窗">
+  <meta name="twitter:description" content="快速查詢在高雄各地角落的郵局特色商品與庫存，尋找離您最近的販售據點！">
+  <meta name="twitter:image" content="https://jcnmlm-ui.github.io/khpostgoods/images/preview_web.jpg">
+  
   <!-- ================= SEO 進階加分設定 開始 ================= -->
-  <!-- 加分 1：網站圖示 (Favicon)。這會顯示在 Google 搜尋結果的標題旁邊，增加點擊率。這裡用一個簡單的包裹 Emoji 代替 -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
-  
-  <!-- 加分 2：預先連線 (Preconnect)。告訴瀏覽器提早準備連線 GAS，提升網頁載入速度 (速度快 = SEO 加分) -->
   <link rel="preconnect" href="https://script.google.com">
+  <link rel="dns-prefetch" href="https://script.google.com">
   
-  <!-- 加分 3：結構化資料 (JSON-LD)。這就像遞名片給 Google 機器人，用它最懂的格式告訴它這是一個什麼網站 -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "高雄郵風商品櫥窗",
-    "url": "https://jcnmlm-ui.github.io/khpostgoods/",
-    "description": "快速查詢高雄各郵局特色商品、紀念品與代售商品庫存，尋找離您最近的販售據點。",
-    "keywords": "高雄郵局, 郵政商品, 庫存查詢",
-    "inLanguage": "zh-TW"
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://jcnmlm-ui.github.io/khpostgoods/#website",
+        "url": "https://jcnmlm-ui.github.io/khpostgoods/",
+        "name": "高雄郵局｜郵風商品櫥窗",
+        "description": "快速查詢在高雄各地角落的郵局特色商品與庫存，尋找離您最近的販售據點！",
+        "inLanguage": "zh-TW"
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://jcnmlm-ui.github.io/khpostgoods/#organization",
+        "name": "高雄郵局｜郵風商品櫥窗",
+        "url": "https://jcnmlm-ui.github.io/khpostgoods/",
+        "logo": "https://jcnmlm-ui.github.io/khpostgoods/images/preview_web.jpg",
+        "description": "快速查詢在高雄各地角落的郵局特色商品與庫存，尋找離您最近的販售據點！"
+      }
+    ]
   }
   </script>
   <!-- ================= SEO 進階加分設定 結束 ================= -->
 
-  <!-- 引入 Google Fonts：清晰的 Noto Sans TC (中文) 與 VT323 (像素數字) -->
+  <!-- 引入 Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=VT323&display=swap" rel="stylesheet">
@@ -61,17 +70,17 @@
   <style>
     /* 星露谷物語風格變數 */
     :root {
-      --sd-grass: #88c24c;          /* 草地綠背景 */
-      --sd-grass-dark: #6fa03d;     /* 草地陰影 */
-      --sd-wood: #c06c28;           /* 木頭亮面 */
-      --sd-wood-dark: #82380d;      /* 木頭邊框/暗面 */
-      --sd-parchment: #fdeca6;      /* 羊皮紙底色 (對話框) */
-      --sd-parchment-dark: #dcb360; /* 羊皮紙邊緣 */
-      --sd-border: #4a2100;         /* 粗黑棕色邊框 */
-      --sd-text: #41220b;           /* 主要文字顏色 */
-      --sd-text-muted: #734e2c;     /* 次要文字顏色 */
-      --sd-hot: #d9382e;            /* 熱門紅色 */
-      --sd-warning: #e58715;        /* 警告橘色 */
+      --sd-grass: #88c24c;          
+      --sd-grass-dark: #6fa03d;     
+      --sd-wood: #c06c28;           
+      --sd-wood-dark: #82380d;      
+      --sd-parchment: #fdeca6;      
+      --sd-parchment-dark: #dcb360; 
+      --sd-border: #4a2100;         
+      --sd-text: #41220b;           
+      --sd-text-muted: #734e2c;     
+      --sd-hot: #d9382e;            
+      --sd-warning: #e58715;        
     }
 
     * { box-sizing: border-box; }
@@ -138,7 +147,7 @@
       gap: 15px; 
       align-items: center; 
     }
-    .location-box label.title { font-weight: bold; color: var(--sd-text); font-size: 18px; width: 100%; margin-bottom: -5px; display: block; text-shadow: 1px 1px 0px rgba(255,255,255,0.5);}
+    .location-box .title { font-weight: bold; color: var(--sd-text); font-size: 18px; width: 100%; margin-bottom: -5px; display: block; text-shadow: 1px 1px 0px rgba(255,255,255,0.5);}
     
     .select-group { display: flex; gap: 10px; flex-grow: 1; min-width: 280px;}
     .select-group select { 
@@ -181,7 +190,6 @@
     .btn-search:hover { background: #d37d36; }
     .btn-search:active { box-shadow: inset 2px 4px 0px rgba(0,0,0,0.2); transform: translateY(4px); }
 
-    /* 溫馨提示文字 */
     .notice-text {
       width: 100%;
       text-align: right;
@@ -234,7 +242,6 @@
       text-shadow: 1px 1px 0px var(--sd-border);
     }
 
-    /* ★ 圖片點擊放大特效 */
     .p-img-box { 
       width: 100%; 
       height: 200px; 
@@ -244,11 +251,10 @@
       position: relative; 
       padding: 10px;
       border-radius: 4px 4px 0 0;
-      cursor: pointer; /* 滑鼠變成手指 */
+      cursor: pointer; 
     }
     .p-img-box img { width: 100%; height: 100%; object-fit: contain; }
     
-    /* 懸浮時的黑霧與提示文字 */
     .p-img-box::after {
       content: '🔍 點擊放大';
       position: absolute;
@@ -262,7 +268,7 @@
       align-items: center;
       opacity: 0;
       transition: opacity 0.2s;
-      pointer-events: none; /* ★ 修正 1：加上讓滑鼠點擊「穿透」黑霧的屬性 */
+      pointer-events: none; 
     }
     .p-img-box:hover::after {
       opacity: 1;
@@ -375,25 +381,6 @@
     .b-qty.low-stock { background: var(--sd-warning); }
     .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
 
-    /* ★ 留言按鈕樣式 */
-    .btn-comment {
-      background: #fdeca6;
-      color: var(--sd-text);
-      border: 2px solid var(--sd-border);
-      padding: 6px 14px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: inset -2px -2px 0px rgba(0,0,0,0.1), 1px 2px 0px rgba(0,0,0,0.15);
-      transition: 0.1s;
-      white-space: nowrap;
-    }
-    .btn-comment:active {
-      transform: translateY(2px);
-      box-shadow: inset 1px 2px 0px rgba(0,0,0,0.1);
-    }
-
     /* ★ 圖片畫廊 (Lightbox) 樣式 */
     #galleryLightbox {
       display: none; position: fixed; z-index: 10005; inset: 0;
@@ -414,7 +401,6 @@
       color: white; margin-top: 20px; font-size: 22px; font-weight: bold; 
       text-shadow: 2px 2px 4px black; text-align: center;
     }
-    /* ★ 修正 2：補回燈箱說明的 CSS 樣式 */
     .gallery-desc {
       color: #e2e8f0; margin-top: 8px; font-size: 14px; font-weight: normal; 
       text-shadow: 1px 1px 3px black; text-align: center; max-width: 90vw;
@@ -488,26 +474,48 @@
     @media (max-width: 600px) {
       .container { padding: 15px; }
       
-      /* ★ 修改：手機版改用 Grid 網格重新排版，切分 10 等分來控制精細比例 */
+      /* ★ 修改：手機版改用更穩定的 Flexbox 排版，徹底解決跑版問題 */
       .location-box { 
         padding: 16px; 
-        display: grid;
-        grid-template-columns: repeat(10, 1fr);
-        gap: 12px 10px;
-        align-items: stretch;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
       }
-      .location-box label.title { grid-area: 1 / 1 / 2 / 11; margin-bottom: 0; }
+      /* 標題自己佔滿第一行 */
+      .location-box .title { width: 100%; order: 1; margin-bottom: 0; }
       
-      /* 上半部：選單佔 6份，按鈕佔 4份 (維持按鈕合理的點擊寬度) */
-      .select-group { grid-area: 2 / 1 / 3 / 7; flex-direction: column; min-width: 0; gap: 10px;}
-      .select-group select { font-size: 15px; padding: 10px 12px; background-position: right 8px top 50%; height: auto;}
-      
-      .btn-search { 
-        grid-area: 2 / 7 / 3 / 11;
+      /* 兩個下拉選單佔滿第二行，並呈現完美的橫向並排 */
+      .select-group { 
         width: 100%; 
+        order: 2; 
+        flex-direction: row; 
+        gap: 10px;
+        min-width: 0; 
+      }
+      .select-group select { width: 50%; font-size: 15px; padding: 10px 12px; background-position: right 8px top 50%; height: auto;}
+      
+      /* 記住位置 與 搜尋按鈕 共用第三行 */
+      .checkbox-wrapper { 
+        width: auto; 
+        order: 3;
+        margin: 0; 
+        justify-content: flex-start; 
+        align-items: center; 
+        font-size: 14px; 
+        padding-top: 0;
+      }
+      .checkbox-wrapper input { width: 18px; height: 18px; flex-shrink: 0; margin-top: 0; margin-right: 6px;}
+
+      .btn-search { 
+        width: auto; 
+        flex-grow: 1;
+        margin-left: 10px;
+        order: 4;
         height: auto; 
-        padding: 8px 4px; 
-        font-size: 15px; /* 微調大小防止破字 */
+        padding: 10px 15px; 
+        font-size: 15px; 
         white-space: normal; 
         display: flex;
         justify-content: center;
@@ -517,40 +525,28 @@
         box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2), 0 3px 0 rgba(0,0,0,0.15);
       }
       
-      /* 下半部：提示文字佔 6份，打勾記住位置佔 4份 (達成完美上下對齊) */
+      /* 溫馨提示放在最後一行 */
       .notice-text { 
-        grid-area: 3 / 1 / 4 / 7;
+        width: 100%; 
+        order: 5;
         text-align: left; 
         margin: 0; 
         font-size: 12px; 
         line-height: 1.4;
-        display: flex;
-        align-items: center;
       }
 
-      .checkbox-wrapper { 
-        grid-area: 3 / 7 / 4 / 11; 
-        margin: 0; 
-        justify-content: center; 
-        align-items: center; 
-        font-size: 14px; 
-        padding-top: 0;
-      }
-      .checkbox-wrapper input { width: 18px; height: 18px; flex-shrink: 0; margin-top: 0; margin-right: 6px;}
-      
-      /* ★ 手機版雙排卡片優化開始 */
+      /* 手機版雙排卡片優化 */
       .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
       .p-img-box { height: 140px; padding: 5px; }
       .p-info { padding: 10px; }
       .p-title { font-size: 15px; margin-bottom: 6px; }
-      .p-desc { font-size: 12px; margin-bottom: 10px; -webkit-line-clamp: 2; } /* 說明文字改為最多兩行 */
-      .p-meta { flex-direction: column; align-items: flex-start; gap: 6px; padding-top: 8px; } /* 條碼價格改為上下排 */
+      .p-desc { font-size: 12px; margin-bottom: 10px; -webkit-line-clamp: 2; } 
+      .p-meta { flex-direction: column; align-items: flex-start; gap: 6px; padding-top: 8px; } 
       .p-barcode { font-size: 11px; padding: 2px 4px; }
       .p-price { font-size: 20px; }
       .p-price::before { font-size: 14px; }
       .btn-view-branch { margin: 0 10px 10px 10px; padding: 10px 5px; font-size: 13px; width: calc(100% - 20px); }
       .hot-badge { font-size: 11px; padding: 4px 8px; top: -8px; left: -8px; }
-      /* ★ 手機版雙排卡片優化結束 */
 
       #scrollToTopBtn { bottom: 20px; right: 20px; width: 50px; height: 50px; }
 
@@ -564,73 +560,72 @@
 
   <!-- 圖片畫廊 Lightbox -->
   <div id="galleryLightbox" onclick="closeGallery()">
-    <div class="gallery-close" onclick="closeGallery()">&times;</div>
+    <button class="gallery-close" aria-label="關閉預覽" onclick="closeGallery()">&times;</button>
     
     <div class="gallery-container" onclick="event.stopPropagation()">
-      <!-- 左右切換按鈕 -->
-      <div id="btnPrevImg" class="gallery-btn gallery-prev" onclick="changeGalleryImage(-1)">&#10094;</div>
-      
+      <button id="btnPrevImg" class="gallery-btn gallery-prev" aria-label="上一張圖片" onclick="changeGalleryImage(-1)">&#10094;</button>
       <img id="galleryImg" class="gallery-img" src="" alt="放大圖片">
-      
-      <div id="btnNextImg" class="gallery-btn gallery-next" onclick="changeGalleryImage(1)">&#10095;</div>
+      <button id="btnNextImg" class="gallery-btn gallery-next" aria-label="下一張圖片" onclick="changeGalleryImage(1)">&#10095;</button>
     </div>
     
     <div id="galleryTitle" class="gallery-title"></div>
-    <!-- ★ 修正 3：補回燈箱說明的 HTML 區塊 -->
     <div id="galleryDesc" class="gallery-desc"></div>
     <div id="galleryCounter" class="gallery-counter"></div>
   </div>
 
-  <div id="loader">
+  <div id="loader" aria-live="polite">
     <div class="bouncing-star">✨</div>
     <div style="font-weight:bold; color:var(--sd-text); font-size: 18px; background: #fff; padding: 10px 20px; border: 3px solid var(--sd-border); border-radius: 8px;">正在向小精靈確認庫存清單... 📦</div>
   </div>
 
-  <div class="header">
-    <h1>🪧 高雄郵風商品櫥窗</h1>
-  </div>
+  <header class="header">
+    <h1>🪧 高雄郵局｜郵風商品櫥窗</h1>
+  </header>
 
-  <div class="container">
-    <div class="location-box sd-ui-box">
-      <label class="title">🏡 告訴我們您的位置</label>
+  <main class="container">
+    <section class="location-box sd-ui-box">
+      <h2 class="title" style="margin: 0; padding-bottom: 5px;">🏡 告訴我們您的位置</h2>
       <div class="select-group">
-        <select id="citySelect" onchange="updateDistricts();"></select>
-        <select id="districtSelect" onchange="saveLocation()"></select>
+        <select id="citySelect" aria-label="選擇縣市" onchange="updateDistricts();"></select>
+        <select id="districtSelect" aria-label="選擇鄉鎮市區" onchange="saveLocation()"></select>
       </div>
       
       <label class="checkbox-wrapper">
-        <input type="checkbox" id="rememberLoc" onchange="saveLocation()">
+        <input type="checkbox" id="rememberLoc" aria-label="記住選擇的位置" onchange="saveLocation()">
         記住位置
       </label>
       
-      <button class="btn-search" onclick="fetchAndRenderProducts()">🔍 鄰近郵局</button>
+      <button class="btn-search" aria-label="搜尋鄰近郵局" onclick="fetchAndRenderProducts()">🔍 鄰近郵局</button>
       
-      <div class="notice-text">💡 溫馨提示~查詢結果僅供參考，建議前往購買前先洽電詢問庫存。</div>
-    </div>
+      <div class="notice-text">💡 溫馨提示~查詢結果僅供參考，建議前往購買前先洽電詢問庫存。前往購買時攜帶郵政VISA卡，部分商品還有優惠唷！</div>
+    </section>
 
-    <div class="quick-search-box" id="quickSearchBox">
-      <input type="search" id="localSearchInput" placeholder="輸入關鍵字在櫥窗中搜尋商品..." oninput="localFilterProducts()">
-    </div>
+    <section class="quick-search-box" id="quickSearchBox">
+      <input type="search" id="localSearchInput" aria-label="搜尋商品關鍵字" placeholder="輸入關鍵字在櫥窗中搜尋商品..." oninput="localFilterProducts()">
+    </section>
 
-    <div id="productContainer" class="product-grid">
+    <article id="productContainer" class="product-grid">
       <div class="initial-state">
-        <h2>🌻 歡迎來到高雄郵風商品櫥窗 🌻</h2>
+        <h2>歡迎來到<br>高雄郵局郵風商品櫥窗</h2>
+        <p>在這裡，我們以郵政元素或郵票圖樣延伸，開發了許多可愛、實用，且獨一無二的產品</p>
+        <p>🌻🌻🌻</p>
         <p>請先設定您所在的縣市與區域<br>並點擊「🔍 鄰近郵局」來尋寶吧！</p>
       </div>
-    </div>
-  </div>
+    </article>
+  </main>
 
-  <div class="footer">
+  <footer class="footer">
     <p style="font-size: 13px; color: var(--sd-text-muted); margin-bottom: 10px; font-weight: normal;">
       本站由 高雄郵局企劃行銷科 維護管理，提供郵局商品在高雄地區郵局販售的庫存查詢，方便消費者可以前往購買。
     </p>
     © Design by Chiahsien
-  </div>
+  </footer>
 
+  <!-- 鄰近郵局彈出視窗 -->
   <div id="branchModal" class="modal" onclick="closeBranchModal()">
     <div class="modal-content sd-ui-box" onclick="event.stopPropagation()">
       <div class="modal-header">
-        <span id="modalProductName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">鄰近販售據點</span>
+        <span id="modalProductName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">鄰近販售據點</span>
         <button class="btn-close" onclick="closeBranchModal()" aria-label="關閉視窗">&times;</button>
       </div>
       <div class="modal-body">
@@ -670,8 +665,8 @@
     };
 
     let globalData = {}; 
+    let isInitialLoadFromUrl = true;
 
-    // 三段式圖片保險機制
     window.handleImageError = function(imgElement, sheetImgUrl) {
       if (!imgElement.dataset.triedSheet) {
         imgElement.dataset.triedSheet = 'true';
@@ -690,6 +685,23 @@
 
     window.onload = () => {
       initLocationDropdowns();
+
+      // 檢查網址是否帶有特定的查詢參數 (例如: ?city=高雄市&keyword=個人化郵票)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlCity = urlParams.get('city');
+      if (urlCity) {
+        document.getElementById('citySelect').value = urlCity;
+        updateDistricts();
+        const urlDist = urlParams.get('dist');
+        if (urlDist) {
+          document.getElementById('districtSelect').value = urlDist;
+        } else {
+          document.getElementById('districtSelect').value = ""; // 預設全區
+        }
+        // 如果網址有帶縣市，就自動幫使用者按下搜尋按鈕
+        fetchAndRenderProducts();
+      }
+
       if(GAS_API_URL.includes('請在此填入')) {
          alert('⚠️ 系統提示：請務必在程式碼最上方的 GAS_API_URL 填入您的專屬網址！');
       }
@@ -759,9 +771,19 @@
           if(res.status === 'success') {
             globalData = res;
             document.getElementById('quickSearchBox').style.display = 'block';
-            document.getElementById('localSearchInput').value = ''; 
             
-            renderProducts(globalData.products);
+            // 檢查網址是否有帶入關鍵字
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlKeyword = urlParams.get('keyword');
+
+            if (isInitialLoadFromUrl && urlKeyword) {
+              document.getElementById('localSearchInput').value = urlKeyword;
+              localFilterProducts();
+              isInitialLoadFromUrl = false; // 確保只在第一次載入時套用網址的關鍵字
+            } else {
+              document.getElementById('localSearchInput').value = ''; 
+              renderProducts(globalData.products);
+            }
           } else {
             alert('資料載入失敗：' + res.message);
           }
@@ -792,6 +814,7 @@
         }
         
         return {
+          branchId: stock.branchId,
           name: info.name,
           address: info.address,
           phone: info.phone,
@@ -839,7 +862,7 @@
 
         const outOfStockStyle = hasStock ? '' : 'opacity: 0.75; filter: grayscale(40%);';
 
-        let btnText = '📍 查看鄰近販售郵局';
+        let btnText = '📍 查看鄰近郵局';
         let btnStyle = '';
         
         if (!hasStock) {
@@ -852,15 +875,13 @@
           }
         }
 
-        // ★ 終極安全防線：用 encodeURIComponent 把文字徹底轉碼，絕對不會弄破 HTML 結構
         const safeName = encodeURIComponent(p.name || "未命名商品");
         const safeDesc = encodeURIComponent(p.desc || "目前尚未提供商品詳細說明，款式與規格請依現場實物為主。");
 
-        const card = document.createElement('div');
+        const card = document.createElement('article');
         card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
         
-        // ★ 修正 4：把轉碼過的安全字串傳遞給 openGallery
         card.innerHTML = `
           ${badgeHtml}
           <div class="p-img-box" onclick="openGallery('${p.barcode}', '${safeName}', '${safeDesc}', this.querySelector('img').src)">
@@ -874,7 +895,7 @@
               <span class="p-price">${p.price}</span>
             </div>
           </div>
-          <button class="btn-view-branch" onclick="openBranchModal('${p.key}', '${p.name}')" ${btnStyle}>
+          <button class="btn-view-branch" aria-label="查看鄰近販售據點：${p.name}" onclick="openBranchModal('${p.key}', '${p.name}')" ${btnStyle}>
             ${btnText}
           </button>
         `;
@@ -897,7 +918,6 @@
     let currentGalleryImgs = [];
     let currentGalleryIdx = 0;
 
-    // ★ 修正 5：在燈箱展開時，使用 decodeURIComponent 把文字解碼還原回來
     function openGallery(barcode, encName, encDesc, activeImgSrc) {
       currentGalleryImgs = [activeImgSrc]; 
       currentGalleryIdx = 0;
@@ -992,9 +1012,8 @@
               <div class="b-detail">
                 <span>📍 ${b.address}</span>
               </div>
-              <div class="b-detail" style="align-items: center; justify-content: space-between;">
+              <div class="b-detail">
                 <span>📞 ${b.phone}</span>
-                <button class="btn-comment" onclick="alert('留言功能即將開放，敬請期待！')">💬 留言</button>
               </div>
             </li>
           `;
