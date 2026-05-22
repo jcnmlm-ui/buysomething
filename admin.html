@@ -391,7 +391,7 @@
               <div id="branchSelectionCount" class="selection-count">已上架: 0 筆</div>
             </div>
             <div class="filters">
-              <input type="search" id="branchSearchInput" placeholder="🔍 搜尋商品名稱或條碼..." oninput="filterBranchProducts()">
+              <input type="search" id="branchSearchInput" placeholder="🔍 搜尋商品名稱、條碼、組合鍵或金額..." oninput="filterBranchProducts()">
               <select id="branchStatusFilter" onchange="filterBranchProducts()">
                 <option value="all">全部商品</option>
                 <option value="checked">已上架</option>
@@ -666,11 +666,12 @@
           const info = mainMap[row.product_key];
           return {
             key: row.product_key,
-            barcode: info ? info.barcode : row.product_key,
-            name: info ? info.name : "未命名商品",
-            price: info ? info.price : 0,
-            date: info ? info.publish_date : "未提供",
-            img: info ? info.img_url : "",
+            barcode: info ? (info.barcode || row.product_key) : row.product_key,
+            name: info ? (info.original_name || info.name || "未命名商品") : "未命名商品",
+            originalName: info ? (info.original_name || "") : "",
+            price: info ? (info.price || 0) : 0,
+            date: (info && info.publish_date && info.publish_date !== 'null') ? info.publish_date : "未提供",
+            img: info ? (info.img_url || "") : "",
             qty: row.qty || 0
           };
         }).filter(p => allowedKeys.includes(p.key));
@@ -693,6 +694,14 @@
         
         const li = document.createElement('li');
         li.className = isChecked ? 'item-card branch-item selected' : 'item-card branch-item';
+        
+        // ★ 新增：將搜尋所需的屬性綁定到標籤上，方便模糊搜尋
+        li.setAttribute('data-key', p.key);
+        li.setAttribute('data-barcode', p.barcode);
+        li.setAttribute('data-name', p.name);
+        li.setAttribute('data-originalname', p.originalName);
+        li.setAttribute('data-price', p.price);
+        
         const qtyBadgeClass = p.qty <= 5 ? 'qty-badge low' : 'qty-badge';
 
         li.innerHTML = `
@@ -768,11 +777,18 @@
       const items = document.querySelectorAll('.branch-item');
 
       items.forEach(item => {
-        const title = item.querySelector('.desc').innerText.toLowerCase();
-        const barcode = item.querySelector('.barcode').innerText.toLowerCase();
+        // ★ 修改：從元素自訂屬性中提取多個條件進行比對
+        const key = (item.dataset.key || '').toLowerCase();
+        const barcode = (item.dataset.barcode || '').toLowerCase();
+        const name = (item.dataset.name || '').toLowerCase();
+        const originalName = (item.dataset.originalname || '').toLowerCase();
+        const price = (item.dataset.price || '').toLowerCase();
+        
         const isChecked = item.querySelector('.branch-cb').checked;
 
-        const matchesSearch = title.includes(searchText) || barcode.includes(searchText);
+        // ★ 修改：只要其中一個條件符合就算成功
+        const matchesSearch = key.includes(searchText) || barcode.includes(searchText) || name.includes(searchText) || originalName.includes(searchText) || price.includes(searchText);
+        
         let matchesStatus = true;
         if (statusFilter === 'checked' && !isChecked) matchesStatus = false;
         if (statusFilter === 'unchecked' && isChecked) matchesStatus = false;
