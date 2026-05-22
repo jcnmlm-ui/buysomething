@@ -1,110 +1,90 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Supabase 連線測試</title>
-  
-  <!-- 引入 Tailwind CSS 快速排版 -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 引入 Supabase JS SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    body { font-family: 'Noto Sans TC', sans-serif; background-color: #f3f4f6; }
-    .json-display { white-space: pre-wrap; word-break: break-all; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase 測試網頁</title>
+    <!-- 引入 Supabase 官方 CDN -->
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 20px auto; padding: 0 10px; }
+        .box { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+        button { padding: 5px 10px; cursor: pointer; }
+        pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
+    </style>
 </head>
-<body class="p-8">
+<body>
 
-  <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
-    <!-- 標題區 -->
-    <div class="bg-blue-600 px-6 py-4">
-      <h1 class="text-2xl font-bold text-white flex items-center gap-2">
-        <span>🔌</span> Supabase 資料庫連線測試
-      </h1>
+    <h2>Supabase 讀寫測試</h2>
+
+    <!-- 寫入資料區塊 -->
+    <div class="box">
+        <h3>1. 寫入資料 (Insert)</h3>
+        <label>欄位名稱 (例如 name): </label>
+        <input type="text" id="inputValue" placeholder="請輸入要測試的文字">
+        <button onclick="writeData()">寫入資料</button>
+        <p id="writeStatus"></p>
     </div>
 
-    <div class="p-6">
-      <!-- 狀態提示 -->
-      <div id="statusBox" class="mb-6 p-4 rounded-lg border-2 border-yellow-400 bg-yellow-50 text-yellow-800 font-bold">
-        ⏳ 正在嘗試連線並讀取「支局清單」...
-      </div>
-
-      <!-- 操作按鈕 -->
-      <button onclick="fetchData()" class="mb-6 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded shadow transition-colors">
-        🔄 重新讀取資料
-      </button>
-
-      <!-- 資料顯示區 -->
-      <div class="mb-2 font-bold text-gray-700">伺服器回傳結果：</div>
-      <div class="bg-gray-800 text-green-400 p-4 rounded-lg overflow-auto max-h-96 text-sm font-mono">
-        <code id="dataOutput" class="json-display">等待中...</code>
-      </div>
-
-      <!-- RLS 提示 -->
-      <div class="mt-6 p-4 bg-gray-100 rounded-lg text-sm text-gray-600">
-        <p class="font-bold text-red-500 mb-1">⚠️ 重要提示：關於 RLS 權限</p>
-        <p>如果你看到的結果是 <code class="bg-gray-200 px-1 rounded">[]</code> (空陣列)，或是出現權限錯誤，這是因為我們之前在 Supabase 將「支局清單」設定為 <b>僅限登入者 (authenticated)</b> 才能讀取。</p>
-        <p class="mt-2"><b>若要純粹測試讀取功能：</b>請暫時回到 Supabase 後台的 RLS Policy，把讀取權限的 Target Roles 改為 <code class="bg-gray-200 px-1 rounded">public</code> (或是移除 using 的限制)，測試成功後再改回來即可。</p>
-      </div>
+    <!-- 讀取資料區塊 -->
+    <div class="box">
+        <h3>2. 讀取資料 (Select)</h3>
+        <button onclick="readData()">從資料庫讀取最新資料</button>
+        <pre id="output">資料將顯示在此處...</pre>
     </div>
-  </div>
 
-  <script>
-    // ==========================================
-    // 1. 初始化 Supabase 連線 (注意：順序已修正)
-    // ==========================================
-    const supabaseUrl = 'https://tukzmdtkhdxdpbnvkjzz.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA';
-    
-    // 必須在 URL 和 Key 宣告完後才能初始化 Client
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    <script>
+        // 1. 初始化 Supabase 客戶端 (請替換成您的設定)
+        const SUPABASE_URL = 'https://tukzmdtkhdxdpbnvkjzz.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA';
+        const TABLE_NAME = '顧客留言'; // 例如 'todos' 或 'users'
 
-    // DOM 元素
-    const statusBox = document.getElementById('statusBox');
-    const dataOutput = document.getElementById('dataOutput');
+        const supabase = @supabase/supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ==========================================
-    // 2. 抓取資料函數
-    // ==========================================
-    async function fetchData() {
-      statusBox.className = "mb-6 p-4 rounded-lg border-2 border-yellow-400 bg-yellow-50 text-yellow-800 font-bold";
-      statusBox.innerHTML = "⏳ 正在嘗試連線並讀取「支局清單」...";
-      dataOutput.innerHTML = "載入中...";
+        // 2. 寫入資料功能
+        async function writeData() {
+            const value = document.getElementById('inputValue').value;
+            const statusEl = document.getElementById('writeStatus');
+            
+            if (!value) {
+                statusEl.innerText = '請輸入內容！';
+                return;
+            }
 
-      try {
-        // 向 Supabase 發送請求：讀取「支局清單」前 5 筆
-        const { data, error } = await supabase
-          .from('支局清單')
-          .select('*')
-          .limit(5);
+            statusEl.innerText = '寫入中...';
 
-        if (error) {
-          throw error;
+            // ⚠️ 請根據您 Table 的實際欄位名稱修改 { name: value }
+            const { data, error } = await supabase
+                .from(TABLE_NAME)
+                .insert([{ name: value }]); 
+
+            if (error) {
+                statusEl.innerText = '錯誤: ' + error.message;
+                console.error(error);
+            } else {
+                statusEl.innerText = '🎉 資料寫入成功！';
+                document.getElementById('inputValue').value = '';
+                readData(); // 寫入成功後自動重新整理列表
+            }
         }
 
-        if (!data || data.length === 0) {
-          statusBox.className = "mb-6 p-4 rounded-lg border-2 border-orange-400 bg-orange-50 text-orange-800 font-bold";
-          statusBox.innerHTML = "⚠️ 連線成功，但資料表目前沒有任何資料，或被 RLS 擋住。";
-        } else {
-          statusBox.className = "mb-6 p-4 rounded-lg border-2 border-green-400 bg-green-50 text-green-800 font-bold";
-          statusBox.innerHTML = "✅ 連線成功！成功取得資料。";
+        // 3. 讀取資料功能
+        async function readData() {
+            const outputEl = document.getElementById('output');
+            outputEl.innerText = '讀取中...';
+
+            const { data, error } = await supabase
+                .from(TABLE_NAME)
+                .select('*')
+                .limit(10); // 預設只撈取前 10 筆
+
+            if (error) {
+                outputEl.innerText = '錯誤: ' + error.message;
+                console.error(error);
+            } else {
+                outputEl.innerText = JSON.stringify(data, null, 2);
+            }
         }
-
-        // 將資料轉成格式化的 JSON 顯示在畫面上
-        dataOutput.innerHTML = JSON.stringify(data, null, 2);
-
-      } catch (err) {
-        // 捕捉並顯示錯誤
-        statusBox.className = "mb-6 p-4 rounded-lg border-2 border-red-400 bg-red-50 text-red-800 font-bold";
-        statusBox.innerHTML = "❌ 連線或讀取失敗！請檢查下方詳細錯誤。";
-        dataOutput.innerHTML = "錯誤詳細訊息：\n" + JSON.stringify(err, null, 2);
-      }
-    }
-
-    // 網頁載入完成後自動執行一次
-    fetchData();
-  </script>
+    </script>
 </body>
 </html>
