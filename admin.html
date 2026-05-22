@@ -481,7 +481,9 @@
     // ✅ 這裡已經填入您的 Supabase 專屬網址與密鑰
     const _supabaseUrl = 'https://tukzmdtkhdxdpbnvkjzz.supabase.co';
     const _supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA';
-    const supabase = window.supabase.createClient(_supabaseUrl, _supabaseKey);
+    
+    // 💡【錯誤修正處】將變數名稱 supabase 改為 supabaseClient，避免與 CDN 宣告的全域變數產生衝突！
+    const supabaseClient = window.supabase.createClient(_supabaseUrl, _supabaseKey);
 
     let myBranchId = '';
     let myAccount = '';
@@ -500,7 +502,7 @@
     // 系統寫入日誌共用函式
     async function logSystemAction(account, actionText) {
       try {
-        await supabase.from('system_logs').insert([{ account: account, action: actionText }]);
+        await supabaseClient.from('system_logs').insert([{ account: account, action: actionText }]);
       } catch (e) {
         console.error("寫入日誌失敗", e);
       }
@@ -519,7 +521,7 @@
 
       try {
         // 呼叫我們在 Supabase 建立的驗證 RPC
-        const { data, error } = await supabase.rpc('verify_login', { p_account: acc, p_password: pwd });
+        const { data, error } = await supabaseClient.rpc('verify_login', { p_account: acc, p_password: pwd });
         
         if (error) throw error;
 
@@ -617,19 +619,19 @@
     async function loadBranchData() {
       try {
         // 1. 抓取允許清單
-        const { data: allowlistData } = await supabase.from('global_allowlist').select('product_key');
+        const { data: allowlistData } = await supabaseClient.from('global_allowlist').select('product_key');
         const allowedKeys = allowlistData.map(r => r.product_key);
 
         // 2. 抓取商品主檔
-        const { data: masterData } = await supabase.from('products_master').select('*');
+        const { data: masterData } = await supabaseClient.from('products_master').select('*');
         const mainMap = {};
         masterData.forEach(row => mainMap[row.product_key] = row);
 
         // 3. 抓取這間支局的大庫存
-        const { data: invData } = await supabase.from('inventory').select('*').eq('branch_id', myBranchId);
+        const { data: invData } = await supabaseClient.from('inventory').select('*').eq('branch_id', myBranchId);
 
         // 4. 抓取這間支局已經上架的資料與額外數量
-        const { data: listingsData } = await supabase.from('branch_listings').select('*').eq('branch_id', myBranchId).eq('is_listed', true);
+        const { data: listingsData } = await supabaseClient.from('branch_listings').select('*').eq('branch_id', myBranchId).eq('is_listed', true);
         const selectedItemsMap = {};
         listingsData.forEach(row => {
           if (allowedKeys.includes(row.product_key)) {
@@ -790,7 +792,7 @@
 
       try {
         // 先刪除該支局所有舊的上架紀錄
-        await supabase.from('branch_listings').delete().eq('branch_id', myBranchId);
+        await supabaseClient.from('branch_listings').delete().eq('branch_id', myBranchId);
         
         // 準備寫入新的紀錄
         const inserts = Object.keys(itemsData).map(key => ({
@@ -802,7 +804,7 @@
         
         if (inserts.length > 0) {
             // Supabase 可以一次寫入陣列
-            await supabase.from('branch_listings').insert(inserts);
+            await supabaseClient.from('branch_listings').insert(inserts);
         }
         
         await logSystemAction(myAccount, '更新了上架清單與現場數量');
@@ -825,8 +827,8 @@
       document.getElementById('adminLoading').style.display = 'block';
       document.getElementById('adminProductContainer').style.display = 'none';
       try {
-        const { data: masterData } = await supabase.from('products_master').select('*');
-        const { data: allowlistData } = await supabase.from('global_allowlist').select('product_key');
+        const { data: masterData } = await supabaseClient.from('products_master').select('*');
+        const { data: allowlistData } = await supabaseClient.from('global_allowlist').select('product_key');
         const allowedKeys = allowlistData.map(r => r.product_key);
 
         const adminProducts = masterData.map(row => ({
@@ -905,13 +907,13 @@
 
       try {
         // 清空整個全局清單
-        await supabase.from('global_allowlist').delete().neq('product_key', '!!!');
+        await supabaseClient.from('global_allowlist').delete().neq('product_key', '!!!');
         
         // 寫入新清單
         const inserts = selectedKeys.map(k => ({ product_key: k }));
         if (inserts.length > 0) {
           // 若數量太大可以分批寫入，但一般開放清單不會超過 supabase 限制
-          await supabase.from('global_allowlist').insert(inserts);
+          await supabaseClient.from('global_allowlist').insert(inserts);
         }
         await logSystemAction(myAccount, 'A權限更新了開放上架清單');
         alert("✅ B 級支局的可上架清單已更新！");
@@ -976,11 +978,11 @@
         }).filter(item => item.branch_id && item.product_key);
 
         // 先刪除全庫存
-        await supabase.from('inventory').delete().neq('branch_id', '!!!');
+        await supabaseClient.from('inventory').delete().neq('branch_id', '!!!');
         
         // 分批寫入 (每次 1000 筆)
         for (let i = 0; i < inserts.length; i += 1000) {
-            await supabase.from('inventory').insert(inserts.slice(i, i + 1000));
+            await supabaseClient.from('inventory').insert(inserts.slice(i, i + 1000));
         }
 
         await logSystemAction(myAccount, 'A權限更新大資料庫');
@@ -1018,12 +1020,12 @@
               if(row[i] !== undefined && row[i] !== null) newRow[i] = String(row[i]).trim();
             }
             return newRow;
-          }).filter(row => row[1] && row[2]); 
+          });
           allMergedRows = allMergedRows.concat(dataRows);
         }
 
         // 去資料庫抓現有 keys
-        const { data: existing } = await supabase.from('products_master').select('product_key');
+        const { data: existing } = await supabaseClient.from('products_master').select('product_key');
         const existKeys = new Set(existing.map(r => r.product_key));
 
         const newInserts = [];
@@ -1050,7 +1052,7 @@
 
         if (newInserts.length > 0) {
             for (let i = 0; i < newInserts.length; i += 500) {
-                await supabase.from('products_master').insert(newInserts.slice(i, i + 500));
+                await supabaseClient.from('products_master').insert(newInserts.slice(i, i + 500));
             }
         }
 
@@ -1075,12 +1077,12 @@
       
       try {
         // 抓支局
-        const { data: branches } = await supabase.from('users').select('branch_id, branch_name').eq('role', 'B');
+        const { data: branches } = await supabaseClient.from('users').select('branch_id, branch_name').eq('role', 'B');
         
         // 抓日誌 (30天內) 計算活躍分
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const { data: logs } = await supabase.from('system_logs').select('account, created_at').gte('created_at', thirtyDaysAgo.toISOString());
+        const { data: logs } = await supabaseClient.from('system_logs').select('account, created_at').gte('created_at', thirtyDaysAgo.toISOString());
         
         const branchBaseScoreMap = {};
         const today = new Date();
@@ -1104,14 +1106,14 @@
         });
 
         // 抓豐富度分數 (有大庫且有勾上架，並在全局名單內)
-        const { data: allowed } = await supabase.from('global_allowlist').select('product_key');
+        const { data: allowed } = await supabaseClient.from('global_allowlist').select('product_key');
         const allowedKeys = allowed.map(r => r.product_key);
 
-        const { data: listings } = await supabase.from('branch_listings').select('*').eq('is_listed', true);
+        const { data: listings } = await supabaseClient.from('branch_listings').select('*').eq('is_listed', true);
         const listedMap = {};
         listings.forEach(row => listedMap[`${row.branch_id}_${row.product_key}`] = true);
 
-        const { data: inventory } = await supabase.from('inventory').select('*').gt('qty', 0);
+        const { data: inventory } = await supabaseClient.from('inventory').select('*').gt('qty', 0);
         const branchVarietyMap = {};
         inventory.forEach(row => {
           if (allowedKeys.includes(row.product_key) && listedMap[`${row.branch_id}_${row.product_key}`]) {
@@ -1185,7 +1187,7 @@
       document.getElementById('masterProductContainer').style.display = 'none';
       
       try {
-        const { data } = await supabase.from('products_master').select('*');
+        const { data } = await supabaseClient.from('products_master').select('*');
         const results = data.map((row) => ({
           product_key: row.product_key,
           barcode: row.barcode,
@@ -1261,7 +1263,7 @@
       btn.innerText = "儲存中..."; btn.disabled = true;
 
       try {
-        await supabase.from('products_master').update({
+        await supabaseClient.from('products_master').update({
           name: name,
           img_url: img,
           description: desc
@@ -1291,15 +1293,15 @@
       if(document.getElementById('extraStockSearch')) document.getElementById('extraStockSearch').value = '';
       
       try {
-        const { data: usersData } = await supabase.from('users').select('branch_id, branch_name');
+        const { data: usersData } = await supabaseClient.from('users').select('branch_id, branch_name');
         const branchMap = {};
         usersData.forEach(u => branchMap[u.branch_id] = u.branch_name);
 
-        const { data: masterData } = await supabase.from('products_master').select('product_key, name, barcode');
+        const { data: masterData } = await supabaseClient.from('products_master').select('product_key, name, barcode');
         const productMap = {};
         masterData.forEach(p => productMap[p.product_key] = p);
 
-        const { data: listings } = await supabase.from('branch_listings').select('*').eq('is_listed', true).gt('extra_qty', 0);
+        const { data: listings } = await supabaseClient.from('branch_listings').select('*').eq('is_listed', true).gt('extra_qty', 0);
         
         const results = listings.map(row => ({
           branchId: row.branch_id,
