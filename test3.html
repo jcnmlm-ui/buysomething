@@ -55,7 +55,7 @@
 
             // ⚠️ 請根據您 Table 的實際欄位名稱修改 { name: value }
             const { data, error } = await supabase
-                .from(TABLE_NAME)
+                .from(顧客留言)
                 .insert([{ name: value }]); 
 
             if (error) {
@@ -74,7 +74,7 @@
             outputEl.innerText = '讀取中...';
 
             const { data, error } = await supabase
-                .from(TABLE_NAME)
+                .from(顧客留言)
                 .select('*')
                 .limit(10); // 預設只撈取前 10 筆
 
