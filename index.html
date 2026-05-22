@@ -665,6 +665,7 @@
     };
 
     let globalData = {}; 
+    let isInitialLoadFromUrl = true;
 
     window.handleImageError = function(imgElement, sheetImgUrl) {
       if (!imgElement.dataset.triedSheet) {
@@ -684,6 +685,23 @@
 
     window.onload = () => {
       initLocationDropdowns();
+
+      // 檢查網址是否帶有特定的查詢參數 (例如: ?city=高雄市&keyword=個人化郵票)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlCity = urlParams.get('city');
+      if (urlCity) {
+        document.getElementById('citySelect').value = urlCity;
+        updateDistricts();
+        const urlDist = urlParams.get('dist');
+        if (urlDist) {
+          document.getElementById('districtSelect').value = urlDist;
+        } else {
+          document.getElementById('districtSelect').value = ""; // 預設全區
+        }
+        // 如果網址有帶縣市，就自動幫使用者按下搜尋按鈕
+        fetchAndRenderProducts();
+      }
+
       if(GAS_API_URL.includes('請在此填入')) {
          alert('⚠️ 系統提示：請務必在程式碼最上方的 GAS_API_URL 填入您的專屬網址！');
       }
@@ -753,9 +771,19 @@
           if(res.status === 'success') {
             globalData = res;
             document.getElementById('quickSearchBox').style.display = 'block';
-            document.getElementById('localSearchInput').value = ''; 
             
-            renderProducts(globalData.products);
+            // 檢查網址是否有帶入關鍵字
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlKeyword = urlParams.get('keyword');
+
+            if (isInitialLoadFromUrl && urlKeyword) {
+              document.getElementById('localSearchInput').value = urlKeyword;
+              localFilterProducts();
+              isInitialLoadFromUrl = false; // 確保只在第一次載入時套用網址的關鍵字
+            } else {
+              document.getElementById('localSearchInput').value = ''; 
+              renderProducts(globalData.products);
+            }
           } else {
             alert('資料載入失敗：' + res.message);
           }
