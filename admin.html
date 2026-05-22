@@ -523,7 +523,8 @@
     // 系統寫入日誌共用函式
     async function logSystemAction(account, actionText) {
       try {
-        await supabaseClient.from('system_logs').insert([{ account: account, action: actionText }]);
+        const { error } = await supabaseClient.from('system_logs').insert([{ account: account, action: actionText }]);
+        if (error) console.error("寫入日誌失敗", error);
       } catch (e) {
         console.error("寫入日誌失敗", e);
       }
@@ -813,7 +814,8 @@
 
       try {
         // 先刪除該支局所有舊的上架紀錄
-        await supabaseClient.from('branch_listings').delete().eq('branch_id', myBranchId);
+        const { error: delErr } = await supabaseClient.from('branch_listings').delete().eq('branch_id', myBranchId);
+        if (delErr) throw delErr;
         
         // 準備寫入新的紀錄
         const inserts = Object.keys(itemsData).map(key => ({
@@ -825,7 +827,8 @@
         
         if (inserts.length > 0) {
             // Supabase 可以一次寫入陣列
-            await supabaseClient.from('branch_listings').insert(inserts);
+            const { error: insErr } = await supabaseClient.from('branch_listings').insert(inserts);
+            if (insErr) throw insErr;
         }
         
         await logSystemAction(myAccount, '更新了上架清單與現場數量');
@@ -928,13 +931,15 @@
 
       try {
         // 清空整個全局清單
-        await supabaseClient.from('global_allowlist').delete().neq('product_key', '!!!');
+        const { error: delErr } = await supabaseClient.from('global_allowlist').delete().neq('product_key', '!!!');
+        if (delErr) throw delErr;
         
         // 寫入新清單
         const inserts = selectedKeys.map(k => ({ product_key: k }));
         if (inserts.length > 0) {
           // 若數量太大可以分批寫入，但一般開放清單不會超過 supabase 限制
-          await supabaseClient.from('global_allowlist').insert(inserts);
+          const { error: insErr } = await supabaseClient.from('global_allowlist').insert(inserts);
+          if (insErr) throw insErr;
         }
         await logSystemAction(myAccount, 'A權限更新了開放上架清單');
         alert("✅ B 級支局的可上架清單已更新！");
@@ -999,11 +1004,13 @@
         }).filter(item => item.branch_id && item.product_key);
 
         // 先刪除全庫存
-        await supabaseClient.from('inventory').delete().neq('branch_id', '!!!');
+        const { error: delErr } = await supabaseClient.from('inventory').delete().neq('branch_id', '!!!');
+        if (delErr) throw delErr;
         
         // 分批寫入 (每次 1000 筆)
         for (let i = 0; i < inserts.length; i += 1000) {
-            await supabaseClient.from('inventory').insert(inserts.slice(i, i + 1000));
+            const { error: insErr } = await supabaseClient.from('inventory').insert(inserts.slice(i, i + 1000));
+            if (insErr) throw insErr;
         }
 
         await logSystemAction(myAccount, 'A權限更新大資料庫');
@@ -1073,7 +1080,8 @@
 
         if (newInserts.length > 0) {
             for (let i = 0; i < newInserts.length; i += 500) {
-                await supabaseClient.from('products_master').insert(newInserts.slice(i, i + 500));
+                const { error: insErr } = await supabaseClient.from('products_master').insert(newInserts.slice(i, i + 500));
+                if (insErr) throw insErr;
             }
         }
 
@@ -1289,11 +1297,13 @@
       btn.innerText = "儲存中..."; btn.disabled = true;
 
       try {
-        await supabaseClient.from('products_master').update({
+        const { error: upErr } = await supabaseClient.from('products_master').update({
           name: name,
           img_url: img,
           description: desc
         }).eq('product_key', productKey);
+        
+        if (upErr) throw upErr;
         
         await logSystemAction(myAccount, `修改商品主檔資訊 (名稱:${name})`);
         
