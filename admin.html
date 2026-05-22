@@ -499,6 +499,27 @@
       }
     };
 
+    // --- ★ 新增：突破 Supabase 1000 筆限制的抓取小幫手 ---
+    async function fetchAllData(table, select = '*', conditions = []) {
+      let allData = [];
+      let from = 0;
+      const step = 1000;
+      while (true) {
+        let query = supabaseClient.from(table).select(select).range(from, from + step - 1);
+        conditions.forEach(c => {
+           if (c.op === 'eq') query = query.eq(c.col, c.val);
+           if (c.op === 'gt') query = query.gt(c.col, c.val);
+           if (c.op === 'gte') query = query.gte(c.col, c.val);
+        });
+        const { data, error } = await query;
+        if (error) throw error;
+        if (data && data.length > 0) allData.push(...data);
+        if (!data || data.length < step) break;
+        from += step;
+      }
+      return allData;
+    }
+
     // 系統寫入日誌共用函式
     async function logSystemAction(account, actionText) {
       try {
@@ -619,19 +640,19 @@
     async function loadBranchData() {
       try {
         // 1. 抓取允許清單
-        const { data: allowlistData } = await supabaseClient.from('global_allowlist').select('product_key');
+        const allowlistData = await fetchAllData('global_allowlist', 'product_key');
         const allowedKeys = allowlistData.map(r => r.product_key);
 
         // 2. 抓取商品主檔
-        const { data: masterData } = await supabaseClient.from('products_master').select('*');
+        const masterData = await fetchAllData('products_master', '*');
         const mainMap = {};
         masterData.forEach(row => mainMap[row.product_key] = row);
 
         // 3. 抓取這間支局的大庫存
-        const { data: invData } = await supabaseClient.from('inventory').select('*').eq('branch_id', myBranchId);
+        const invData = await fetchAllData('inventory', '*', [{op: 'eq', col: 'branch_id', val: myBranchId}]);
 
         // 4. 抓取這間支局已經上架的資料與額外數量
-        const { data: listingsData } = await supabaseClient.from('branch_listings').select('*').eq('branch_id', myBranchId).eq('is_listed', true);
+        const listingsData = await fetchAllData('branch_listings', '*', [{op: 'eq', col: 'branch_id', val: myBranchId}, {op: 'eq', col: 'is_listed', val: true}]);
         const selectedItemsMap = {};
         listingsData.forEach(row => {
           if (allowedKeys.includes(row.product_key)) {
@@ -827,8 +848,8 @@
       document.getElementById('adminLoading').style.display = 'block';
       document.getElementById('adminProductContainer').style.display = 'none';
       try {
-        const { data: masterData } = await supabaseClient.from('products_master').select('*');
-        const { data: allowlistData } = await supabaseClient.from('global_allowlist').select('product_key');
+        const masterData = await fetchAllData('products_master', '*');
+        const allowlistData = await fetchAllData('global_allowlist', 'product_key');
         const allowedKeys = allowlistData.map(r => r.product_key);
 
         const adminProducts = masterData.map(row => ({
@@ -1025,7 +1046,7 @@
         }
 
         // 去資料庫抓現有 keys
-        const { data: existing } = await supabaseClient.from('products_master').select('product_key');
+        const existing = await fetchAllData('products_master', 'product_key');
         const existKeys = new Set(existing.map(r => r.product_key));
 
         const newInserts = [];
@@ -1077,12 +1098,12 @@
       
       try {
         // 抓支局
-        const { data: branches } = await supabaseClient.from('users').select('branch_id, branch_name').eq('role', 'B');
+        const branches = await fetchAllData('users', 'branch_id, branch_name', [{op: 'eq', col: 'role', val: 'B'}]);
         
         // 抓日誌 (30天內) 計算活躍分
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const { data: logs } = await supabaseClient.from('system_logs').select('account, created_at').gte('created_at', thirtyDaysAgo.toISOString());
+        const logs = await fetchAllData('system_logs', 'account, created_at', [{op: 'gte', col: 'created_at', val: thirtyDaysAgo.toISOString()}]);
         
         const branchBaseScoreMap = {};
         const today = new Date();
@@ -1106,14 +1127,14 @@
         });
 
         // 抓豐富度分數 (有大庫且有勾上架，並在全局名單內)
-        const { data: allowed } = await supabaseClient.from('global_allowlist').select('product_key');
+        const allowed = await fetchAllData('global_allowlist', 'product_key');
         const allowedKeys = allowed.map(r => r.product_key);
 
-        const { data: listings } = await supabaseClient.from('branch_listings').select('*').eq('is_listed', true);
+        const listings = await fetchAllData('branch_listings', '*', [{op: 'eq', col: 'is_listed', val: true}]);
         const listedMap = {};
         listings.forEach(row => listedMap[`${row.branch_id}_${row.product_key}`] = true);
 
-        const { data: inventory } = await supabaseClient.from('inventory').select('*').gt('qty', 0);
+        const inventory = await fetchAllData('inventory', '*', [{op: 'gt', col: 'qty', val: 0}]);
         const branchVarietyMap = {};
         inventory.forEach(row => {
           if (allowedKeys.includes(row.product_key) && listedMap[`${row.branch_id}_${row.product_key}`]) {
@@ -1187,7 +1208,7 @@
       document.getElementById('masterProductContainer').style.display = 'none';
       
       try {
-        const { data } = await supabaseClient.from('products_master').select('*');
+        const data = await fetchAllData('products_master', '*');
         const results = data.map((row) => ({
           product_key: row.product_key,
           barcode: row.barcode,
@@ -1233,7 +1254,12 @@
 
     function filterMasterProducts() {
       const search = document.getElementById('masterSearchInput').value.toLowerCase();
-      const filtered = globalMasterData.filter(p => (p.name || '').toLowerCase().includes(search) || (p.barcode || '').toLowerCase().includes(search) || (p.originalName || '').toLowerCase().includes(search));
+      const filtered = globalMasterData.filter(p => 
+        (p.name || '').toLowerCase().includes(search) || 
+        (p.barcode || '').toLowerCase().includes(search) || 
+        (p.originalName || '').toLowerCase().includes(search) ||
+        (p.product_key || '').toLowerCase().includes(search)
+      );
       renderMasterProducts(filtered);
     }
 
@@ -1293,15 +1319,15 @@
       if(document.getElementById('extraStockSearch')) document.getElementById('extraStockSearch').value = '';
       
       try {
-        const { data: usersData } = await supabaseClient.from('users').select('branch_id, branch_name');
+        const usersData = await fetchAllData('users', 'branch_id, branch_name');
         const branchMap = {};
         usersData.forEach(u => branchMap[u.branch_id] = u.branch_name);
 
-        const { data: masterData } = await supabaseClient.from('products_master').select('product_key, name, barcode');
+        const masterData = await fetchAllData('products_master', 'product_key, name, barcode');
         const productMap = {};
         masterData.forEach(p => productMap[p.product_key] = p);
 
-        const { data: listings } = await supabaseClient.from('branch_listings').select('*').eq('is_listed', true).gt('extra_qty', 0);
+        const listings = await fetchAllData('branch_listings', '*', [{op: 'eq', col: 'is_listed', val: true}, {op: 'gt', col: 'extra_qty', val: 0}]);
         
         const results = listings.map(row => ({
           branchId: row.branch_id,
