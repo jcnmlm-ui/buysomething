@@ -3,88 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supabase 測試網頁</title>
-    <!-- 引入 Supabase 官方 CDN -->
+    <title>顧客留言系統 - Supabase 測試</title>
+    <!-- 修正：引入正確的 Supabase 官方 CDN -->
     <script src="https://jsdelivr.net"></script>
     <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 20px auto; padding: 0 10px; }
-        .box { border: 1px solid #ccc; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
-        button { padding: 5px 10px; cursor: pointer; }
-        pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
+        body { font-family: sans-serif; max-width: 650px; margin: 20px auto; padding: 0 15px; color: #333; }
+        .box { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 8px; background-color: #fcfcfc; }
+        .form-group { margin-bottom: 12px; display: flex; flex-direction: column; }
+        .form-group label { font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        .form-group input, .form-group textarea, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        button { padding: 10px 15px; cursor: pointer; background-color: #0070f3; color: white; border: none; border-radius: 4px; font-weight: bold; width: 100%; }
+        button:hover { background-color: #0051cb; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 15px; overflow-x: auto; border-radius: 6px; font-size: 13px; max-height: 400px; }
+        #writeStatus { font-weight: bold; margin-top: 10px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <h2>Supabase 讀寫測試</h2>
+    <h2>Supabase 顧客留言測試面板</h2>
 
-    <!-- 寫入資料區塊 -->
+    <!-- 1. 寫入資料區塊 -->
     <div class="box">
-        <h3>1. 寫入資料 (Insert)</h3>
-        <label>欄位名稱 (例如 name): </label>
-        <input type="text" id="inputValue" placeholder="請輸入要測試的文字">
-        <button onclick="writeData()">寫入資料</button>
+        <h3>✍️ 填寫顧客留言 (Insert)</h3>
+        
+        <div class="form-group">
+            <label>支局代號</label>
+            <input type="text" id="branch_code" placeholder="例如：001">
+        </div>
+
+        <div class="form-group">
+            <label>支局名稱</label>
+            <input type="text" id="branch_name" placeholder="例如：台北大安郵局">
+        </div>
+
+        <div class="form-group">
+            <label>詢問商品</label>
+            <input type="text" id="product" placeholder="例如：某某保險、集郵商品">
+        </div>
+
+        <div class="form-group">
+            <label>顧客稱呼</label>
+            <input type="text" id="customer_name" placeholder="例如：陳先生">
+        </div>
+
+        <div class="form-group">
+            <label>聯絡電話</label>
+            <input type="tel" id="customer_phone" placeholder="例如：0912345678">
+        </div>
+
+        <div class="form-group">
+            <label>留言內容</label>
+            <textarea id="customer_message" rows="3" placeholder="請輸入留言詳情..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label>處理狀態</label>
+            <select id="status">
+                <option value="未處理">未處理</option>
+                <option value="處理中">處理中</option>
+                <option value="已結案">已結案</option>
+            </select>
+        </div>
+
+        <button onclick="writeData()">送出留言</button>
         <p id="writeStatus"></p>
     </div>
 
-    <!-- 讀取資料區塊 -->
+    <!-- 2. 讀取資料區塊 -->
     <div class="box">
-        <h3>2. 讀取資料 (Select)</h3>
-        <button onclick="readData()">從資料庫讀取最新資料</button>
-        <pre id="output">資料將顯示在此處...</pre>
+        <h3>📋 最新 10 筆留言紀錄 (Select)</h3>
+        <button onclick="readData()" style="background-color: #24292e; margin-bottom: 15px;">重新整理資料</button>
+        <pre id="output">點擊上方按鈕讀取資料庫現狀...</pre>
     </div>
 
     <script>
-        // 1. 初始化 Supabase 客戶端 (請替換成您的設定)
+        // 初始化 Supabase 客戶端（已自動為您帶入正確的資訊）
         const SUPABASE_URL = 'https://tukzmdtkhdxdpbnvkjzz.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA';
-        const TABLE_NAME = '顧客留言'; // 例如 'todos' 或 'users'
+        const TABLE_NAME = '顧客留言'; 
 
-        const supabase = @supabase/supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 2. 寫入資料功能
+        // 寫入資料功能
         async function writeData() {
-            const value = document.getElementById('inputValue').value;
             const statusEl = document.getElementById('writeStatus');
-            
-            if (!value) {
-                statusEl.innerText = '請輸入內容！';
-                return;
-            }
+            statusEl.style.color = '#333';
+            statusEl.innerText = '正在寫入資料庫...';
 
-            statusEl.innerText = '寫入中...';
+            // ⚠️ 貼心提示：如果執行失敗並出現欄位錯誤，請確認下方包在引號內（例如 '支局代號'）的中文名稱是否與您 Supabase 上的欄位英文/中文代碼完全一致
+            const payload = {
+                '支局代號': document.getElementById('branch_code').value,
+                '支局名稱': document.getElementById('branch_name').value,
+                '詢問商品': document.getElementById('product').value,
+                '顧客稱呼': document.getElementById('customer_name').value,
+                '聯絡電話': document.getElementById('customer_phone').value,
+                '留言內容': document.getElementById('customer_message').value,
+                '處理狀態': document.getElementById('status').value
+            };
 
-            // ⚠️ 請根據您 Table 的實際欄位名稱修改 { name: value }
             const { data, error } = await supabase
-                .from(顧客留言)
-                .insert([{ name: value }]); 
+                .from(TABLE_NAME)
+                .insert([payload]); 
 
             if (error) {
-                statusEl.innerText = '錯誤: ' + error.message;
-                console.error(error);
+                statusEl.style.color = '#ff4d4f';
+                statusEl.innerText = '❌ 錯誤: ' + error.message;
+                console.error('寫入錯誤詳情:', error);
             } else {
-                statusEl.innerText = '🎉 資料寫入成功！';
-                document.getElementById('inputValue').value = '';
-                readData(); // 寫入成功後自動重新整理列表
+                statusEl.style.color = '#52c41a';
+                statusEl.innerText = '🎉 留言成功寫入資料庫！';
+                
+                // 清空表單文字欄位
+                document.getElementById('branch_code').value = '';
+                document.getElementById('branch_name').value = '';
+                document.getElementById('product').value = '';
+                document.getElementById('customer_name').value = '';
+                document.getElementById('customer_phone').value = '';
+                document.getElementById('customer_message').value = '';
+                
+                // 自動重新讀取列表
+                readData();
             }
         }
 
-        // 3. 讀取資料功能
+        // 讀取資料功能
         async function readData() {
             const outputEl = document.getElementById('output');
-            outputEl.innerText = '讀取中...';
+            outputEl.innerText = '正在讀取最新資料...';
 
             const { data, error } = await supabase
-                .from(顧客留言)
+                .from(TABLE_NAME)
                 .select('*')
-                .limit(10); // 預設只撈取前 10 筆
+                .order('id', { ascending: false }) // 讓最新的資料排在最上面
+                .limit(10); 
 
             if (error) {
-                outputEl.innerText = '錯誤: ' + error.message;
-                console.error(error);
+                outputEl.innerText = '❌ 讀取失敗: ' + error.message;
+                console.error('讀取錯誤詳情:', error);
             } else {
                 outputEl.innerText = JSON.stringify(data, null, 2);
             }
         }
+
+        // 網頁開啟時自動載入一次現有資料
+        window.onload = function() {
+            readData();
+        };
     </script>
 </body>
 </html>
