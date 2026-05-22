@@ -53,12 +53,13 @@
 
   <script>
     // ==========================================
-    // 1. 初始化 Supabase 連線
+    // 1. 初始化 Supabase 連線 (注意：順序已修正)
     // ==========================================
     const supabaseUrl = 'https://tukzmdtkhdxdpbnvkjzz.supabase.co';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA';
-
+    
+    // 必須在 URL 和 Key 宣告完後才能初始化 Client
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     // DOM 元素
     const statusBox = document.getElementById('statusBox');
@@ -68,7 +69,6 @@
     // 2. 抓取資料函數
     // ==========================================
     async function fetchData() {
-      // 顯示載入中狀態
       statusBox.className = "mb-6 p-4 rounded-lg border-2 border-yellow-400 bg-yellow-50 text-yellow-800 font-bold";
       statusBox.innerHTML = "⏳ 正在嘗試連線並讀取「支局清單」...";
       dataOutput.innerHTML = "載入中...";
@@ -80,15 +80,13 @@
           .select('*')
           .limit(5);
 
-        // 如果發生錯誤 (例如打錯資料表名稱、網路問題)
         if (error) {
           throw error;
         }
 
-        // 如果成功抓到資料
-        if (data.length === 0) {
+        if (!data || data.length === 0) {
           statusBox.className = "mb-6 p-4 rounded-lg border-2 border-orange-400 bg-orange-50 text-orange-800 font-bold";
-          statusBox.innerHTML = "⚠️ 連線成功，但沒有抓到資料 (可能是 RLS 權限擋住了，請看下方提示)";
+          statusBox.innerHTML = "⚠️ 連線成功，但資料表目前沒有任何資料，或被 RLS 擋住。";
         } else {
           statusBox.className = "mb-6 p-4 rounded-lg border-2 border-green-400 bg-green-50 text-green-800 font-bold";
           statusBox.innerHTML = "✅ 連線成功！成功取得資料。";
@@ -100,8 +98,8 @@
       } catch (err) {
         // 捕捉並顯示錯誤
         statusBox.className = "mb-6 p-4 rounded-lg border-2 border-red-400 bg-red-50 text-red-800 font-bold";
-        statusBox.innerHTML = "❌ 連線或讀取失敗！";
-        dataOutput.innerHTML = "錯誤訊息：\n" + JSON.stringify(err, null, 2);
+        statusBox.innerHTML = "❌ 連線或讀取失敗！請檢查下方詳細錯誤。";
+        dataOutput.innerHTML = "錯誤詳細訊息：\n" + JSON.stringify(err, null, 2);
       }
     }
 
