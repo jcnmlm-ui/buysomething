@@ -834,12 +834,16 @@
         const { error: delErr } = await supabaseClient.from('branch_listings').delete().eq('branch_id', myBranchId);
         if (delErr) throw delErr;
         
+        // ★ 新增：抓取當下時間 (ISO 格式)
+        const nowISO = new Date().toISOString();
+
         // 準備寫入新的紀錄
         const inserts = Object.keys(itemsData).map(key => ({
             branch_id: myBranchId,
             product_key: key,
             is_listed: true,
-            extra_qty: itemsData[key]
+            extra_qty: itemsData[key],
+            updated_at: nowISO // ★ 強制寫入時間
         }));
         
         if (inserts.length > 0) {
@@ -1062,6 +1066,9 @@
           return;
         }
 
+        // ★ 新增：抓取當下時間 (ISO 格式)
+        const nowISO = new Date().toISOString();
+
         // 轉換為 Supabase 格式
         const inserts = allMergedRows.map(row => {
             const branchId = String(row[1]).trim();
@@ -1070,7 +1077,9 @@
             const no = String(row[4] || '').trim();
             const key = `${cat}${type}${no}`;
             const qty = Number(row[8]) || 0;
-            return { branch_id: branchId, product_key: key, qty: qty };
+            
+            // ★ 強制寫入時間
+            return { branch_id: branchId, product_key: key, qty: qty, updated_at: nowISO };
         }).filter(item => item.branch_id && item.product_key);
 
         // 先刪除全庫存
