@@ -286,7 +286,8 @@
               <div id="adminSelectionCount" class="selection-count">載入中...</div>
             </div>
             <div class="filters">
-              <input type="search" id="adminSearchInput" placeholder="🔍 搜尋名稱或組合鍵..." oninput="filterAdminProducts()">
+              <!-- ★ 替換點1：更新了提示文字，並將 oninput 改為呼叫防呆延遲函數 -->
+              <input type="search" id="adminSearchInput" placeholder="🔍 搜尋名稱、條碼、組合鍵、金額或庫存..." oninput="debounceFilterAdminProducts()">
               <select id="adminStatusFilter" onchange="filterAdminProducts()">
                 <option value="all">全部顯示</option>
                 <option value="checked">只顯示已開放</option>
@@ -869,12 +870,24 @@
       try {
         const masterData = await fetchAllData('products_master', '*');
         const allowlistData = await fetchAllData('global_allowlist', 'product_key');
+        const inventoryData = await fetchAllData('inventory', 'product_key, qty'); // ★ 新增：抓取 A庫庫存
+
         const allowedKeys = allowlistData.map(r => r.product_key);
+        
+        // ★ 彙整每個商品的 A庫庫存總和
+        const qtyMap = {};
+        inventoryData.forEach(inv => {
+          qtyMap[inv.product_key] = (qtyMap[inv.product_key] || 0) + Number(inv.qty || 0);
+        });
 
         const adminProducts = masterData.map(row => ({
           key: row.product_key,
-          barcode: row.barcode,
-          name: row.name || row.original_name,
+          barcode: row.barcode || '',
+          name: row.name || row.original_name || '未命名商品',
+          originalName: row.original_name || '',
+          price: row.price || 0,
+          publish_date: (row.publish_date && row.publish_date !== 'null') ? row.publish_date : '未提供',
+          qty: qtyMap[row.product_key] || 0,
           isAllowed: allowedKeys.includes(row.product_key)
         }));
         renderAdmin(adminProducts);
@@ -889,11 +902,29 @@
       products.forEach(p => {
         const div = document.createElement('label');
         div.className = 'admin-item';
+        
+        // ★ 將所有供搜尋的屬性綁定到元素上，大幅提升效能
+        div.setAttribute('data-key', p.key);
+        div.setAttribute('data-barcode', p.barcode);
+        div.setAttribute('data-name', p.name);
+        div.setAttribute('data-originalname', p.originalName);
+        div.setAttribute('data-price', p.price);
+        div.setAttribute('data-qty', p.qty);
+
+        // ★ 庫存為 0 時顯示紅字「無」
+        const qtyDisplay = p.qty > 0 ? p.qty : '<span style="color:#ef4444; font-weight:bold;">無</span>';
+
         div.innerHTML = `
           <input type="checkbox" class="admin-cb" value="${p.key}" ${p.isAllowed ? 'checked' : ''} onchange="updateAdminCount()">
           <div class="admin-item-info">
             <span class="admin-item-title">${p.name}</span>
-            <span class="admin-item-code">組合鍵: ${p.key}</span>
+            <span class="admin-item-code">組合鍵: ${p.key} | 條碼: ${p.barcode || '無'}</span>
+            <span class="admin-item-code">原名: ${p.originalName || '無'}</span>
+            <span class="admin-item-code" style="margin-top:6px; display:flex; flex-wrap:wrap; gap:10px; color:#475569;">
+              <span style="color:#e07a5f; font-weight:bold;">$${p.price}</span>
+              <span>發行日: ${p.publish_date}</span>
+              <span style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-weight:bold;">A庫: ${qtyDisplay}</span>
+            </span>
           </div>
         `;
         container.appendChild(div);
@@ -909,17 +940,40 @@
       document.getElementById('adminSelectionCount').innerText = `共 ${total} 筆，已開放 ${checked} 筆`;
     }
 
+    // ★ 新增：打字防呆延遲小幫手，打字時不會每打一個字就停頓
+    let adminSearchTimeout = null;
+    function debounceFilterAdminProducts() {
+      clearTimeout(adminSearchTimeout);
+      adminSearchTimeout = setTimeout(() => {
+        filterAdminProducts();
+      }, 300); // 延遲 0.3 秒執行
+    }
+
     function filterAdminProducts() {
       const searchText = document.getElementById('adminSearchInput').value.toLowerCase();
       const statusFilter = document.getElementById('adminStatusFilter').value;
       const items = document.querySelectorAll('.admin-item');
 
       items.forEach(item => {
-        const title = item.querySelector('.admin-item-title').innerText.toLowerCase();
-        const code = item.querySelector('.admin-item-code').innerText.toLowerCase();
+        // ★ 透過 dataset 一次抓取所有條件，不再讀取 DOM text
+        const ds = item.dataset;
+        const key = (ds.key || '').toLowerCase();
+        const barcode = (ds.barcode || '').toLowerCase();
+        const name = (ds.name || '').toLowerCase();
+        const originalName = (ds.originalname || '').toLowerCase();
+        const price = (ds.price || '').toLowerCase();
+        const qty = (ds.qty || '').toLowerCase();
+
         const isChecked = item.querySelector('.admin-cb').checked;
 
-        const matchesSearch = title.includes(searchText) || code.includes(searchText);
+        // ★ 比對所有條件 (組合鍵、條碼、名稱、原名、金額、庫存)
+        const matchesSearch = key.includes(searchText) || 
+                              barcode.includes(searchText) || 
+                              name.includes(searchText) || 
+                              originalName.includes(searchText) || 
+                              price.includes(searchText) ||
+                              qty.includes(searchText);
+
         let matchesStatus = true;
         if (statusFilter === 'checked' && !isChecked) matchesStatus = false;
         if (statusFilter === 'unchecked' && isChecked) matchesStatus = false;
