@@ -231,6 +231,11 @@
     
     <button class="btn-login" onclick="doLogin()" id="loginBtn">登入系統</button>
     <div id="loginMsg" style="color: #e53e3e; margin-top: 15px; font-size: 14px;"></div>
+    
+    <!-- ★ 新增：聯絡企劃行銷科提示 -->
+    <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #e2e8f0; font-size: 13px; color: #94a3b8; font-weight: bold;">
+      💬 有操作問題可以請洽企劃行銷科
+    </div>
   </div>
 
   <div id="dashboardBox">
@@ -286,7 +291,6 @@
               <div id="adminSelectionCount" class="selection-count">載入中...</div>
             </div>
             <div class="filters">
-              <!-- ★ 替換點1：更新了提示文字，並將 oninput 改為呼叫防呆延遲函數 -->
               <input type="search" id="adminSearchInput" placeholder="🔍 搜尋名稱、條碼、組合鍵、金額或庫存..." oninput="debounceFilterAdminProducts()">
               <select id="adminStatusFilter" onchange="filterAdminProducts()">
                 <option value="all">全部顯示</option>
@@ -483,7 +487,7 @@
     const _supabaseUrl = 'https://tukzmdtkhdxdpbnvkjzz.supabase.co';
     const _supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA';
     
-    // 💡【錯誤修正處】將變數名稱 supabase 改為 supabaseClient，避免與 CDN 宣告的全域變數產生衝突！
+    // 💡將變數名稱改為 supabaseClient，避免與 CDN 宣告的全域變數產生衝突
     const supabaseClient = window.supabase.createClient(_supabaseUrl, _supabaseKey);
 
     let myBranchId = '';
@@ -498,9 +502,18 @@
         document.getElementById('password').value = savedPwd;
         document.getElementById('rememberMe').checked = true;
       }
+
+      // ★ 新增：監聽 Enter 鍵執行登入
+      const handleEnter = (e) => {
+        if (e.key === 'Enter') {
+          doLogin();
+        }
+      };
+      document.getElementById('account').addEventListener('keydown', handleEnter);
+      document.getElementById('password').addEventListener('keydown', handleEnter);
     };
 
-    // --- ★ 新增：突破 Supabase 1000 筆限制的抓取小幫手 ---
+    // --- 突破 Supabase 1000 筆限制的抓取小幫手 ---
     async function fetchAllData(table, select = '*', conditions = []) {
       let allData = [];
       let from = 0;
@@ -696,7 +709,7 @@
         const li = document.createElement('li');
         li.className = isChecked ? 'item-card branch-item selected' : 'item-card branch-item';
         
-        // ★ 新增：將搜尋所需的屬性綁定到標籤上，方便模糊搜尋
+        // ★ 將搜尋所需的屬性綁定到標籤上，方便模糊搜尋
         li.setAttribute('data-key', p.key);
         li.setAttribute('data-barcode', p.barcode);
         li.setAttribute('data-name', p.name);
@@ -778,7 +791,7 @@
       const items = document.querySelectorAll('.branch-item');
 
       items.forEach(item => {
-        // ★ 修改：從元素自訂屬性中提取多個條件進行比對
+        // ★ 從元素自訂屬性中提取多個條件進行比對
         const key = (item.dataset.key || '').toLowerCase();
         const barcode = (item.dataset.barcode || '').toLowerCase();
         const name = (item.dataset.name || '').toLowerCase();
@@ -787,7 +800,7 @@
         
         const isChecked = item.querySelector('.branch-cb').checked;
 
-        // ★ 修改：只要其中一個條件符合就算成功
+        // ★ 只要其中一個條件符合就算成功
         const matchesSearch = key.includes(searchText) || barcode.includes(searchText) || name.includes(searchText) || originalName.includes(searchText) || price.includes(searchText);
         
         let matchesStatus = true;
@@ -834,7 +847,7 @@
         const { error: delErr } = await supabaseClient.from('branch_listings').delete().eq('branch_id', myBranchId);
         if (delErr) throw delErr;
         
-        // ★ 新增：抓取當下時間 (ISO 格式)
+        // 抓取當下時間 (ISO 格式)
         const nowISO = new Date().toISOString();
 
         // 準備寫入新的紀錄
@@ -843,7 +856,7 @@
             product_key: key,
             is_listed: true,
             extra_qty: itemsData[key],
-            updated_at: nowISO // ★ 強制寫入時間
+            updated_at: nowISO
         }));
         
         if (inserts.length > 0) {
@@ -874,11 +887,11 @@
       try {
         const masterData = await fetchAllData('products_master', '*');
         const allowlistData = await fetchAllData('global_allowlist', 'product_key');
-        const inventoryData = await fetchAllData('inventory', 'product_key, qty'); // ★ 新增：抓取 A庫庫存
+        const inventoryData = await fetchAllData('inventory', 'product_key, qty'); 
 
         const allowedKeys = allowlistData.map(r => r.product_key);
         
-        // ★ 彙整每個商品的 A庫庫存總和
+        // 彙整每個商品的 A庫庫存總和
         const qtyMap = {};
         inventoryData.forEach(inv => {
           qtyMap[inv.product_key] = (qtyMap[inv.product_key] || 0) + Number(inv.qty || 0);
@@ -907,7 +920,7 @@
         const div = document.createElement('label');
         div.className = 'admin-item';
         
-        // ★ 將所有供搜尋的屬性綁定到元素上，大幅提升效能
+        // 將所有供搜尋的屬性綁定到元素上，大幅提升效能
         div.setAttribute('data-key', p.key);
         div.setAttribute('data-barcode', p.barcode);
         div.setAttribute('data-name', p.name);
@@ -915,7 +928,7 @@
         div.setAttribute('data-price', p.price);
         div.setAttribute('data-qty', p.qty);
 
-        // ★ 庫存為 0 時顯示紅字「無」
+        // 庫存為 0 時顯示紅字「無」
         const qtyDisplay = p.qty > 0 ? p.qty : '<span style="color:#ef4444; font-weight:bold;">無</span>';
 
         div.innerHTML = `
@@ -944,7 +957,7 @@
       document.getElementById('adminSelectionCount').innerText = `共 ${total} 筆，已開放 ${checked} 筆`;
     }
 
-    // ★ 新增：打字防呆延遲小幫手，打字時不會每打一個字就停頓
+    // 打字防呆延遲小幫手
     let adminSearchTimeout = null;
     function debounceFilterAdminProducts() {
       clearTimeout(adminSearchTimeout);
@@ -959,7 +972,7 @@
       const items = document.querySelectorAll('.admin-item');
 
       items.forEach(item => {
-        // ★ 透過 dataset 一次抓取所有條件，不再讀取 DOM text
+        // 透過 dataset 一次抓取所有條件，不再讀取 DOM text
         const ds = item.dataset;
         const key = (ds.key || '').toLowerCase();
         const barcode = (ds.barcode || '').toLowerCase();
@@ -970,7 +983,7 @@
 
         const isChecked = item.querySelector('.admin-cb').checked;
 
-        // ★ 比對所有條件 (組合鍵、條碼、名稱、原名、金額、庫存)
+        // 比對所有條件
         const matchesSearch = key.includes(searchText) || 
                               barcode.includes(searchText) || 
                               name.includes(searchText) || 
@@ -1011,7 +1024,6 @@
         // 寫入新清單
         const inserts = selectedKeys.map(k => ({ product_key: k }));
         if (inserts.length > 0) {
-          // 若數量太大可以分批寫入，但一般開放清單不會超過 supabase 限制
           const { error: insErr } = await supabaseClient.from('global_allowlist').insert(inserts);
           if (insErr) throw insErr;
         }
@@ -1066,7 +1078,6 @@
           return;
         }
 
-        // ★ 新增：抓取當下時間 (ISO 格式)
         const nowISO = new Date().toISOString();
 
         // 轉換為 Supabase 格式
@@ -1077,8 +1088,6 @@
             const no = String(row[4] || '').trim();
             const key = `${cat}${type}${no}`;
             const qty = Number(row[8]) || 0;
-            
-            // ★ 強制寫入時間
             return { branch_id: branchId, product_key: key, qty: qty, updated_at: nowISO };
         }).filter(item => item.branch_id && item.product_key);
 
