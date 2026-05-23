@@ -845,7 +845,10 @@
           }
         });
 
-        products.sort((a, b) => {
+        // ★ 新增：在排序與顯示前，直接過濾掉總庫存為 0 的商品 (徹底隱藏已售罄)
+        let availableProducts = products.filter(p => p.totalInvQty > 0);
+
+        availableProducts.sort((a, b) => {
           const aStock = (stockMap[a.key] && stockMap[a.key].length > 0) ? 1 : 0;
           const bStock = (stockMap[b.key] && stockMap[b.key].length > 0) ? 1 : 0;
           if (aStock !== bStock) return bStock - aStock; 
@@ -872,7 +875,8 @@
           };
         });
 
-        globalData = { products, stockMap, branchInfo };
+        // ★ 將過濾後只有「有庫存(上架與未上架)」的商品寫入全域資料
+        globalData = { products: availableProducts, stockMap, branchInfo };
         document.getElementById('loader').style.display = 'none';
         document.getElementById('quickSearchBox').style.display = 'block';
 
