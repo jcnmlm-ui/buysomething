@@ -894,7 +894,7 @@
       }
     }
 
-    // ★ 核心排名運算邏輯（已搬至前端，0.001秒瞬間運算）
+    // ★ 核心排名運算邏輯
     function getTop5Branches(productKey) {
       const selCity = document.getElementById('citySelect').value;
       const selDist = document.getElementById('districtSelect').value;
@@ -941,6 +941,18 @@
       return branchPool.slice(0, 5);
     }
 
+    // ★ 新增：避免將不安全字串直接放進 HTML onclick 屬性內的兩支輔助函式
+    function openBranchModalByKey(key) {
+        const p = globalData.products.find(x => x.key === key);
+        if (p) openBranchModal(p.key, p.name);
+    }
+
+    function openGalleryByKey(key, imgElementSrc) {
+        const p = globalData.products.find(x => x.key === key);
+        if (p) openGallery(p.barcode, p.name, p.desc, imgElementSrc);
+    }
+
+    // ★ 翻新：防彈修復渲染邏輯，杜絕 JavaScript Syntax Error 造成按鈕點擊失效
     function renderProducts(filteredList) {
       const container = document.getElementById('productContainer');
       
@@ -976,29 +988,34 @@
           }
         }
 
-        // ★ 防彈修復：絕對安全的字串傳遞，徹底解決點擊失效的問題
-        const safeAria = (p.name || "未命名商品").replace(/"/g, '&quot;');
-        const safeNameStr = (p.name || "未命名商品").replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        const safeDescStr = (p.desc || "目前尚未提供商品詳細說明，款式與規格請依現場實物為主。").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        // 把可能含有特殊字元或換行的文字轉為安全 HTML 實體以用於顯示 (取代原本容易失敗的字串處理方式)
+        const safeName = String(p.name || "未命名商品").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeDesc = String(p.desc || "目前尚未提供商品詳細說明，款式與規格請依現場實物為主。").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeBarcode = String(p.barcode || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeImg = String(p.img || "").replace(/"/g, '&quot;').replace(/'/g, "&#039;");
+        
+        // 安全的 Key：永遠不會有換行符號或造成 HTML 屬性斷裂的字元
+        const safeKey = String(p.key).replace(/"/g, '&quot;').replace(/'/g, "\\'");
 
         const card = document.createElement('article');
         card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
         
+        // 透過我們新增的 helper (openBranchModalByKey) 來間接呼叫，徹底斷絕所有字串換行在 HTML 內造成的問題
         card.innerHTML = `
           ${badgeHtml}
-          <div class="p-img-box" onclick="openGallery('${p.barcode}', '${safeNameStr}', '${safeDescStr}', this.querySelector('img').src)">
-            <img src="./images/${p.barcode}.jpg" alt="${safeAria}" onerror="handleImageError(this, '${p.img}')">
+          <div class="p-img-box" onclick="openGalleryByKey('${safeKey}', this.querySelector('img').src)">
+            <img src="./images/${safeBarcode}.jpg" alt="${safeName.replace(/"/g, '&quot;')}" onerror="handleImageError(this, '${safeImg}')">
           </div>
           <div class="p-info">
-            <h3 class="p-title">${p.name}</h3>
-            <div class="p-desc">${p.desc}</div>
+            <h3 class="p-title">${safeName}</h3>
+            <div class="p-desc">${safeDesc}</div>
             <div class="p-meta">
-              <span class="p-barcode">條碼: ${p.barcode}</span>
+              <span class="p-barcode">條碼: ${safeBarcode}</span>
               <span class="p-price">${p.price}</span>
             </div>
           </div>
-          <button class="btn-view-branch" aria-label="查看鄰近販售據點：${safeAria}" onclick="openBranchModal('${p.key}', '${safeNameStr}')" ${btnStyle}>
+          <button class="btn-view-branch" aria-label="查看鄰近販售據點：${safeName.replace(/"/g, '&quot;')}" onclick="openBranchModalByKey('${safeKey}')" ${btnStyle}>
             ${btnText}
           </button>
         `;
@@ -1025,8 +1042,9 @@
       currentGalleryImgs = [activeImgSrc]; 
       currentGalleryIdx = 0;
       
-      document.getElementById('galleryTitle').innerText = encName; // 防彈修復後不需 Decode
-      document.getElementById('galleryDesc').innerText = encDesc;  // 防彈修復後不需 Decode
+      // 這裡現在直接接收了在 Helper 取出的最原始乾淨的資料字串，可以直接放進 innerText 裡面，十分安全
+      document.getElementById('galleryTitle').innerText = encName; 
+      document.getElementById('galleryDesc').innerText = encDesc;  
       document.getElementById('galleryImg').src = activeImgSrc;
       document.getElementById('galleryLightbox').style.display = 'flex';
       
