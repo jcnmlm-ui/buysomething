@@ -754,14 +754,15 @@
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
+        // 🛡️ 重大安全性修正：只抓取公開的聯絡資訊，絕對不抓取密碼與帳號欄位！
         const [allowlist, master, inventory, listings, stats, logs, users] = await Promise.all([
           fetchAllData('global_allowlist', 'product_key'),
-          fetchAllData('products_master', '*'),
-          fetchAllData('inventory', '*', [{op: 'gt', col: 'qty', val: 0}]),
-          fetchAllData('branch_listings', '*', [{op: 'eq', col: 'is_listed', val: true}]),
+          fetchAllData('products_master', 'product_key, barcode, price, name, original_name, description, img_url, publish_date'),
+          fetchAllData('inventory', 'branch_id, product_key, qty', [{op: 'gt', col: 'qty', val: 0}]),
+          fetchAllData('branch_listings', 'branch_id, product_key, extra_qty', [{op: 'eq', col: 'is_listed', val: true}]),
           fetchAllData('product_stats', '*'),
           fetchAllData('system_logs', 'account, created_at', [{op: 'gte', col: 'created_at', val: thirtyDaysAgo.toISOString()}]),
-          fetchAllData('users', '*')
+          fetchAllData('users', 'branch_id, branch_name, phone, address') // 🛡️ 只抓必要欄位
         ]);
 
         const allowedKeys = allowlist.map(r => r.product_key);
@@ -897,6 +898,7 @@
       }
     }
 
+    // ★ 計算與篩選鄰近郵局的純粹前端邏輯
     function getTop5Branches(productKey) {
       const selCity = document.getElementById('citySelect').value;
       const selDist = document.getElementById('districtSelect').value;
