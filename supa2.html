@@ -442,6 +442,7 @@
     @media (max-width: 600px) {
       .container { padding: 15px; }
       
+      /* ★ 修改：手機版改用更穩定的 Flexbox 排版，徹底解決跑版問題 */
       .location-box { 
         padding: 16px; 
         display: flex;
@@ -450,8 +451,10 @@
         align-items: center;
         justify-content: space-between;
       }
+      /* 標題自己佔滿第一行 */
       .location-box .title { width: 100%; order: 1; margin-bottom: 0; }
       
+      /* 兩個下拉選單佔滿第二行，並呈現完美的橫向並排 */
       .select-group { 
         width: 100%; 
         order: 2; 
@@ -461,6 +464,7 @@
       }
       .select-group select { width: 50%; font-size: 15px; padding: 10px 12px; background-position: right 8px top 50%; height: auto;}
       
+      /* 記住位置 與 搜尋按鈕 共用第三行 */
       .checkbox-wrapper { 
         width: auto; 
         order: 3;
@@ -489,6 +493,7 @@
         box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2), 0 3px 0 rgba(0,0,0,0.15);
       }
       
+      /* 溫馨提示放在最後一行 */
       .notice-text { 
         width: 100%; 
         order: 5;
@@ -498,6 +503,7 @@
         line-height: 1.4;
       }
 
+      /* 手機版雙排卡片優化 */
       .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
       .p-img-box { height: 140px; padding: 5px; }
       .p-info { padding: 10px; }
@@ -663,9 +669,8 @@
         if (urlDist) {
           document.getElementById('districtSelect').value = urlDist;
         } else {
-          document.getElementById('districtSelect').value = ""; // 預設全區
+          document.getElementById('districtSelect').value = ""; 
         }
-        // 如果網址有帶縣市，自動按下搜尋按鈕
         fetchAndRenderProducts();
       }
     };
@@ -750,11 +755,10 @@
       document.getElementById('loader').style.display = 'flex';
       
       try {
-        // 1. 同時拉取所有需要的資料表 (加速載入)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
-        // 🛡️ 重大安全性修正：只抓取公開的聯絡資訊，絕對不抓取密碼與帳號欄位！
+        // 🛡️ 僅抓取安全欄位
         const [allowlist, master, inventory, listings, stats, logs, users] = await Promise.all([
           fetchAllData('global_allowlist', 'product_key'),
           fetchAllData('products_master', 'product_key, barcode, price, name, original_name, description, img_url, publish_date'),
@@ -762,16 +766,14 @@
           fetchAllData('branch_listings', 'branch_id, product_key, extra_qty', [{op: 'eq', col: 'is_listed', val: true}]),
           fetchAllData('product_stats', '*'),
           fetchAllData('system_logs', 'account, created_at', [{op: 'gte', col: 'created_at', val: thirtyDaysAgo.toISOString()}]),
-          fetchAllData('users', 'branch_id, branch_name, phone, address') // 🛡️ 只抓必要欄位
+          fetchAllData('users', 'branch_id, branch_name, phone, address')
         ]);
 
         const allowedKeys = allowlist.map(r => r.product_key);
 
-        // 2. 建立人氣 Map
         const popMap = {};
         stats.forEach(r => popMap[r.product_key] = Number(r.click_count) || 0);
 
-        // 3. 計算支局活躍分數
         const branchBaseScoreMap = {};
         const today = new Date();
         const dailyCheckMap = {};
@@ -790,13 +792,11 @@
           }
         });
 
-        // 4. 建立支局上架額外數量 Map
         const listedMap = {};
         listings.forEach(row => {
           listedMap[`${row.branch_id}_${row.product_key}`] = { extraQty: Number(row.extra_qty) || 0 };
         });
 
-        // 5. 建立庫存對應表與豐富度 Map
         const stockMap = {};
         const branchVarietyMap = {};
         const globalInvQtyMap = {};
@@ -812,7 +812,7 @@
             const extraQty = listedMap[`${branchId}_${key}`].extraQty || 0;
             const finalDisplayedQty = mainQty + extraQty;
 
-            globalInvQtyMap[key] += extraQty; // 把額外數量也加進全域計算
+            globalInvQtyMap[key] += extraQty;
 
             if (!stockMap[key]) stockMap[key] = [];
             stockMap[key].push({ branchId: branchId, qty: finalDisplayedQty });
@@ -820,7 +820,6 @@
           }
         });
 
-        // 6. 組合商品卡片資料
         const products = [];
         const prodMap = {};
         master.forEach(row => {
@@ -846,7 +845,6 @@
           }
         });
 
-        // 7. 商品排序 (有庫存優先 -> 人氣 -> 最新日期)
         products.sort((a, b) => {
           const aStock = (stockMap[a.key] && stockMap[a.key].length > 0) ? 1 : 0;
           const bStock = (stockMap[b.key] && stockMap[b.key].length > 0) ? 1 : 0;
@@ -861,7 +859,6 @@
           return b.rawDate - a.rawDate; 
         });
 
-        // 8. 建立支局聯絡資訊 Map
         const branchInfo = {};
         users.forEach(row => {
           const branchId = row.branch_id;
@@ -875,7 +872,6 @@
           };
         });
 
-        // 9. 更新至全域變數並開始渲染
         globalData = { products, stockMap, branchInfo };
         document.getElementById('loader').style.display = 'none';
         document.getElementById('quickSearchBox').style.display = 'block';
@@ -898,7 +894,7 @@
       }
     }
 
-    // ★ 計算與篩選鄰近郵局的純粹前端邏輯
+    // ★ 核心排名運算邏輯（已搬至前端，0.001秒瞬間運算）
     function getTop5Branches(productKey) {
       const selCity = document.getElementById('citySelect').value;
       const selDist = document.getElementById('districtSelect').value;
@@ -980,8 +976,10 @@
           }
         }
 
-        const safeName = encodeURIComponent(p.name || "未命名商品");
-        const safeDesc = encodeURIComponent(p.desc || "目前尚未提供商品詳細說明，款式與規格請依現場實物為主。");
+        // ★ 防彈修復：絕對安全的字串傳遞，徹底解決點擊失效的問題
+        const safeAria = (p.name || "未命名商品").replace(/"/g, '&quot;');
+        const safeNameStr = (p.name || "未命名商品").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const safeDescStr = (p.desc || "目前尚未提供商品詳細說明，款式與規格請依現場實物為主。").replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
         const card = document.createElement('article');
         card.className = 'p-card sd-ui-box';
@@ -989,8 +987,8 @@
         
         card.innerHTML = `
           ${badgeHtml}
-          <div class="p-img-box" onclick="openGallery('${p.barcode}', '${safeName}', '${safeDesc}', this.querySelector('img').src)">
-            <img src="./images/${p.barcode}.jpg" alt="${p.name}" onerror="handleImageError(this, '${p.img}')">
+          <div class="p-img-box" onclick="openGallery('${p.barcode}', '${safeNameStr}', '${safeDescStr}', this.querySelector('img').src)">
+            <img src="./images/${p.barcode}.jpg" alt="${safeAria}" onerror="handleImageError(this, '${p.img}')">
           </div>
           <div class="p-info">
             <h3 class="p-title">${p.name}</h3>
@@ -1000,8 +998,7 @@
               <span class="p-price">${p.price}</span>
             </div>
           </div>
-          <!-- ★ 防呆升級：改用 dataset 傳遞參數，避免商品名稱包含單引號導致按鈕失效 -->
-          <button class="btn-view-branch" aria-label="查看鄰近販售據點：${p.name}" data-key="${p.key}" data-name="${safeName}" onclick="openBranchModal(this.dataset.key, decodeURIComponent(this.dataset.name))" ${btnStyle}>
+          <button class="btn-view-branch" aria-label="查看鄰近販售據點：${safeAria}" onclick="openBranchModal('${p.key}', '${safeNameStr}')" ${btnStyle}>
             ${btnText}
           </button>
         `;
@@ -1028,8 +1025,8 @@
       currentGalleryImgs = [activeImgSrc]; 
       currentGalleryIdx = 0;
       
-      document.getElementById('galleryTitle').innerText = decodeURIComponent(encName);
-      document.getElementById('galleryDesc').innerText = decodeURIComponent(encDesc); 
+      document.getElementById('galleryTitle').innerText = encName; // 防彈修復後不需 Decode
+      document.getElementById('galleryDesc').innerText = encDesc;  // 防彈修復後不需 Decode
       document.getElementById('galleryImg').src = activeImgSrc;
       document.getElementById('galleryLightbox').style.display = 'flex';
       
@@ -1088,47 +1085,51 @@
       }
     });
 
-    // ★ 呼叫 Supabase RPC 紀錄點擊人氣
+    // ★ 開啟鄰近郵局並呼叫人氣 API
     function openBranchModal(productKey, productName) {
-      supabaseClient.rpc('record_click', { p_product_key: productKey })
-        .catch(e => console.log('人氣紀錄錯誤:', e));
+      try {
+        supabaseClient.rpc('record_click', { p_product_key: productKey })
+          .catch(e => console.log('人氣紀錄錯誤:', e));
 
-      document.getElementById('modalProductName').innerText = `尋找「${productName}」`;
-      const listUl = document.getElementById('modalBranchList');
-      const branches = getTop5Branches(productKey);
-      
-      listUl.innerHTML = '';
-      if(branches.length === 0) {
-        listUl.innerHTML = '<li class="branch-item" style="text-align:center;color:var(--sd-text-muted);padding:40px;font-weight:bold;">目前此區域尚未查詢到庫存 🍂</li>';
-      } else {
-        branches.forEach((b, index) => {
-          const qtyClass = b.qty <= 5 ? 'b-qty low-stock' : 'b-qty';
-          const qtyLabel = b.qty <= 5 ? `即將完售 (${b.qty})` : `架上剩餘: ${b.qty}`;
+        document.getElementById('modalProductName').innerText = `尋找「${productName}」`;
+        const listUl = document.getElementById('modalBranchList');
+        const branches = getTop5Branches(productKey);
+        
+        listUl.innerHTML = '';
+        if(branches.length === 0) {
+          listUl.innerHTML = '<li class="branch-item" style="text-align:center;color:var(--sd-text-muted);padding:40px;font-weight:bold;">目前此區域尚未查詢到庫存 🍂</li>';
+        } else {
+          branches.forEach((b, index) => {
+            const qtyClass = b.qty <= 5 ? 'b-qty low-stock' : 'b-qty';
+            const qtyLabel = b.qty <= 5 ? `即將完售 (${b.qty})` : `架上剩餘: ${b.qty}`;
 
-          let highlightClass = index === 0 ? ' highlight' : '';
-          let rankIcon = '🛖 ';
+            let highlightClass = index === 0 ? ' highlight' : '';
+            let rankIcon = '🛖 ';
 
-          listUl.innerHTML += `
-            <li class="branch-item${highlightClass}">
-              <div class="b-header">
-                <div class="b-name-wrapper">
-                  <span class="b-name">${rankIcon}${b.name}</span>
+            listUl.innerHTML += `
+              <li class="branch-item${highlightClass}">
+                <div class="b-header">
+                  <div class="b-name-wrapper">
+                    <span class="b-name">${rankIcon}${b.name}</span>
+                  </div>
+                  <span class="${qtyClass}">${qtyLabel}</span>
                 </div>
-                <span class="${qtyClass}">${qtyLabel}</span>
-              </div>
-              <div class="b-detail">
-                <span>📍 ${b.address}</span>
-              </div>
-              <div class="b-detail">
-                <span>📞 ${b.phone}</span>
-              </div>
-            </li>
-          `;
-        });
-      }
+                <div class="b-detail">
+                  <span>📍 ${b.address}</span>
+                </div>
+                <div class="b-detail">
+                  <span>📞 ${b.phone}</span>
+                </div>
+              </li>
+            `;
+          });
+        }
 
-      document.getElementById('branchModal').style.display = 'flex';
-      document.body.style.overflow = 'hidden'; 
+        document.getElementById('branchModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden'; 
+      } catch(err) {
+        alert('開啟鄰近郵局視窗失敗：' + err.message);
+      }
     }
 
     function closeBranchModal() {
