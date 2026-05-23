@@ -1000,7 +1000,8 @@
               <span class="p-price">${p.price}</span>
             </div>
           </div>
-          <button class="btn-view-branch" aria-label="查看鄰近販售據點：${p.name}" onclick="openBranchModal('${p.key}', '${p.name}')" ${btnStyle}>
+          <!-- ★ 防呆升級：改用 dataset 傳遞參數，避免商品名稱包含單引號導致按鈕失效 -->
+          <button class="btn-view-branch" aria-label="查看鄰近販售據點：${p.name}" data-key="${p.key}" data-name="${safeName}" onclick="openBranchModal(this.dataset.key, decodeURIComponent(this.dataset.name))" ${btnStyle}>
             ${btnText}
           </button>
         `;
