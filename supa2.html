@@ -1106,8 +1106,11 @@
     // ★ 開啟鄰近郵局並呼叫人氣 API
     function openBranchModal(productKey, productName) {
       try {
+        // ★ 修正：Supabase 的 rpc() 在 v2 版本回傳的是類似 Promise 的 { data, error } 物件，不能直接用 .catch()
         supabaseClient.rpc('record_click', { p_product_key: productKey })
-          .catch(e => console.log('人氣紀錄錯誤:', e));
+          .then(({ error }) => {
+            if (error) console.log('人氣紀錄錯誤:', error);
+          });
 
         document.getElementById('modalProductName').innerText = `尋找「${productName}」`;
         const listUl = document.getElementById('modalBranchList');
