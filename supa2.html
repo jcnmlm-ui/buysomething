@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>高雄郵局｜郵風商品櫥窗</title>
+  
+  <!-- ================= SEO Meta Tags 開始 ================= -->
+  <meta name="description" content="高雄郵局官方推出的「郵風商品櫥窗」，提供快速查詢高雄各地角落的郵局特色集郵票品、紀念品與代售商品即時庫存。透過溫馨便利的介面，輕鬆尋找離您最近的郵局販售據點，尋寶不撲空！">
+  <meta name="keywords" content="中華郵政, 高雄郵局, 集郵商品, 集郵票品, 郵政商品, 郵風商品, 郵局代售商品, 郵局庫存查詢, 高雄郵風MALL, 紀念品, 尋寶">
+  <meta name="author" content="Chiahsien">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <link rel="canonical" href="https://jcnmlm-ui.github.io/khpostgoods/">
+
+  <meta property="og:site_name" content="高雄郵局｜郵風商品櫥窗">
+  <meta property="og:title" content="高雄郵局｜郵風商品櫥窗 - 尋找特色郵局商品">
+  <meta property="og:description" content="快速查詢在高雄各地角落的郵局特色商品與庫存，尋找離您最近的販售據點！">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://jcnmlm-ui.github.io/khpostgoods/">
+  <meta property="og:image" content="https://jcnmlm-ui.github.io/khpostgoods/images/preview_web.jpg">
+  
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="高雄郵局｜郵風商品櫥窗">
+  <meta name="twitter:description" content="快速查詢在高雄各地角落的郵局特色商品與庫存，尋找離您最近的販售據點！">
+  <meta name="twitter:image" content="https://jcnmlm-ui.github.io/khpostgoods/images/preview_web.jpg">
+  
+  <!-- ================= SEO 進階加分設定 開始 ================= -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
+  
+  <!-- 引入 Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+  
+  <!-- ★ 引入 Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* 星露谷物語風格變數 */
+    :root {
+      --sd-grass: #88c24c;          
+      --sd-grass-dark: #6fa03d;     
+      --sd-wood: #c06c28;           
+      --sd-wood-dark: #82380d;      
+      --sd-parchment: #fdeca6;      
+      --sd-parchment-dark: #dcb360; 
+      --sd-border: #4a2100;         
+      --sd-text: #41220b;           
+      --sd-text-muted: #734e2c;     
+      --sd-hot: #d9382e;            
+      --sd-warning: #e58715;        
+    }
+
+    * { box-sizing: border-box; }
+    
+    body { 
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif; 
+      background-color: var(--sd-grass); 
+      background-image: 
+        linear-gradient(var(--sd-grass-dark) 1px, transparent 1px),
+        linear-gradient(90deg, var(--sd-grass-dark) 1px, transparent 1px);
+      background-size: 40px 40px;
+      color: var(--sd-text); 
+      margin: 0; 
+      padding: 0; 
+      -webkit-tap-highlight-color: transparent; 
+    }
+    
+    /* 木製招牌頂部導航 */
+    .header { 
+      background: linear-gradient(to bottom, #d6833b 0%, var(--sd-wood) 100%); 
+      color: #fff; 
+      padding: 18px 20px; 
+      text-align: center; 
+      border-bottom: 5px solid var(--sd-border);
+      position: sticky; 
+      top: 0; 
+      z-index: 100;
+      text-shadow: 2px 2px 0px var(--sd-border);
+      box-shadow: 0 6px 0px rgba(0,0,0,0.15);
+    }
+    
+    .header::before, .header::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      background: #a3aeb1;
+      border: 2px solid var(--sd-border);
+      border-radius: 50%;
+      box-shadow: inset -1px -1px 2px rgba(0,0,0,0.5);
+    }
+    .header::before { left: 20px; }
+    .header::after { right: 20px; }
+
+    .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 2px;}
+    .container { max-width: 1200px; margin: 0 auto; padding: 25px 20px; }
+
+    /* 共用 UI 對話框風格 */
+    .sd-ui-box {
+      background: var(--sd-parchment);
+      border: 4px solid var(--sd-border);
+      border-radius: 8px;
+      box-shadow: inset 0 0 0 3px var(--sd-parchment-dark), 0 8px 0 rgba(0,0,0,0.1);
+    }
+
+    /* 位置設定區 */
+    .location-box { 
+      padding: 22px; 
+      margin-bottom: 30px; 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 15px; 
+      align-items: center; 
+    }
+    .location-box .title { font-weight: bold; color: var(--sd-text); font-size: 18px; width: 100%; margin-bottom: -5px; display: block; text-shadow: 1px 1px 0px rgba(255,255,255,0.5);}
+    
+    .select-group { display: flex; gap: 10px; flex-grow: 1; min-width: 280px;}
+    .select-group select { 
+      flex: 1; 
+      padding: 12px 15px; 
+      border: 3px solid var(--sd-wood-dark); 
+      border-radius: 6px; 
+      outline: none; 
+      font-size: 16px; 
+      font-weight: bold;
+      color: var(--sd-text);
+      background: #fff8d6; 
+      cursor: pointer; 
+      appearance: none; 
+      background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%3E%3Cpath%20fill%3D%22%2382380d%22%20d%3D%22M7%2010l5%205%205-5z%22%2F%3E%3C%2Fsvg%3E"); 
+      background-repeat: no-repeat; 
+      background-position: right 10px top 50%; 
+      background-size: 20px auto; 
+      box-shadow: inset 2px 2px 0 rgba(0,0,0,0.05);
+    }
+    .select-group select:focus { border-color: var(--sd-border); background: #fff;}
+    
+    .checkbox-wrapper { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 16px; font-weight: bold; color: var(--sd-text); margin-right: auto; }
+    .checkbox-wrapper input { width: 22px; height: 22px; cursor: pointer; accent-color: var(--sd-wood); border: 2px solid var(--sd-border);}
+    
+    .btn-search { 
+      background: var(--sd-wood); 
+      color: white; 
+      border: 3px solid var(--sd-border); 
+      padding: 12px 30px; 
+      border-radius: 6px; 
+      font-size: 16px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: 0.1s; 
+      white-space: nowrap; 
+      box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2), 0 4px 0 rgba(0,0,0,0.15); 
+      text-shadow: 1px 1px 0px var(--sd-border);
+    }
+    .btn-search:hover { background: #d37d36; }
+    .btn-search:active { box-shadow: inset 2px 4px 0px rgba(0,0,0,0.2); transform: translateY(4px); }
+
+    .notice-text {
+      width: 100%;
+      text-align: right;
+      font-size: 15px;
+      color: var(--sd-text-muted);
+      font-weight: bold;
+      margin-top: -5px;
+    }
+
+    .quick-search-box { display: none; margin-bottom: 25px; width: 100%; position: relative;}
+    .quick-search-box input { 
+      width: 100%; 
+      padding: 14px 20px 14px 45px; 
+      border: 4px solid var(--sd-border); 
+      background: var(--sd-parchment);
+      border-radius: 12px; 
+      font-size: 16px; 
+      font-weight: bold;
+      color: var(--sd-text);
+      outline: none; 
+      box-shadow: inset 0 0 0 3px var(--sd-parchment-dark), 0 4px 0 rgba(0,0,0,0.1); 
+      -webkit-appearance: none; 
+    }
+    .quick-search-box input:focus { background: #fff8d6; }
+    .quick-search-box::before { content: '🔎'; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; z-index: 2;}
+
+    /* 商品網格與卡片 */
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
+    .p-card { 
+      display: flex; 
+      flex-direction: column; 
+      position: relative;
+      transition: transform 0.2s;
+    }
+    .p-card:hover { transform: translateY(-6px); }
+    
+    .hot-badge { 
+      position: absolute; 
+      top: -10px; 
+      left: -10px; 
+      background: var(--sd-hot); 
+      color: white; 
+      padding: 6px 15px; 
+      font-size: 13px; 
+      font-weight: bold; 
+      border: 3px solid var(--sd-border);
+      border-radius: 4px; 
+      box-shadow: 2px 4px 0px rgba(0,0,0,0.2); 
+      z-index: 10; 
+      text-shadow: 1px 1px 0px var(--sd-border);
+    }
+
+    .p-img-box { 
+      width: 100%; 
+      height: 200px; 
+      background: #fff; 
+      border-bottom: 4px solid var(--sd-border);
+      overflow: hidden; 
+      position: relative; 
+      padding: 10px;
+      border-radius: 4px 4px 0 0;
+      cursor: pointer; 
+    }
+    .p-img-box img { width: 100%; height: 100%; object-fit: contain; }
+    
+    .p-img-box::after {
+      content: '🔍 點擊放大';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none; 
+    }
+    .p-img-box:hover::after {
+      opacity: 1;
+    }
+    
+    .p-info { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; }
+    .p-title { font-size: 19px; font-weight: bold; margin: 0 0 10px 0; color: var(--sd-text); line-height: 1.4; text-shadow: 1px 1px 0px rgba(255,255,255,0.6);}
+    .p-desc { font-size: 15px; color: var(--sd-text-muted); margin-bottom: 16px; line-height: 1.6; flex-grow: 1; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-weight: bold;}
+    
+    .p-meta { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 2px dashed var(--sd-wood-dark); }
+    .p-barcode { font-family: 'VT323', monospace; font-size: 16px; color: #fff; background: var(--sd-wood-dark); padding: 4px 8px; border-radius: 4px; border: 2px solid var(--sd-border); letter-spacing: 1px;}
+    .p-price { font-family: 'VT323', monospace; font-size: 28px; font-weight: normal; color: var(--sd-hot); text-shadow: 1px 1px 0px rgba(255,255,255,0.8); letter-spacing: 1px;}
+    .p-price::before { content: '💰 '; font-size: 18px; font-family: 'Noto Sans TC', sans-serif; }
+
+    .btn-view-branch { 
+      width: calc(100% - 32px); 
+      margin: 0 16px 16px 16px; 
+      background: var(--sd-wood); 
+      color: white; 
+      border: 3px solid var(--sd-border); 
+      padding: 12px; 
+      font-size: 16px; 
+      font-weight: bold; 
+      cursor: pointer; 
+      border-radius: 6px; 
+      transition: transform 0.1s; 
+      box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2); 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      gap: 6px; 
+      text-shadow: 1px 1px 0px var(--sd-border);
+    }
+    .btn-view-branch:hover { background: #d37d36; }
+    .btn-view-branch:active { box-shadow: inset 2px 4px 0px rgba(0,0,0,0.2); transform: translateY(2px); }
+    
+    .initial-state { text-align: center; padding: 60px 20px; color: var(--sd-text); grid-column: 1 / -1; background: var(--sd-parchment); border: 4px dashed var(--sd-wood-dark); border-radius: 12px;}
+    .initial-state h2 { color: var(--sd-wood-dark); margin-bottom: 15px; font-size: 24px;}
+    .initial-state p { font-size: 18px; line-height: 1.6; font-weight: bold;}
+
+    /* 分局彈出視窗 (Modal) */
+    .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); justify-content: center; align-items: center; }
+    .modal-content { 
+      width: 90%; 
+      max-width: 500px; 
+      max-height: 85vh; 
+      display: flex; 
+      flex-direction: column; 
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    }
+    
+    @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+
+    .modal-header { 
+      background: var(--sd-wood); 
+      color: white; 
+      padding: 16px 20px; 
+      font-weight: bold; 
+      font-size: 18px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      border-bottom: 4px solid var(--sd-border);
+      text-shadow: 2px 2px 0px var(--sd-border);
+    }
+    .btn-close { 
+      background: var(--sd-hot); 
+      border: 3px solid var(--sd-border); 
+      color: white; 
+      font-size: 20px; 
+      font-weight: bold;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 4px;
+      cursor: pointer; 
+      box-shadow: inset -2px -2px 0px rgba(0,0,0,0.2);
+    }
+    .btn-close:active { box-shadow: inset 2px 2px 0px rgba(0,0,0,0.3); transform: translateY(2px);}
+    
+    .modal-body { padding: 0; overflow-y: auto; background: var(--sd-parchment); flex-grow: 1; border-radius: 0 0 4px 4px;}
+    
+    .branch-list { list-style: none; padding: 0; margin: 0; }
+    .branch-item { padding: 20px; border-bottom: 2px dotted var(--sd-wood-dark); transition: background 0.2s; border-left: 6px solid transparent; }
+    .branch-item:last-child { border-bottom: none; }
+    .branch-item:hover { background: rgba(255, 255, 255, 0.4); }
+    
+    .branch-item.highlight { 
+      background-color: rgba(255, 215, 0, 0.2); 
+      border-left: 6px solid #eab308; 
+    }
+
+    .b-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px;}
+    .b-name-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1;}
+    .b-name { font-weight: bold; color: var(--sd-text); font-size: 18px; text-shadow: 1px 1px 0px #fff;}
+
+    .b-qty { 
+      background: var(--sd-grass-dark); 
+      color: white; 
+      padding: 4px 10px; 
+      border: 2px solid var(--sd-border);
+      border-radius: 4px; 
+      font-size: 14px; 
+      font-weight: bold; 
+      white-space: nowrap; 
+      box-shadow: 2px 2px 0px rgba(0,0,0,0.15);
+    }
+    .b-qty.low-stock { background: var(--sd-warning); }
+    .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
+
+    /* ★ 圖片畫廊 (Lightbox) 樣式 */
+    #galleryLightbox {
+      display: none; position: fixed; z-index: 10005; inset: 0;
+      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
+      justify-content: center; align-items: center; flex-direction: column;
+    }
+    .gallery-container {
+      position: relative; width: 90vw; max-width: 800px; max-height: 80vh;
+      display: flex; justify-content: center; align-items: center;
+    }
+    .gallery-img {
+      max-width: 100%; max-height: 80vh; 
+      border: 6px solid var(--sd-wood); border-radius: 8px; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5); object-fit: contain;
+      background: white;
+    }
+    .gallery-title {
+      color: white; margin-top: 20px; font-size: 22px; font-weight: bold; 
+      text-shadow: 2px 2px 4px black; text-align: center;
+    }
+    .gallery-desc {
+      color: #e2e8f0; margin-top: 8px; font-size: 14px; font-weight: normal; 
+      text-shadow: 1px 1px 3px black; text-align: center; max-width: 90vw;
+      line-height: 1.5; padding: 0 15px; white-space: pre-wrap;
+    }
+    .gallery-counter {
+      color: var(--sd-parchment); font-size: 18px; margin-top: 5px; 
+      font-family: 'VT323', monospace; letter-spacing: 2px;
+    }
+    .gallery-close {
+      position: absolute; top: 20px; right: 25px; font-size: 45px; 
+      color: white; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      z-index: 10010; line-height: 1; transition: 0.2s;
+    }
+    .gallery-close:hover { color: var(--sd-hot); transform: scale(1.1); }
+    
+    .gallery-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.2); color: white; 
+      border: 3px solid white; width: 55px; height: 55px; border-radius: 50%; 
+      font-size: 26px; cursor: pointer; display: flex; justify-content: center; 
+      align-items: center; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 10010;
+    }
+    .gallery-btn:hover { background: rgba(255, 255, 255, 0.6); color: var(--sd-text); border-color: var(--sd-text); }
+    .gallery-btn:active { transform: translateY(-50%) scale(0.9); }
+    .gallery-prev { left: -70px; }
+    .gallery-next { right: -70px; }
+
+    /* 版權宣告 */
+    .footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--sd-text);
+      font-weight: bold;
+      font-size: 15px;
+      text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+      letter-spacing: 1px;
+    }
+
+    #scrollToTopBtn { 
+      position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; 
+      background-color: #fdeca6; color: var(--sd-text); font-size: 24px;
+      border: 3px solid var(--sd-border); border-radius: 50%; 
+      box-shadow: 0 4px 0px rgba(0,0,0,0.2), inset -2px -2px 0px #dcb360; 
+      cursor: pointer; display: flex; justify-content: center; align-items: center; 
+      opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 999; 
+    }
+    #scrollToTopBtn:active { transform: translateY(4px); box-shadow: 0 0px 0px rgba(0,0,0,0.2), inset 2px 2px 0px #dcb360; }
+    #scrollToTopBtn.show { opacity: 1; visibility: visible; }
+
+    #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(253, 236, 166, 0.9); z-index: 1000; display:none; flex-direction:column; justify-content:center; align-items:center; }
+    .bouncing-star {
+      font-size: 50px;
+      animation: bounce 0.6s infinite alternate cubic-bezier(0.5, 0.05, 1, 0.5);
+      margin-bottom: 20px;
+      text-shadow: 0 10px 10px rgba(0,0,0,0.2);
+    }
+    @keyframes bounce {
+      0% { transform: translateY(0) scale(1.1); }
+      100% { transform: translateY(-30px) scale(0.9); text-shadow: 0 40px 15px rgba(0,0,0,0.1); }
+    }
+
+    @media (max-width: 768px) {
+      .gallery-prev { left: 10px; }
+      .gallery-next { right: 10px; }
+      .gallery-container { width: 100vw; }
+      .gallery-img { border-width: 3px; }
+    }
+
+    @media (max-width: 600px) {
+      .container { padding: 15px; }
+      
+      .location-box { 
+        padding: 16px; 
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .location-box .title { width: 100%; order: 1; margin-bottom: 0; }
+      
+      .select-group { 
+        width: 100%; 
+        order: 2; 
+        flex-direction: row; 
+        gap: 10px;
+        min-width: 0; 
+      }
+      .select-group select { width: 50%; font-size: 15px; padding: 10px 12px; background-position: right 8px top 50%; height: auto;}
+      
+      .checkbox-wrapper { 
+        width: auto; 
+        order: 3;
+        margin: 0; 
+        justify-content: flex-start; 
+        align-items: center; 
+        font-size: 14px; 
+        padding-top: 0;
+      }
+      .checkbox-wrapper input { width: 18px; height: 18px; flex-shrink: 0; margin-top: 0; margin-right: 6px;}
+
+      .btn-search { 
+        width: auto; 
+        flex-grow: 1;
+        margin-left: 10px;
+        order: 4;
+        height: auto; 
+        padding: 10px 15px; 
+        font-size: 15px; 
+        white-space: normal; 
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        line-height: 1.3;
+        box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2), 0 3px 0 rgba(0,0,0,0.15);
+      }
+      
+      .notice-text { 
+        width: 100%; 
+        order: 5;
+        text-align: left; 
+        margin: 0; 
+        font-size: 12px; 
+        line-height: 1.4;
+      }
+
+      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+      .p-img-box { height: 140px; padding: 5px; }
+      .p-info { padding: 10px; }
+      .p-title { font-size: 15px; margin-bottom: 6px; }
+      .p-desc { font-size: 12px; margin-bottom: 10px; -webkit-line-clamp: 2; } 
+      .p-meta { flex-direction: column; align-items: flex-start; gap: 6px; padding-top: 8px; } 
+      .p-barcode { font-size: 11px; padding: 2px 4px; }
+      .p-price { font-size: 20px; }
+      .p-price::before { font-size: 14px; }
+      .btn-view-branch { margin: 0 10px 10px 10px; padding: 10px 5px; font-size: 13px; width: calc(100% - 20px); }
+      .hot-badge { font-size: 11px; padding: 4px 8px; top: -8px; left: -8px; }
+
+      #scrollToTopBtn { bottom: 20px; right: 20px; width: 50px; height: 50px; }
+
+      .modal { align-items: flex-end; }
+      .modal-content { width: 100%; max-width: none; border-radius: 12px 12px 0 0; max-height: 85vh; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; border-bottom: none;}
+      @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 圖片畫廊 Lightbox -->
+  <div id="galleryLightbox" onclick="closeGallery()">
+    <button class="gallery-close" aria-label="關閉預覽" onclick="closeGallery()">&times;</button>
+    
+    <div class="gallery-container" onclick="event.stopPropagation()">
+      <button id="btnPrevImg" class="gallery-btn gallery-prev" aria-label="上一張圖片" onclick="changeGalleryImage(-1)">&#10094;</button>
+      <img id="galleryImg" class="gallery-img" src="" alt="放大圖片">
+      <button id="btnNextImg" class="gallery-btn gallery-next" aria-label="下一張圖片" onclick="changeGalleryImage(1)">&#10095;</button>
+    </div>
+    
+    <div id="galleryTitle" class="gallery-title"></div>
+    <div id="galleryDesc" class="gallery-desc"></div>
+    <div id="galleryCounter" class="gallery-counter"></div>
+  </div>
+
+  <div id="loader" aria-live="polite">
+    <div class="bouncing-star">✨</div>
+    <div style="font-weight:bold; color:var(--sd-text); font-size: 18px; background: #fff; padding: 10px 20px; border: 3px solid var(--sd-border); border-radius: 8px;">正在向小精靈確認庫存清單... 📦</div>
+  </div>
+
+  <header class="header">
+    <h1>🪧 高雄郵局｜郵風商品櫥窗</h1>
+  </header>
+
+  <main class="container">
+    <section class="location-box sd-ui-box">
+      <h2 class="title" style="margin: 0; padding-bottom: 5px;">🏡 告訴我們您的位置</h2>
+      <div class="select-group">
+        <select id="citySelect" aria-label="選擇縣市" onchange="updateDistricts();"></select>
+        <select id="districtSelect" aria-label="選擇鄉鎮市區" onchange="saveLocation()"></select>
+      </div>
+      
+      <label class="checkbox-wrapper">
+        <input type="checkbox" id="rememberLoc" aria-label="記住選擇的位置" onchange="saveLocation()">
+        記住位置
+      </label>
+      
+      <button class="btn-search" aria-label="搜尋鄰近郵局" onclick="fetchAndRenderProducts()">🔍 鄰近郵局</button>
+      
+      <div class="notice-text">💡 溫馨提示~查詢結果僅供參考，建議前往購買前先洽電詢問庫存。前往購買時攜帶郵政VISA卡，部分商品還有優惠唷！</div>
+    </section>
+
+    <section class="quick-search-box" id="quickSearchBox">
+      <input type="search" id="localSearchInput" aria-label="搜尋商品關鍵字" placeholder="輸入關鍵字在櫥窗中搜尋商品..." oninput="localFilterProducts()">
+    </section>
+
+    <article id="productContainer" class="product-grid">
+      <div class="initial-state">
+        <h2>歡迎來到<br>高雄郵局郵風商品櫥窗</h2>
+        <p>在這裡，我們以郵政元素或郵票圖樣延伸，開發了許多可愛、實用，且獨一無二的產品</p>
+        <p>🌻🌻🌻</p>
+        <p>請先設定您所在的縣市與區域<br>並點擊「🔍 鄰近郵局」來尋寶吧！</p>
+      </div>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <p style="font-size: 13px; color: var(--sd-text-muted); margin-bottom: 10px; font-weight: normal;">
+      本站由 高雄郵局企劃行銷科 維護管理，提供郵局商品在高雄地區郵局販售的庫存查詢，方便消費者可以前往購買。
+    </p>
+    © Design by Chiahsien
+  </footer>
+
+  <!-- 鄰近郵局彈出視窗 -->
+  <div id="branchModal" class="modal" onclick="closeBranchModal()">
+    <div class="modal-content sd-ui-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span id="modalProductName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">鄰近販售據點</span>
+        <button class="btn-close" onclick="closeBranchModal()" aria-label="關閉視窗">&times;</button>
+      </div>
+      <div class="modal-body">
+        <ul class="branch-list" id="modalBranchList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <button id="scrollToTopBtn" onclick="scrollToTop()" title="回到最上方" aria-label="回到網頁最上方">
+    ⭐
+  </button>
+
+  <script>
+    // ★ 系統設定：填入您的 Supabase 專屬網址與密鑰
+    const _supabaseUrl = 'https://tukzmdtkhdxdpbnvkjzz.supabase.co';
+    const _supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA';
+    const supabaseClient = window.supabase.createClient(_supabaseUrl, _supabaseKey);
+
+    const twData = {
+      "基隆市": ["仁愛區", "信義區", "中正區", "中山區", "安樂區", "暖暖區", "七堵區"],
+      "臺北市": ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"],
+      "新北市": ["萬里區", "金山區", "板橋區", "汐止區", "深坑區", "石碇區", "瑞芳區", "平溪區", "雙溪區", "貢寮區", "新店區", "坪林區", "烏來區", "永和區", "中和區", "土城區", "三峽區", "樹林區", "鶯歌區", "三重區", "新莊區", "泰山區", "林口區", "蘆洲區", "五股區", "八里區", "淡水區", "三芝區", "石門區"],
+      "桃園市": ["中壢區", "平鎮區", "龍潭區", "楊梅區", "新屋區", "觀音區", "桃園區", "龜山區", "八德區", "大溪區", "復興區", "大園區", "蘆竹區"],
+      "新竹縣": ["竹北市", "湖口鄉", "新豐鄉", "新埔鎮", "關西鎮", "芎林鄉", "寶山鄉", "竹東鎮", "五峰鄉", "橫山鄉", "尖石鄉", "北埔鄉", "峨眉鄉"],
+      "新竹市": ["東區", "北區", "香山區"],
+      "苗栗縣": ["竹南鎮", "頭份市", "三灣鄉", "南庄鄉", "獅潭鄉", "後龍鎮", "通霄鎮", "苑裡鎮", "苗栗市", "造橋鄉", "頭屋鄉", "公館鄉", "大湖鄉", "泰安鄉", "銅羅鄉", "三義鄉", "西湖鄉", "卓蘭鎮"],
+      "臺中市": ["中區", "東區", "南區", "西區", "北區", "北屯區", "西屯區", "南屯區", "太平區", "大里區", "霧峰區", "烏日區", "豐原區", "后里區", "石岡區", "東勢區", "和平區", "新社區", "潭子區", "大雅區", "神岡區", "大肚區", "沙鹿區", "龍井區", "梧棲區", "清水區", "大甲區", "外埔區", "大安區"],
+      "彰化縣": ["彰化市", "芬園鄉", "花壇鄉", "秀水鄉", "鹿港鎮", "福興鄉", "線西鄉", "和美鎮", "伸港鄉", "員林市", "社頭鄉", "永靖鄉", "埔心鄉", "溪湖鎮", "大村鄉", "埔鹽鄉", "田中鎮", "北斗鎮", "田尾鄉", "埤頭鄉", "溪州鄉", "竹塘鄉", "二林鎮", "大城鄉", "芳苑鄉", "二水鄉"],
+      "南投縣": ["南投市", "中寮鄉", "草屯鎮", "國姓鄉", "埔里鎮", "仁愛鄉", "名間鄉", "集集鎮", "水里鄉", "魚池鄉", "信義鄉", "竹山鎮", "鹿谷鄉"],
+      "雲林縣": ["斗南鎮", "大埤鄉", "虎尾鎮", "土庫鎮", "褒忠鄉", "東勢鄉", "臺西鄉", "崙背鄉", "麥寮鄉", "斗六市", "林內鄉", "古坑鄉", "莿桐鄉", "西螺鎮", "二崙鄉", "北港鎮", "水林鄉", "口湖鄉", "四湖鄉", "元長鄉"],
+      "嘉義縣": ["番路鄉", "梅山鄉", "竹崎鄉", "阿里山鄉", "中埔鄉", "大埔鄉", "水上鄉", "鹿草鄉", "太保市", "朴子市", "東石鄉", "六腳鄉", "新港鄉", "民雄鄉", "大林鎮", "溪口鄉", "義竹鄉", "布袋鎮"],
+      "嘉義市": ["東區", "西區"],
+      "臺南市": ["中西區", "東區", "南區", "北區", "安平區", "安南區", "永康區", "歸仁區", "新化區", "左鎮區", "玉井區", "楠西區", "南化區", "仁德區", "關廟區", "龍崎區", "官田區", "麻豆區", "佳里區", "西港區", "七股區", "將軍區", "學甲區", "北門區", "新營區", "後壁區", "白河區", "東山區", "六甲區", "下營區", "柳營區", "鹽水區", "善化區", "大內區", "山上區", "新市區", "安定區"],
+      "高雄市": ["新興區", "前金區", "苓雅區", "鹽埕區", "鼓山區", "旗津區", "前鎮區", "三民區", "楠梓區", "小港區", "左營區", "仁武區", "大社區", "岡山區", "路竹區", "阿蓮區", "田寮區", "燕巢區", "橋頭區", "梓官區", "彌陀區", "永安區", "湖內區", "鳳山區", "大寮區", "林園區", "鳥松區", "大樹區", "旗山區", "美濃區", "六龜區", "內門區", "杉林區", "甲仙區", "桃源區", "那瑪夏區", "茂林區", "茄萣區"],
+      "屏東縣": ["屏東市", "三地門鄉", "霧臺鄉", "瑪家鄉", "九如鄉", "里港鄉", "高樹鄉", "鹽埔鄉", "長治鄉", "麟洛鄉", "竹田鄉", "內埔鄉", "萬丹鄉", "潮州鎮", "泰武鄉", "來義鄉", "萬巒鄉", "崁頂鄉", "新埤鄉", "南州鄉", "林邊鄉", "東港鎮", "琉球鄉", "佳冬鄉", "新園鄉", "枋寮鄉", "枋山鄉", "春日鄉", "獅子鄉", "車城鄉", "牡丹鄉", "恆春鎮", "滿州鄉"],
+      "宜蘭縣": ["宜蘭市", "頭城鎮", "礁溪鄉", "壯圍鄉", "員山鄉", "羅東鎮", "三星鄉", "大同鄉", "五結鄉", "冬山鄉", "蘇澳鎮", "南澳鄉"],
+      "花蓮縣": ["花蓮市", "新城鄉", "秀林鄉", "吉安鄉", "壽豐鄉", "鳳林鎮", "光復鄉", "豐濱鄉", "瑞穗鄉", "萬榮鄉", "玉里鎮", "卓溪鄉", "富里鄉"],
+      "臺東縣": ["臺東市", "綠島鄉", "蘭嶼鄉", "延平鄉", "卑南鄉", "鹿野鄉", "關山鎮", "海端鄉", "池上鄉", "東河鄉", "成功鎮", "長濱鄉", "太麻里鄉", "金峰鄉", "大武鄉", "達仁鄉"],
+      "澎湖縣": ["馬公市", "西嶼鄉", "望安鄉", "七美鄉", "白沙鄉", "湖西鄉"],
+      "金門縣": ["金沙鎮", "金湖鎮", "金寧鄉", "金城鎮", "烈嶼鄉", "烏坵鄉"],
+      "連江縣": ["南竿鄉", "北竿鄉", "莒光鄉", "東引鄉"]
+    };
+
+    let globalData = {}; 
+    let isInitialLoadFromUrl = true;
+
+    window.handleImageError = function(imgElement, sheetImgUrl) {
+      if (!imgElement.dataset.triedSheet) {
+        imgElement.dataset.triedSheet = 'true';
+        if (sheetImgUrl && sheetImgUrl.trim() !== '' && !sheetImgUrl.includes('暫無商品圖片')) {
+            imgElement.src = sheetImgUrl;
+            return;
+        }
+      }
+      if (!imgElement.dataset.triedDefault) {
+        imgElement.dataset.triedDefault = 'true';
+        imgElement.src = './images/080000AA.jpg';
+        return;
+      }
+      imgElement.onerror = null; 
+    };
+
+    window.onload = () => {
+      initLocationDropdowns();
+
+      // 檢查網址是否帶有特定的查詢參數
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlCity = urlParams.get('city');
+      if (urlCity) {
+        document.getElementById('citySelect').value = urlCity;
+        updateDistricts();
+        const urlDist = urlParams.get('dist');
+        if (urlDist) {
+          document.getElementById('districtSelect').value = urlDist;
+        } else {
+          document.getElementById('districtSelect').value = ""; // 預設全區
+        }
+        // 如果網址有帶縣市，自動按下搜尋按鈕
+        fetchAndRenderProducts();
+      }
+    };
+
+    function initLocationDropdowns() {
+      const citySel = document.getElementById('citySelect');
+      citySel.innerHTML = '<option value="">請選擇縣市</option>';
+      for (let city in twData) {
+        citySel.add(new Option(city, city));
+      }
+
+      const savedCity = localStorage.getItem('cust_city');
+      const savedDist = localStorage.getItem('cust_dist');
+      const isRemember = localStorage.getItem('cust_remember') === 'true';
+
+      if (isRemember && savedCity) {
+        document.getElementById('rememberLoc').checked = true;
+        citySel.value = savedCity;
+        updateDistricts();
+        if (savedDist) {
+          document.getElementById('districtSelect').value = savedDist;
+        }
+      } else {
+        updateDistricts();
+      }
+    }
+
+    function updateDistricts() {
+      const city = document.getElementById('citySelect').value;
+      const distSel = document.getElementById('districtSelect');
+      distSel.innerHTML = '<option value="">請選擇區域 (全區)</option>';
+      
+      if (city && twData[city]) {
+        twData[city].forEach(dist => {
+          distSel.add(new Option(dist, dist));
+        });
+      }
+      saveLocation();
+    }
+
+    function saveLocation() {
+      const isChecked = document.getElementById('rememberLoc').checked;
+      const city = document.getElementById('citySelect').value;
+      const dist = document.getElementById('districtSelect').value;
+
+      localStorage.setItem('cust_remember', isChecked);
+      if (isChecked) {
+        localStorage.setItem('cust_city', city);
+        localStorage.setItem('cust_dist', dist);
+      } else {
+        localStorage.removeItem('cust_city');
+        localStorage.removeItem('cust_dist');
+      }
+    }
+
+    // --- 突破 Supabase 1000 筆限制的抓取小幫手 ---
+    async function fetchAllData(table, select = '*', conditions = []) {
+      let allData = [];
+      let from = 0;
+      const step = 1000;
+      while (true) {
+        let query = supabaseClient.from(table).select(select).range(from, from + step - 1);
+        conditions.forEach(c => {
+           if (c.op === 'eq') query = query.eq(c.col, c.val);
+           if (c.op === 'gt') query = query.gt(c.col, c.val);
+           if (c.op === 'gte') query = query.gte(c.col, c.val);
+        });
+        const { data, error } = await query;
+        if (error) throw error;
+        if (data && data.length > 0) allData.push(...data);
+        if (!data || data.length < step) break;
+        from += step;
+      }
+      return allData;
+    }
+
+    // ★ 核心邏輯：前端直接向 Supabase 撈取資料並組裝
+    async function fetchAndRenderProducts() {
+      const city = document.getElementById('citySelect').value;
+      if (!city) return alert("請先選擇您所在的縣市，以利為您推薦最近的郵局！");
+
+      document.getElementById('loader').style.display = 'flex';
+      
+      try {
+        // 1. 同時拉取所有需要的資料表 (加速載入)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        // 🛡️ 重大安全性修正：只抓取公開的聯絡資訊，絕對不抓取密碼與帳號欄位！
+        const [allowlist, master, inventory, listings, stats, logs, users] = await Promise.all([
+          fetchAllData('global_allowlist', 'product_key'),
+          fetchAllData('products_master', 'product_key, barcode, price, name, original_name, description, img_url, publish_date'),
+          fetchAllData('inventory', 'branch_id, product_key, qty', [{op: 'gt', col: 'qty', val: 0}]),
+          fetchAllData('branch_listings', 'branch_id, product_key, extra_qty', [{op: 'eq', col: 'is_listed', val: true}]),
+          fetchAllData('product_stats', '*'),
+          fetchAllData('system_logs', 'account, created_at', [{op: 'gte', col: 'created_at', val: thirtyDaysAgo.toISOString()}]),
+          fetchAllData('users', 'branch_id, branch_name, phone, address') // 🛡️ 只抓必要欄位
+        ]);
+
+        const allowedKeys = allowlist.map(r => r.product_key);
+
+        // 2. 建立人氣 Map
+        const popMap = {};
+        stats.forEach(r => popMap[r.product_key] = Number(r.click_count) || 0);
+
+        // 3. 計算支局活躍分數
+        const branchBaseScoreMap = {};
+        const today = new Date();
+        const dailyCheckMap = {};
+        logs.forEach(row => {
+          const acc = row.account;
+          if (acc && acc.length === 6) {
+            const logDate = new Date(row.created_at);
+            const dateString = logDate.getFullYear() + '-' + logDate.getMonth() + '-' + logDate.getDate();
+            const checkKey = `${acc}_${dateString}`;
+            const diffDays = Math.floor((today - logDate) / (1000 * 60 * 60 * 24));
+            if (!dailyCheckMap[checkKey] && diffDays <= 30) {
+              dailyCheckMap[checkKey] = true;
+              let pts = diffDays <= 3 ? 3 : (diffDays <= 14 ? 2 : 1);
+              branchBaseScoreMap[acc] = (branchBaseScoreMap[acc] || 0) + pts;
+            }
+          }
+        });
+
+        // 4. 建立支局上架額外數量 Map
+        const listedMap = {};
+        listings.forEach(row => {
+          listedMap[`${row.branch_id}_${row.product_key}`] = { extraQty: Number(row.extra_qty) || 0 };
+        });
+
+        // 5. 建立庫存對應表與豐富度 Map
+        const stockMap = {};
+        const branchVarietyMap = {};
+        const globalInvQtyMap = {};
+
+        inventory.forEach(row => {
+          const branchId = row.branch_id;
+          const key = row.product_key;
+          const mainQty = Number(row.qty) || 0;
+
+          globalInvQtyMap[key] = (globalInvQtyMap[key] || 0) + mainQty;
+
+          if (allowedKeys.includes(key) && listedMap[`${branchId}_${key}`] && mainQty > 0) {
+            const extraQty = listedMap[`${branchId}_${key}`].extraQty || 0;
+            const finalDisplayedQty = mainQty + extraQty;
+
+            globalInvQtyMap[key] += extraQty; // 把額外數量也加進全域計算
+
+            if (!stockMap[key]) stockMap[key] = [];
+            stockMap[key].push({ branchId: branchId, qty: finalDisplayedQty });
+            branchVarietyMap[branchId] = (branchVarietyMap[branchId] || 0) + 1;
+          }
+        });
+
+        // 6. 組合商品卡片資料
+        const products = [];
+        const prodMap = {};
+        master.forEach(row => {
+          const key = row.product_key;
+          if (allowedKeys.includes(key) && !prodMap[key]) {
+            prodMap[key] = true;
+            let rawDate = 0;
+            if (row.publish_date && row.publish_date !== 'null') {
+              rawDate = new Date(row.publish_date).getTime() || 0;
+            }
+
+            products.push({
+              key: key,
+              barcode: row.barcode || '',
+              price: row.price || 0,
+              name: row.name || row.original_name || '未命名商品',
+              desc: row.description || "目前尚未提供商品詳細說明，款式與規格請依現場實物為主。",
+              img: row.img_url || 'https://via.placeholder.com/300x200?text=暫無商品圖片',
+              clicks: popMap[key] || 0,
+              rawDate: rawDate,
+              totalInvQty: globalInvQtyMap[key] || 0
+            });
+          }
+        });
+
+        // 7. 商品排序 (有庫存優先 -> 人氣 -> 最新日期)
+        products.sort((a, b) => {
+          const aStock = (stockMap[a.key] && stockMap[a.key].length > 0) ? 1 : 0;
+          const bStock = (stockMap[b.key] && stockMap[b.key].length > 0) ? 1 : 0;
+          if (aStock !== bStock) return bStock - aStock; 
+          
+          if (aStock === 0 && bStock === 0) {
+            const aSoldOut = a.totalInvQty === 0 ? 1 : 0;
+            const bSoldOut = b.totalInvQty === 0 ? 1 : 0;
+            if (aSoldOut !== bSoldOut) return aSoldOut - bSoldOut; 
+          }
+          if (a.clicks !== b.clicks) return b.clicks - a.clicks; 
+          return b.rawDate - a.rawDate; 
+        });
+
+        // 8. 建立支局聯絡資訊 Map
+        const branchInfo = {};
+        users.forEach(row => {
+          const branchId = row.branch_id;
+          const baseLoginScore = branchBaseScoreMap[branchId] || 0;
+          const varietyScore = (branchVarietyMap[branchId] || 0) * 2;
+          branchInfo[branchId] = { 
+            name: row.branch_name, 
+            phone: row.phone || '未提供電話', 
+            address: row.address || '未提供地址',
+            baseActiveScore: baseLoginScore + varietyScore 
+          };
+        });
+
+        // 9. 更新至全域變數並開始渲染
+        globalData = { products, stockMap, branchInfo };
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('quickSearchBox').style.display = 'block';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlKeyword = urlParams.get('keyword');
+
+        if (isInitialLoadFromUrl && urlKeyword) {
+          document.getElementById('localSearchInput').value = urlKeyword;
+          localFilterProducts();
+          isInitialLoadFromUrl = false;
+        } else {
+          document.getElementById('localSearchInput').value = ''; 
+          renderProducts(globalData.products);
+        }
+
+      } catch (err) {
+        document.getElementById('loader').style.display = 'none';
+        alert('網路連線發生錯誤，請確認 Supabase 設定是否正確！\n' + err.message);
+      }
+    }
+
+    // ★ 計算與篩選鄰近郵局的純粹前端邏輯
+    function getTop5Branches(productKey) {
+      const selCity = document.getElementById('citySelect').value;
+      const selDist = document.getElementById('districtSelect').value;
+      
+      const stockList = globalData.stockMap[productKey] || [];
+      if (stockList.length === 0) return []; 
+
+      let branchPool = stockList.map(stock => {
+        const info = globalData.branchInfo[stock.branchId];
+        if (!info) return null;
+        
+        let priority = 3; 
+        if (selCity && info.address.includes(selCity)) {
+          priority = 2; 
+          if (selDist && info.address.includes(selDist)) {
+            priority = 1; 
+          }
+        }
+        
+        return {
+          branchId: stock.branchId,
+          name: info.name,
+          address: info.address,
+          phone: info.phone,
+          qty: stock.qty,
+          priority: priority,
+          activeScore: info.baseActiveScore || 0 
+        };
+      }).filter(b => b !== null);
+
+      branchPool.sort((a, b) => {
+        if (a.priority !== b.priority) return a.priority - b.priority;
+
+        const aStockBonus = a.qty > 5 ? 10 : 0;
+        const bStockBonus = b.qty > 5 ? 10 : 0;
+        const aTotalScore = a.activeScore + aStockBonus;
+        const bTotalScore = b.activeScore + bStockBonus;
+
+        if (aTotalScore !== bTotalScore) return bTotalScore - aTotalScore; 
+
+        return b.qty - a.qty;
+      });
+
+      return branchPool.slice(0, 5);
+    }
+
+    function renderProducts(filteredList) {
+      const container = document.getElementById('productContainer');
+      
+      if (!filteredList || filteredList.length === 0) {
+        container.innerHTML = '<div class="initial-state"><h2>找不到符合的商品 🍂</h2><p>請嘗試更換搜尋關鍵字，或郵局目前暫未提供該商品。</p></div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      let topBadgeCount = 0;
+      
+      filteredList.forEach((p) => {
+        const hasStock = (globalData.stockMap[p.key] || []).length > 0;
+        
+        let badgeHtml = '';
+        if (hasStock && p.clicks > 0 && topBadgeCount < 3) {
+          topBadgeCount++;
+          badgeHtml = `<div class="hot-badge">⭐ 人氣商品 TOP ${topBadgeCount}</div>`;
+        }
+
+        const outOfStockStyle = hasStock ? '' : 'opacity: 0.75; filter: grayscale(40%);';
+
+        let btnText = '📍 查看鄰近郵局';
+        let btnStyle = '';
+        
+        if (!hasStock) {
+          if (p.totalInvQty === 0) {
+            btnText = '已售罄 🪧';
+            btnStyle = 'disabled style="background:#5c5c5c !important; border-color:#383838 !important; color:#a3a3a3 !important; cursor:not-allowed; box-shadow:none; transform:none;"';
+          } else {
+            btnText = '補貨中...';
+            btnStyle = 'disabled style="background:#8c7562 !important; border-color:#4a3219 !important; color:#dcdcdc !important; cursor:not-allowed; box-shadow:none; transform:none;"';
+          }
+        }
+
+        const safeName = encodeURIComponent(p.name || "未命名商品");
+        const safeDesc = encodeURIComponent(p.desc || "目前尚未提供商品詳細說明，款式與規格請依現場實物為主。");
+
+        const card = document.createElement('article');
+        card.className = 'p-card sd-ui-box';
+        card.style = outOfStockStyle;
+        
+        card.innerHTML = `
+          ${badgeHtml}
+          <div class="p-img-box" onclick="openGallery('${p.barcode}', '${safeName}', '${safeDesc}', this.querySelector('img').src)">
+            <img src="./images/${p.barcode}.jpg" alt="${p.name}" onerror="handleImageError(this, '${p.img}')">
+          </div>
+          <div class="p-info">
+            <h3 class="p-title">${p.name}</h3>
+            <div class="p-desc">${p.desc}</div>
+            <div class="p-meta">
+              <span class="p-barcode">條碼: ${p.barcode}</span>
+              <span class="p-price">${p.price}</span>
+            </div>
+          </div>
+          <!-- ★ 防呆升級：改用 dataset 傳遞參數，避免商品名稱包含單引號導致按鈕失效 -->
+          <button class="btn-view-branch" aria-label="查看鄰近販售據點：${p.name}" data-key="${p.key}" data-name="${safeName}" onclick="openBranchModal(this.dataset.key, decodeURIComponent(this.dataset.name))" ${btnStyle}>
+            ${btnText}
+          </button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function localFilterProducts() {
+      const searchText = document.getElementById('localSearchInput').value.toLowerCase();
+      
+      const filteredResults = globalData.products.filter(p => {
+        const titleMatch = p.name.toLowerCase().includes(searchText);
+        const barcodeMatch = String(p.barcode).toLowerCase().includes(searchText);
+        return titleMatch || barcodeMatch;
+      });
+
+      renderProducts(filteredResults);
+    }
+
+    let currentGalleryImgs = [];
+    let currentGalleryIdx = 0;
+
+    function openGallery(barcode, encName, encDesc, activeImgSrc) {
+      currentGalleryImgs = [activeImgSrc]; 
+      currentGalleryIdx = 0;
+      
+      document.getElementById('galleryTitle').innerText = decodeURIComponent(encName);
+      document.getElementById('galleryDesc').innerText = decodeURIComponent(encDesc); 
+      document.getElementById('galleryImg').src = activeImgSrc;
+      document.getElementById('galleryLightbox').style.display = 'flex';
+      
+      updateGalleryArrows();
+      checkExtraImages(barcode, 1);
+    }
+
+    function checkExtraImages(barcode, fileIndex) {
+      let testImg = new Image();
+      testImg.onload = function() {
+        currentGalleryImgs.push(this.src);
+        updateGalleryArrows();
+        checkExtraImages(barcode, fileIndex + 1);
+      };
+      testImg.onerror = function() {
+        // 偵測結束
+      };
+      testImg.src = `./images/${barcode}-${fileIndex}.jpg`;
+    }
+
+    function updateGalleryArrows() {
+      const total = currentGalleryImgs.length;
+      document.getElementById('btnPrevImg').style.display = currentGalleryIdx > 0 ? 'flex' : 'none';
+      document.getElementById('btnNextImg').style.display = currentGalleryIdx < total - 1 ? 'flex' : 'none';
+      
+      if (total > 1) {
+        document.getElementById('galleryCounter').innerText = `${currentGalleryIdx + 1} / ${total}`;
+        document.getElementById('galleryCounter').style.display = 'block';
+      } else {
+        document.getElementById('galleryCounter').style.display = 'none';
+      }
+    }
+
+    function changeGalleryImage(step) {
+      currentGalleryIdx += step;
+      if (currentGalleryIdx < 0) currentGalleryIdx = 0;
+      if (currentGalleryIdx >= currentGalleryImgs.length) currentGalleryIdx = currentGalleryImgs.length - 1;
+      
+      document.getElementById('galleryImg').src = currentGalleryImgs[currentGalleryIdx];
+      updateGalleryArrows();
+    }
+
+    function closeGallery() {
+      document.getElementById('galleryLightbox').style.display = 'none';
+      currentGalleryImgs = [];
+    }
+
+    document.addEventListener('keydown', function(event) {
+      if (document.getElementById('galleryLightbox').style.display === 'flex') {
+        if (event.key === 'ArrowLeft') changeGalleryImage(-1);
+        if (event.key === 'ArrowRight') changeGalleryImage(1);
+        if (event.key === 'Escape') closeGallery();
+      }
+      if (document.getElementById('branchModal').style.display === 'flex') {
+        if (event.key === 'Escape') closeBranchModal();
+      }
+    });
+
+    // ★ 呼叫 Supabase RPC 紀錄點擊人氣
+    function openBranchModal(productKey, productName) {
+      supabaseClient.rpc('record_click', { p_product_key: productKey })
+        .catch(e => console.log('人氣紀錄錯誤:', e));
+
+      document.getElementById('modalProductName').innerText = `尋找「${productName}」`;
+      const listUl = document.getElementById('modalBranchList');
+      const branches = getTop5Branches(productKey);
+      
+      listUl.innerHTML = '';
+      if(branches.length === 0) {
+        listUl.innerHTML = '<li class="branch-item" style="text-align:center;color:var(--sd-text-muted);padding:40px;font-weight:bold;">目前此區域尚未查詢到庫存 🍂</li>';
+      } else {
+        branches.forEach((b, index) => {
+          const qtyClass = b.qty <= 5 ? 'b-qty low-stock' : 'b-qty';
+          const qtyLabel = b.qty <= 5 ? `即將完售 (${b.qty})` : `架上剩餘: ${b.qty}`;
+
+          let highlightClass = index === 0 ? ' highlight' : '';
+          let rankIcon = '🛖 ';
+
+          listUl.innerHTML += `
+            <li class="branch-item${highlightClass}">
+              <div class="b-header">
+                <div class="b-name-wrapper">
+                  <span class="b-name">${rankIcon}${b.name}</span>
+                </div>
+                <span class="${qtyClass}">${qtyLabel}</span>
+              </div>
+              <div class="b-detail">
+                <span>📍 ${b.address}</span>
+              </div>
+              <div class="b-detail">
+                <span>📞 ${b.phone}</span>
+              </div>
+            </li>
+          `;
+        });
+      }
+
+      document.getElementById('branchModal').style.display = 'flex';
+      document.body.style.overflow = 'hidden'; 
+    }
+
+    function closeBranchModal() {
+      document.getElementById('branchModal').style.display = 'none';
+      document.body.style.overflow = 'auto'; 
+    }
+
+    window.onscroll = function() {
+      const btn = document.getElementById('scrollToTopBtn');
+      if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
+        btn.classList.add('show');
+      } else {
+        btn.classList.remove('show');
+      }
+    };
+
+    function scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+  </script>
+</body>
+</html>
