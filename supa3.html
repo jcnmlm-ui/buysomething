@@ -152,35 +152,17 @@
       margin-top: -5px;
     }
 
-    .quick-search-box { display: none; margin-bottom: 25px; width: 100%; position: relative;}
-    .quick-search-box input { 
-      width: 100%; 
-      padding: 14px 20px 14px 45px; 
-      border: 4px solid var(--sd-border); 
-      background: var(--sd-parchment);
-      border-radius: 12px; 
-      font-size: 16px; 
-      font-weight: bold;
-      color: var(--sd-text);
-      outline: none; 
-      box-shadow: inset 0 0 0 3px var(--sd-parchment-dark), 0 4px 0 rgba(0,0,0,0.1); 
-      -webkit-appearance: none; 
-    }
-    .quick-search-box input:focus { background: #fff8d6; }
-    .quick-search-box::before { content: '🔎'; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; z-index: 2;}
-
     /* ========================================= */
-    /* ★ 新增：廣告 Banner 輪播區塊樣式            */
+    /* 廣告 Banner 輪播區塊樣式                  */
     /* ========================================= */
     .banner-section {
-      display: none; /* 預設隱藏，讀取完資料後顯示 */
+      display: none; 
       margin-bottom: 25px;
       width: 100%;
       position: relative;
     }
     .banner-container {
       width: 100%;
-      /* 這裡可以根據你們 banner 的常見比例調整高度，例如 21:9 或 16:9 */
       aspect-ratio: 21 / 9; 
       max-height: 350px;
       background: var(--sd-parchment);
@@ -190,30 +172,25 @@
       overflow: hidden;
       position: relative;
     }
-    
     .banner-slides {
       display: flex;
       width: 100%;
       height: 100%;
       transition: transform 0.5s ease-in-out;
     }
-    
     .banner-slide {
       min-width: 100%;
       height: 100%;
       position: relative;
     }
-    
     .banner-slide img {
       width: 100%;
       height: 100%;
-      object-fit: cover; /* 確保圖片填滿且不變形 */
+      object-fit: cover; 
       object-position: center;
       display: block;
       cursor: pointer;
     }
-
-    /* 左右控制按鈕 */
     .banner-btn {
       position: absolute;
       top: 50%;
@@ -234,42 +211,30 @@
       transition: 0.2s;
       box-shadow: 0 4px 0 rgba(0,0,0,0.2);
     }
-    .banner-btn:hover {
-      background: #fff;
-      color: var(--sd-hot);
-    }
-    .banner-btn:active {
-      transform: translateY(calc(-50% + 4px));
-      box-shadow: 0 0 0 rgba(0,0,0,0.2);
-    }
+    .banner-btn:hover { background: #fff; color: var(--sd-hot); }
+    .banner-btn:active { transform: translateY(calc(-50% + 4px)); box-shadow: 0 0 0 rgba(0,0,0,0.2); }
     .banner-prev { left: 15px; }
     .banner-next { right: 15px; }
+    .banner-dots { position: absolute; bottom: 15px; left: 0; width: 100%; display: flex; justify-content: center; gap: 8px; z-index: 10; }
+    .banner-dot { width: 12px; height: 12px; background: rgba(255, 255, 255, 0.5); border: 2px solid var(--sd-border); border-radius: 50%; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+    .banner-dot.active { background: var(--sd-hot); transform: scale(1.2); }
 
-    /* 下方指示點 (Dots) */
-    .banner-dots {
-      position: absolute;
-      bottom: 15px;
-      left: 0;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      z-index: 10;
+    .quick-search-box { display: none; margin-bottom: 25px; width: 100%; position: relative;}
+    .quick-search-box input { 
+      width: 100%; 
+      padding: 14px 20px 14px 45px; 
+      border: 4px solid var(--sd-border); 
+      background: var(--sd-parchment);
+      border-radius: 12px; 
+      font-size: 16px; 
+      font-weight: bold;
+      color: var(--sd-text);
+      outline: none; 
+      box-shadow: inset 0 0 0 3px var(--sd-parchment-dark), 0 4px 0 rgba(0,0,0,0.1); 
+      -webkit-appearance: none; 
     }
-    .banner-dot {
-      width: 12px;
-      height: 12px;
-      background: rgba(255, 255, 255, 0.5);
-      border: 2px solid var(--sd-border);
-      border-radius: 50%;
-      cursor: pointer;
-      transition: 0.3s;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
-    .banner-dot.active {
-      background: var(--sd-hot);
-      transform: scale(1.2);
-    }
+    .quick-search-box input:focus { background: #fff8d6; }
+    .quick-search-box::before { content: '🔎'; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; z-index: 2;}
 
     /* 商品網格與卡片 */
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
@@ -308,7 +273,28 @@
       border-radius: 4px 4px 0 0;
       cursor: pointer; 
     }
-    .p-img-box img { width: 100%; height: 100%; object-fit: contain; }
+
+    /* ★ 骨架屏與懶加載樣式開始 ★ */
+    .skeleton-bg {
+      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer 1.5s infinite linear !important;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .p-img-box img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: contain; 
+      opacity: 0; /* 預設透明，載入後淡入 */
+      transition: opacity 0.4s ease-in-out;
+    }
+    .p-img-box img.loaded {
+      opacity: 1; /* 載入完成顯示 */
+    }
+    /* ★ 骨架屏與懶加載樣式結束 ★ */
     
     .p-img-box::after {
       content: '🔍 點擊放大';
@@ -325,9 +311,7 @@
       transition: opacity 0.2s;
       pointer-events: none; 
     }
-    .p-img-box:hover::after {
-      opacity: 1;
-    }
+    .p-img-box:hover::after { opacity: 1; }
     
     .p-info { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; }
     .p-title { font-size: 19px; font-weight: bold; margin: 0 0 10px 0; color: var(--sd-text); line-height: 1.4; text-shadow: 1px 1px 0px rgba(255,255,255,0.6);}
@@ -366,158 +350,50 @@
 
     /* 分局彈出視窗 (Modal) */
     .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); justify-content: center; align-items: center; }
-    .modal-content { 
-      width: 90%; 
-      max-width: 500px; 
-      max-height: 85vh; 
-      display: flex; 
-      flex-direction: column; 
-      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-    }
-    
+    .modal-content { width: 90%; max-width: 500px; max-height: 85vh; display: flex; flex-direction: column; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
-    .modal-header { 
-      background: var(--sd-wood); 
-      color: white; 
-      padding: 16px 20px; 
-      font-weight: bold; 
-      font-size: 18px; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      border-bottom: 4px solid var(--sd-border);
-      text-shadow: 2px 2px 0px var(--sd-border);
-    }
-    .btn-close { 
-      background: var(--sd-hot); 
-      border: 3px solid var(--sd-border); 
-      color: white; 
-      font-size: 20px; 
-      font-weight: bold;
-      width: 36px;
-      height: 36px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 4px;
-      cursor: pointer; 
-      box-shadow: inset -2px -2px 0px rgba(0,0,0,0.2);
-    }
+    .modal-header { background: var(--sd-wood); color: white; padding: 16px 20px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--sd-border); text-shadow: 2px 2px 0px var(--sd-border); }
+    .btn-close { background: var(--sd-hot); border: 3px solid var(--sd-border); color: white; font-size: 20px; font-weight: bold; width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; border-radius: 4px; cursor: pointer; box-shadow: inset -2px -2px 0px rgba(0,0,0,0.2); }
     .btn-close:active { box-shadow: inset 2px 2px 0px rgba(0,0,0,0.3); transform: translateY(2px);}
-    
     .modal-body { padding: 0; overflow-y: auto; background: var(--sd-parchment); flex-grow: 1; border-radius: 0 0 4px 4px;}
-    
     .branch-list { list-style: none; padding: 0; margin: 0; }
     .branch-item { padding: 20px; border-bottom: 2px dotted var(--sd-wood-dark); transition: background 0.2s; border-left: 6px solid transparent; }
     .branch-item:last-child { border-bottom: none; }
     .branch-item:hover { background: rgba(255, 255, 255, 0.4); }
-    
-    .branch-item.highlight { 
-      background-color: rgba(255, 215, 0, 0.2); 
-      border-left: 6px solid #eab308; 
-    }
-
+    .branch-item.highlight { background-color: rgba(255, 215, 0, 0.2); border-left: 6px solid #eab308; }
     .b-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px;}
     .b-name-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1;}
     .b-name { font-weight: bold; color: var(--sd-text); font-size: 18px; text-shadow: 1px 1px 0px #fff;}
-
-    .b-qty { 
-      background: var(--sd-grass-dark); 
-      color: white; 
-      padding: 4px 10px; 
-      border: 2px solid var(--sd-border);
-      border-radius: 4px; 
-      font-size: 14px; 
-      font-weight: bold; 
-      white-space: nowrap; 
-      box-shadow: 2px 2px 0px rgba(0,0,0,0.15);
-    }
+    .b-qty { background: var(--sd-grass-dark); color: white; padding: 4px 10px; border: 2px solid var(--sd-border); border-radius: 4px; font-size: 14px; font-weight: bold; white-space: nowrap; box-shadow: 2px 2px 0px rgba(0,0,0,0.15); }
     .b-qty.low-stock { background: var(--sd-warning); }
     .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
 
     /* ★ 圖片畫廊 (Lightbox) 樣式 */
-    #galleryLightbox {
-      display: none; position: fixed; z-index: 10005; inset: 0;
-      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
-      justify-content: center; align-items: center; flex-direction: column;
-    }
-    .gallery-container {
-      position: relative; width: 90vw; max-width: 800px; max-height: 80vh;
-      display: flex; justify-content: center; align-items: center;
-    }
-    .gallery-img {
-      max-width: 100%; max-height: 80vh; 
-      border: 6px solid var(--sd-wood); border-radius: 8px; 
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5); object-fit: contain;
-      background: white;
-    }
-    .gallery-title {
-      color: white; margin-top: 20px; font-size: 22px; font-weight: bold; 
-      text-shadow: 2px 2px 4px black; text-align: center;
-    }
-    .gallery-desc {
-      color: #e2e8f0; margin-top: 8px; font-size: 14px; font-weight: normal; 
-      text-shadow: 1px 1px 3px black; text-align: center; max-width: 90vw;
-      line-height: 1.5; padding: 0 15px; white-space: pre-wrap;
-    }
-    .gallery-counter {
-      color: var(--sd-parchment); font-size: 18px; margin-top: 5px; 
-      font-family: 'VT323', monospace; letter-spacing: 2px;
-    }
-    .gallery-close {
-      position: absolute; top: 20px; right: 25px; font-size: 45px; 
-      color: white; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-      z-index: 10010; line-height: 1; transition: 0.2s;
-    }
+    #galleryLightbox { display: none; position: fixed; z-index: 10005; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; flex-direction: column; }
+    .gallery-container { position: relative; width: 90vw; max-width: 800px; max-height: 80vh; display: flex; justify-content: center; align-items: center; }
+    .gallery-img { max-width: 100%; max-height: 80vh; border: 6px solid var(--sd-wood); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); object-fit: contain; background: white; }
+    .gallery-title { color: white; margin-top: 20px; font-size: 22px; font-weight: bold; text-shadow: 2px 2px 4px black; text-align: center; }
+    .gallery-desc { color: #e2e8f0; margin-top: 8px; font-size: 14px; font-weight: normal; text-shadow: 1px 1px 3px black; text-align: center; max-width: 90vw; line-height: 1.5; padding: 0 15px; white-space: pre-wrap; }
+    .gallery-counter { color: var(--sd-parchment); font-size: 18px; margin-top: 5px; font-family: 'VT323', monospace; letter-spacing: 2px; }
+    .gallery-close { position: absolute; top: 20px; right: 25px; font-size: 45px; color: white; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.8); z-index: 10010; line-height: 1; transition: 0.2s; }
     .gallery-close:hover { color: var(--sd-hot); transform: scale(1.1); }
-    
-    .gallery-btn {
-      position: absolute; top: 50%; transform: translateY(-50%);
-      background: rgba(255, 255, 255, 0.2); color: white; 
-      border: 3px solid white; width: 55px; height: 55px; border-radius: 50%; 
-      font-size: 26px; cursor: pointer; display: flex; justify-content: center; 
-      align-items: center; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      z-index: 10010;
-    }
+    .gallery-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.2); color: white; border: 3px solid white; width: 55px; height: 55px; border-radius: 50%; font-size: 26px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 10010; }
     .gallery-btn:hover { background: rgba(255, 255, 255, 0.6); color: var(--sd-text); border-color: var(--sd-text); }
     .gallery-btn:active { transform: translateY(-50%) scale(0.9); }
     .gallery-prev { left: -70px; }
     .gallery-next { right: -70px; }
 
     /* 版權宣告 */
-    .footer {
-      text-align: center;
-      padding: 30px 20px;
-      color: var(--sd-text);
-      font-weight: bold;
-      font-size: 15px;
-      text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
-      letter-spacing: 1px;
-    }
+    .footer { text-align: center; padding: 30px 20px; color: var(--sd-text); font-weight: bold; font-size: 15px; text-shadow: 1px 1px 0px rgba(255,255,255,0.5); letter-spacing: 1px; }
 
-    #scrollToTopBtn { 
-      position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; 
-      background-color: #fdeca6; color: var(--sd-text); font-size: 24px;
-      border: 3px solid var(--sd-border); border-radius: 50%; 
-      box-shadow: 0 4px 0px rgba(0,0,0,0.2), inset -2px -2px 0px #dcb360; 
-      cursor: pointer; display: flex; justify-content: center; align-items: center; 
-      opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 999; 
-    }
+    #scrollToTopBtn { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background-color: #fdeca6; color: var(--sd-text); font-size: 24px; border: 3px solid var(--sd-border); border-radius: 50%; box-shadow: 0 4px 0px rgba(0,0,0,0.2), inset -2px -2px 0px #dcb360; cursor: pointer; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 999; }
     #scrollToTopBtn:active { transform: translateY(4px); box-shadow: 0 0px 0px rgba(0,0,0,0.2), inset 2px 2px 0px #dcb360; }
     #scrollToTopBtn.show { opacity: 1; visibility: visible; }
 
     #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(253, 236, 166, 0.9); z-index: 1000; display:none; flex-direction:column; justify-content:center; align-items:center; }
-    .bouncing-star {
-      font-size: 50px;
-      animation: bounce 0.6s infinite alternate cubic-bezier(0.5, 0.05, 1, 0.5);
-      margin-bottom: 20px;
-      text-shadow: 0 10px 10px rgba(0,0,0,0.2);
-    }
-    @keyframes bounce {
-      0% { transform: translateY(0) scale(1.1); }
-      100% { transform: translateY(-30px) scale(0.9); text-shadow: 0 40px 15px rgba(0,0,0,0.1); }
-    }
+    .bouncing-star { font-size: 50px; animation: bounce 0.6s infinite alternate cubic-bezier(0.5, 0.05, 1, 0.5); margin-bottom: 20px; text-shadow: 0 10px 10px rgba(0,0,0,0.2); }
+    @keyframes bounce { 0% { transform: translateY(0) scale(1.1); } 100% { transform: translateY(-30px) scale(0.9); text-shadow: 0 40px 15px rgba(0,0,0,0.1); } }
 
     @media (max-width: 768px) {
       .gallery-prev { left: 10px; }
@@ -528,7 +404,6 @@
 
     @media (max-width: 600px) {
       .container { padding: 15px; }
-      
       .location-box { padding: 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
       .location-box .title { width: 100%; order: 1; margin-bottom: 0; }
       .select-group { width: 100%; order: 2; flex-direction: row; gap: 10px; min-width: 0; }
@@ -583,7 +458,7 @@
 
   <div id="loader" aria-live="polite">
     <div class="bouncing-star">✨</div>
-    <div id="loaderText" style="font-weight:bold; color:var(--sd-text); font-size: 18px; background: #fff; padding: 10px 20px; border: 3px solid var(--sd-border); border-radius: 8px;">正在向小精靈確認庫存清單... 📦</div>
+    <div id="loaderText" style="font-weight:bold; color:var(--sd-text); font-size: 18px; background: #fff; padding: 10px 20px; border: 3px solid var(--sd-border); border-radius: 8px;">正在向資料庫索取整理好的商品清單... 📦</div>
   </div>
 
   <header class="header">
@@ -610,30 +485,20 @@
       <div class="banner-container">
         <!-- 輪播圖片群組 -->
         <div class="banner-slides" id="bannerSlides">
-          <!-- TODO: 在此處替換為你們的真實活動圖片與連結 -->
-          
-          <!-- Banner 1 -->
           <div class="banner-slide" onclick="window.open('https://www.post.gov.tw', '_blank')">
              <img src="https://via.placeholder.com/1200x400/88c24c/41220b?text=郵政VISA卡綁定優惠活動" alt="活動一">
           </div>
-          
-          <!-- Banner 2 -->
           <div class="banner-slide" onclick="window.open('https://www.post.gov.tw', '_blank')">
              <img src="https://via.placeholder.com/1200x400/dcb360/41220b?text=2024+新郵票發行預告" alt="活動二">
           </div>
-          
-          <!-- Banner 3 -->
           <div class="banner-slide" onclick="window.open('https://www.post.gov.tw', '_blank')">
              <img src="https://via.placeholder.com/1200x400/d9382e/ffffff?text=期間限定：購買波波鴿周邊送精美小禮" alt="活動三">
           </div>
-
         </div>
-
         <!-- 左右按鈕 -->
         <button class="banner-btn banner-prev" aria-label="上一張廣告" onclick="moveBanner(-1)">&#10094;</button>
         <button class="banner-btn banner-next" aria-label="下一張廣告" onclick="moveBanner(1)">&#10095;</button>
-
-        <!-- 下方指示點 (將由 JS 動態生成) -->
+        <!-- 下方指示點 -->
         <div class="banner-dots" id="bannerDots"></div>
       </div>
     </section>
@@ -708,7 +573,15 @@
     let globalData = { products: [] }; 
     let isInitialLoadFromUrl = true;
 
-    window.handleImageError = function(imgElement, sheetImgUrl) {
+    // ★ 圖片讀取備援機制 (Fallback) 升級版
+    window.handleImageError = function(imgElement, barcode, sheetImgUrl) {
+      // 1. 如果 .jpg 失敗，自動嘗試載入 .webp
+      if (!imgElement.dataset.triedWebp) {
+        imgElement.dataset.triedWebp = 'true';
+        imgElement.src = `./images/${barcode}.webp`;
+        return;
+      }
+      // 2. 如果 .webp 也失敗，嘗試載入資料庫的外部圖片連結
       if (!imgElement.dataset.triedSheet) {
         imgElement.dataset.triedSheet = 'true';
         if (sheetImgUrl && sheetImgUrl.trim() !== '' && !sheetImgUrl.includes('暫無商品圖片')) {
@@ -716,17 +589,24 @@
             return;
         }
       }
+      // 3. 都失敗的話，載入預設圖片
       if (!imgElement.dataset.triedDefault) {
         imgElement.dataset.triedDefault = 'true';
         imgElement.src = './images/080000AA.jpg';
         return;
       }
+      // 最終放棄
       imgElement.onerror = null; 
+      // 就算失敗了，也要強制移除骨架屏，避免一直閃爍
+      imgElement.classList.add('loaded');
+      if (imgElement.parentElement) {
+        imgElement.parentElement.classList.remove('skeleton-bg');
+      }
     };
 
     window.onload = () => {
       initLocationDropdowns();
-      initBanner(); // 初始化 Banner 輪播
+      initBanner();
 
       const urlParams = new URLSearchParams(window.location.search);
       const urlCity = urlParams.get('city');
@@ -752,13 +632,11 @@
       const slides = document.querySelectorAll('.banner-slide');
       totalBanners = slides.length;
 
-      // 如果沒有 Banner，就隱藏整個區塊
       if (totalBanners === 0) {
         document.getElementById('bannerSection').style.display = 'none';
         return;
       }
 
-      // 動態建立下方的點點
       for (let i = 0; i < totalBanners; i++) {
         const dot = document.createElement('div');
         dot.className = i === 0 ? 'banner-dot active' : 'banner-dot';
@@ -773,28 +651,22 @@
       const slidesContainer = document.getElementById('bannerSlides');
       const dots = document.querySelectorAll('.banner-dot');
       
-      // 移動圖片群組
       slidesContainer.style.transform = `translateX(-${currentBannerIndex * 100}%)`;
       
-      // 更新點點的狀態
       dots.forEach((dot, index) => {
-        if (index === currentBannerIndex) {
-          dot.classList.add('active');
-        } else {
-          dot.classList.remove('active');
-        }
+        if (index === currentBannerIndex) dot.classList.add('active');
+        else dot.classList.remove('active');
       });
     }
 
     function moveBanner(step) {
-      clearInterval(bannerInterval); // 使用者手動操作時暫停自動播放
-      
+      clearInterval(bannerInterval); 
       currentBannerIndex += step;
       if (currentBannerIndex < 0) currentBannerIndex = totalBanners - 1;
       if (currentBannerIndex >= totalBanners) currentBannerIndex = 0;
       
       updateBannerDisplay();
-      startBannerAutoPlay(); // 重新啟動自動播放
+      startBannerAutoPlay(); 
     }
 
     function goToBanner(index) {
@@ -805,7 +677,6 @@
     }
 
     function startBannerAutoPlay() {
-      // 每 5 秒自動換下一張
       bannerInterval = setInterval(() => {
         currentBannerIndex++;
         if (currentBannerIndex >= totalBanners) currentBannerIndex = 0;
@@ -859,7 +730,7 @@
       }
     }
 
-    // ★ 效能大躍進：直接向我們剛建立的聰明視圖 (View) 拿整理好的資料
+    // ★ 從 View 拿整理好的資料
     async function fetchAndRenderProducts() {
       const city = document.getElementById('citySelect').value;
       if (!city) return alert("請先選擇您所在的縣市，以利為您推薦最近的郵局！");
@@ -868,11 +739,9 @@
       document.getElementById('loader').style.display = 'flex';
       
       try {
-        // 直接從 SQL View 獲取乾淨的商品資料 (已自動過濾無庫存商品)
         const { data: products, error } = await supabaseClient.from('view_frontend_products').select('*');
         if (error) throw error;
 
-        // 在前端進行排序 (優先顯示已上架 > 人氣高 > 最新發布)
         products.sort((a, b) => {
           const aStock = a.hasStockCount > 0 ? 1 : 0;
           const bStock = b.hasStockCount > 0 ? 1 : 0;
@@ -885,7 +754,6 @@
         
         document.getElementById('loader').style.display = 'none';
         
-        // ★ 資料載入完成後，顯示搜尋框與廣告 Banner
         document.getElementById('quickSearchBox').style.display = 'block';
         document.getElementById('bannerSection').style.display = 'block';
 
@@ -906,7 +774,6 @@
       }
     }
 
-    // ★ 輔助函式 (防止跳脫字元破壞 HTML 屬性)
     function openBranchModalByKey(key) {
         const p = globalData.products.find(x => x.key === key);
         if (p) openBranchModal(p.key, p.name);
@@ -929,9 +796,7 @@
       let topBadgeCount = 0;
       
       filteredList.forEach((p) => {
-        // 從 View 回傳的 hasStockCount 來判斷是否已有分局上架
         const hasStock = p.hasStockCount > 0;
-        
         let badgeHtml = '';
         if (hasStock && p.clicks > 0 && topBadgeCount < 3) {
           topBadgeCount++;
@@ -943,7 +808,6 @@
         let btnStyle = '';
         
         if (!hasStock) {
-          // 因為 SQL View 已經擋掉了總庫存為 0 的商品，所以能出現在這裡且 hasStock=false 的，保證是補貨中
           btnText = '補貨中...';
           btnStyle = 'disabled style="background:#8c7562 !important; border-color:#4a3219 !important; color:#dcdcdc !important; cursor:not-allowed; box-shadow:none; transform:none;"';
         }
@@ -958,10 +822,14 @@
         card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
         
+        // ★ 核心優化：加上 skeleton-bg 類別，加入 loading="lazy" 屬性
+        // 當圖片 onload 成功時，移除 skeleton-bg 並顯示圖片
         card.innerHTML = `
           ${badgeHtml}
-          <div class="p-img-box" onclick="openGalleryByKey('${safeKey}', this.querySelector('img').src)">
-            <img src="./images/${safeBarcode}.jpg" alt="${safeName.replace(/"/g, '&quot;')}" onerror="handleImageError(this, '${safeImg}')">
+          <div class="p-img-box skeleton-bg" onclick="openGalleryByKey('${safeKey}', this.querySelector('img').src)">
+            <img src="./images/${safeBarcode}.jpg" alt="${safeName.replace(/"/g, '&quot;')}" loading="lazy" 
+                 onload="this.classList.add('loaded'); this.parentElement.classList.remove('skeleton-bg');" 
+                 onerror="handleImageError(this, '${safeBarcode}', '${safeImg}')">
           </div>
           <div class="p-info">
             <h3 class="p-title">${safeName}</h3>
@@ -1054,9 +922,6 @@
       }
     });
 
-    // ==========================================
-    // ★ 效能大躍進：點擊時才呼叫資料庫的高速 RPC 演算法尋找最近郵局
-    // ==========================================
     async function openBranchModal(productKey, productName) {
       try {
         document.getElementById('modalProductName').innerText = `尋找「${productName}」`;
@@ -1065,13 +930,11 @@
         document.getElementById('branchModal').style.display = 'flex';
         document.body.style.overflow = 'hidden'; 
 
-        // 非同步紀錄人氣
         supabaseClient.rpc('record_click', { p_product_key: productKey }).then(({ error }) => { if (error) console.log('紀錄錯誤', error); });
 
         const selCity = document.getElementById('citySelect').value || '';
         const selDist = document.getElementById('districtSelect').value || '';
 
-        // 呼叫我們剛剛建立的聰明資料庫演算法，毫秒級運算並回傳前五名！
         const { data: branches, error } = await supabaseClient.rpc('get_top_branches', { 
             p_product_key: productKey, 
             p_city: selCity, 
