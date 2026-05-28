@@ -12,60 +12,16 @@
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <link rel="canonical" href="https://jcnmlm-ui.github.io/khpostgoods/">
 
-  <meta property="og:site_name" content="高雄郵局｜郵風商品櫥窗">
-  <meta property="og:title" content="高雄郵局｜郵風商品櫥窗 - 尋找特色郵局商品">
-  <meta property="og:description" content="快速查詢在高雄各地角落的郵局特色商品與庫存，尋找離您最近的販售據點！">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://jcnmlm-ui.github.io/khpostgoods/">
-  <meta property="og:image" content="https://jcnmlm-ui.github.io/khpostgoods/images/preview_web.jpg">
-  
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="高雄郵局｜郵風商品櫥窗">
-  <meta name="twitter:description" content="快速查詢在高雄各地角落的郵局特色商品與庫存，尋找離您最近的販售據點！">
-  <meta name="twitter:image" content="https://jcnmlm-ui.github.io/khpostgoods/images/preview_web.jpg">
-  
-  <!-- ================= SEO 進階加分設定 開始 ================= -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
-  <link rel="preconnect" href="https://script.google.com">
-  <link rel="dns-prefetch" href="https://script.google.com">
-  
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        "@id": "https://jcnmlm-ui.github.io/khpostgoods/#website",
-        "url": "https://jcnmlm-ui.github.io/khpostgoods/",
-        "name": "高雄郵局｜郵風商品櫥窗",
-        "description": "快速查詢在高雄各地角落的郵局特色商品與庫存，尋找離您最近的販售據點！",
-        "inLanguage": "zh-TW"
-      },
-      {
-        "@type": "Organization",
-        "@id": "https://jcnmlm-ui.github.io/khpostgoods/#organization",
-        "name": "高雄郵局｜郵風商品櫥窗",
-        "url": "https://jcnmlm-ui.github.io/khpostgoods/",
-        "logo": "https://jcnmlm-ui.github.io/khpostgoods/images/preview_web.jpg",
-        "description": "快速查詢在高雄各地角落的郵局特色商品與庫存，尋找離您最近的販售據點！"
-      }
-    ]
-  }
-  </script>
-  <!-- ================= SEO 進階加分設定 結束 ================= -->
-
   <!-- 引入 Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+  
+  <!-- ★ 引入 Font Awesome 6 圖標字體庫 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-  <script>
-    // =========================================================================
-    // ⚠️ 系統設定：請填入您在 Google Apps Script 發布「新版本部署」後取得的網址
-    // =========================================================================
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzrtagTPx0snmiq-ZcJAX41dt0nZONpteVR408H_eDNqmD_6reFhYs9rTAGe3blBVX1hg/exec";
-    // =========================================================================
-  </script>
+  <!-- ★ 引入 Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     /* 星露谷物語風格變數 */
@@ -214,7 +170,18 @@
       -webkit-appearance: none; 
     }
     .quick-search-box input:focus { background: #fff8d6; }
-    .quick-search-box::before { content: '🔎'; position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; z-index: 2;}
+    .quick-search-box::before { 
+      content: '\f002'; 
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      position: absolute; 
+      left: 16px; 
+      top: 50%; 
+      transform: translateY(-50%); 
+      font-size: 18px; 
+      z-index: 2;
+      color: var(--sd-wood-dark);
+    }
 
     /* 商品網格與卡片 */
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
@@ -253,10 +220,33 @@
       border-radius: 4px 4px 0 0;
       cursor: pointer; 
     }
-    .p-img-box img { width: 100%; height: 100%; object-fit: contain; }
+    
+    /* ★ 骨架屏與懶加載樣式開始 ★ */
+    .skeleton-bg {
+      background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%) !important;
+      background-size: 200% 100% !important;
+      animation: shimmer 1.5s infinite linear !important;
+    }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .p-img-box img { 
+      width: 100%; 
+      height: 100%; 
+      object-fit: contain; 
+      opacity: 0; /* 預設透明，載入後淡入 */
+      transition: opacity 0.4s ease-in-out;
+    }
+    .p-img-box img.loaded {
+      opacity: 1; /* 載入完成顯示 */
+    }
+    /* ★ 骨架屏與懶加載樣式結束 ★ */
     
     .p-img-box::after {
-      content: '🔍 點擊放大';
+      content: '\f00e\00a0\00a0點擊放大';
+      font-family: 'Font Awesome 6 Free', 'Noto Sans TC', sans-serif;
+      font-weight: 900;
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0, 0, 0, 0.6);
@@ -270,9 +260,7 @@
       transition: opacity 0.2s;
       pointer-events: none; 
     }
-    .p-img-box:hover::after {
-      opacity: 1;
-    }
+    .p-img-box:hover::after { opacity: 1; }
     
     .p-info { padding: 16px; flex-grow: 1; display: flex; flex-direction: column; }
     .p-title { font-size: 19px; font-weight: bold; margin: 0 0 10px 0; color: var(--sd-text); line-height: 1.4; text-shadow: 1px 1px 0px rgba(255,255,255,0.6);}
@@ -281,7 +269,14 @@
     .p-meta { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 2px dashed var(--sd-wood-dark); }
     .p-barcode { font-family: 'VT323', monospace; font-size: 16px; color: #fff; background: var(--sd-wood-dark); padding: 4px 8px; border-radius: 4px; border: 2px solid var(--sd-border); letter-spacing: 1px;}
     .p-price { font-family: 'VT323', monospace; font-size: 28px; font-weight: normal; color: var(--sd-hot); text-shadow: 1px 1px 0px rgba(255,255,255,0.8); letter-spacing: 1px;}
-    .p-price::before { content: '💰 '; font-size: 18px; font-family: 'Noto Sans TC', sans-serif; }
+    .p-price::before { 
+      content: '\f51e'; 
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      color: var(--sd-warning);
+      font-size: 18px; 
+      margin-right: 6px;
+    }
 
     .btn-view-branch { 
       width: calc(100% - 32px); 
@@ -311,158 +306,50 @@
 
     /* 分局彈出視窗 (Modal) */
     .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); justify-content: center; align-items: center; }
-    .modal-content { 
-      width: 90%; 
-      max-width: 500px; 
-      max-height: 85vh; 
-      display: flex; 
-      flex-direction: column; 
-      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-    }
-    
+    .modal-content { width: 90%; max-width: 500px; max-height: 85vh; display: flex; flex-direction: column; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
 
-    .modal-header { 
-      background: var(--sd-wood); 
-      color: white; 
-      padding: 16px 20px; 
-      font-weight: bold; 
-      font-size: 18px; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      border-bottom: 4px solid var(--sd-border);
-      text-shadow: 2px 2px 0px var(--sd-border);
-    }
-    .btn-close { 
-      background: var(--sd-hot); 
-      border: 3px solid var(--sd-border); 
-      color: white; 
-      font-size: 20px; 
-      font-weight: bold;
-      width: 36px;
-      height: 36px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border-radius: 4px;
-      cursor: pointer; 
-      box-shadow: inset -2px -2px 0px rgba(0,0,0,0.2);
-    }
+    .modal-header { background: var(--sd-wood); color: white; padding: 16px 20px; font-weight: bold; font-size: 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--sd-border); text-shadow: 2px 2px 0px var(--sd-border); }
+    .btn-close { background: var(--sd-hot); border: 3px solid var(--sd-border); color: white; font-size: 20px; font-weight: bold; width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; border-radius: 4px; cursor: pointer; box-shadow: inset -2px -2px 0px rgba(0,0,0,0.2); line-height: 1; }
     .btn-close:active { box-shadow: inset 2px 2px 0px rgba(0,0,0,0.3); transform: translateY(2px);}
-    
     .modal-body { padding: 0; overflow-y: auto; background: var(--sd-parchment); flex-grow: 1; border-radius: 0 0 4px 4px;}
-    
     .branch-list { list-style: none; padding: 0; margin: 0; }
     .branch-item { padding: 20px; border-bottom: 2px dotted var(--sd-wood-dark); transition: background 0.2s; border-left: 6px solid transparent; }
     .branch-item:last-child { border-bottom: none; }
     .branch-item:hover { background: rgba(255, 255, 255, 0.4); }
-    
-    .branch-item.highlight { 
-      background-color: rgba(255, 215, 0, 0.2); 
-      border-left: 6px solid #eab308; 
-    }
-
+    .branch-item.highlight { background-color: rgba(255, 215, 0, 0.2); border-left: 6px solid #eab308; }
     .b-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px;}
     .b-name-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1;}
     .b-name { font-weight: bold; color: var(--sd-text); font-size: 18px; text-shadow: 1px 1px 0px #fff;}
-
-    .b-qty { 
-      background: var(--sd-grass-dark); 
-      color: white; 
-      padding: 4px 10px; 
-      border: 2px solid var(--sd-border);
-      border-radius: 4px; 
-      font-size: 14px; 
-      font-weight: bold; 
-      white-space: nowrap; 
-      box-shadow: 2px 2px 0px rgba(0,0,0,0.15);
-    }
+    .b-qty { background: var(--sd-grass-dark); color: white; padding: 4px 10px; border: 2px solid var(--sd-border); border-radius: 4px; font-size: 14px; font-weight: bold; white-space: nowrap; box-shadow: 2px 2px 0px rgba(0,0,0,0.15); }
     .b-qty.low-stock { background: var(--sd-warning); }
     .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
 
     /* ★ 圖片畫廊 (Lightbox) 樣式 */
-    #galleryLightbox {
-      display: none; position: fixed; z-index: 10005; inset: 0;
-      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
-      justify-content: center; align-items: center; flex-direction: column;
-    }
-    .gallery-container {
-      position: relative; width: 90vw; max-width: 800px; max-height: 80vh;
-      display: flex; justify-content: center; align-items: center;
-    }
-    .gallery-img {
-      max-width: 100%; max-height: 80vh; 
-      border: 6px solid var(--sd-wood); border-radius: 8px; 
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5); object-fit: contain;
-      background: white;
-    }
-    .gallery-title {
-      color: white; margin-top: 20px; font-size: 22px; font-weight: bold; 
-      text-shadow: 2px 2px 4px black; text-align: center;
-    }
-    .gallery-desc {
-      color: #e2e8f0; margin-top: 8px; font-size: 14px; font-weight: normal; 
-      text-shadow: 1px 1px 3px black; text-align: center; max-width: 90vw;
-      line-height: 1.5; padding: 0 15px; white-space: pre-wrap;
-    }
-    .gallery-counter {
-      color: var(--sd-parchment); font-size: 18px; margin-top: 5px; 
-      font-family: 'VT323', monospace; letter-spacing: 2px;
-    }
-    .gallery-close {
-      position: absolute; top: 20px; right: 25px; font-size: 45px; 
-      color: white; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-      z-index: 10010; line-height: 1; transition: 0.2s;
-    }
+    #galleryLightbox { display: none; position: fixed; z-index: 10005; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; flex-direction: column; }
+    .gallery-container { position: relative; width: 90vw; max-width: 800px; max-height: 80vh; display: flex; justify-content: center; align-items: center; }
+    .gallery-img { max-width: 100%; max-height: 80vh; border: 6px solid var(--sd-wood); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); object-fit: contain; background: white; }
+    .gallery-title { color: white; margin-top: 20px; font-size: 22px; font-weight: bold; text-shadow: 2px 2px 4px black; text-align: center; }
+    .gallery-desc { color: #e2e8f0; margin-top: 8px; font-size: 14px; font-weight: normal; text-shadow: 1px 1px 3px black; text-align: center; max-width: 90vw; line-height: 1.5; padding: 0 15px; white-space: pre-wrap; }
+    .gallery-counter { color: var(--sd-parchment); font-size: 18px; margin-top: 5px; font-family: 'VT323', monospace; letter-spacing: 2px; }
+    .gallery-close { position: absolute; top: 20px; right: 25px; font-size: 40px; color: white; cursor: pointer; text-shadow: 0 2px 4px rgba(0,0,0,0.8); z-index: 10010; line-height: 1; transition: 0.2s; background: none; border: none; padding: 0;}
     .gallery-close:hover { color: var(--sd-hot); transform: scale(1.1); }
-    
-    .gallery-btn {
-      position: absolute; top: 50%; transform: translateY(-50%);
-      background: rgba(255, 255, 255, 0.2); color: white; 
-      border: 3px solid white; width: 55px; height: 55px; border-radius: 50%; 
-      font-size: 26px; cursor: pointer; display: flex; justify-content: center; 
-      align-items: center; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      z-index: 10010;
-    }
+    .gallery-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.2); color: white; border: 3px solid white; width: 55px; height: 55px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 10010; }
     .gallery-btn:hover { background: rgba(255, 255, 255, 0.6); color: var(--sd-text); border-color: var(--sd-text); }
     .gallery-btn:active { transform: translateY(-50%) scale(0.9); }
     .gallery-prev { left: -70px; }
     .gallery-next { right: -70px; }
 
     /* 版權宣告 */
-    .footer {
-      text-align: center;
-      padding: 30px 20px;
-      color: var(--sd-text);
-      font-weight: bold;
-      font-size: 15px;
-      text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
-      letter-spacing: 1px;
-    }
+    .footer { text-align: center; padding: 30px 20px; color: var(--sd-text); font-weight: bold; font-size: 15px; text-shadow: 1px 1px 0px rgba(255,255,255,0.5); letter-spacing: 1px; }
 
-    #scrollToTopBtn { 
-      position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; 
-      background-color: #fdeca6; color: var(--sd-text); font-size: 24px;
-      border: 3px solid var(--sd-border); border-radius: 50%; 
-      box-shadow: 0 4px 0px rgba(0,0,0,0.2), inset -2px -2px 0px #dcb360; 
-      cursor: pointer; display: flex; justify-content: center; align-items: center; 
-      opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 999; 
-    }
+    #scrollToTopBtn { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background-color: #fdeca6; color: var(--sd-text); font-size: 24px; border: 3px solid var(--sd-border); border-radius: 50%; box-shadow: 0 4px 0px rgba(0,0,0,0.2), inset -2px -2px 0px #dcb360; cursor: pointer; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 999; }
     #scrollToTopBtn:active { transform: translateY(4px); box-shadow: 0 0px 0px rgba(0,0,0,0.2), inset 2px 2px 0px #dcb360; }
     #scrollToTopBtn.show { opacity: 1; visibility: visible; }
 
     #loader { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(253, 236, 166, 0.9); z-index: 1000; display:none; flex-direction:column; justify-content:center; align-items:center; }
-    .bouncing-star {
-      font-size: 50px;
-      animation: bounce 0.6s infinite alternate cubic-bezier(0.5, 0.05, 1, 0.5);
-      margin-bottom: 20px;
-      text-shadow: 0 10px 10px rgba(0,0,0,0.2);
-    }
-    @keyframes bounce {
-      0% { transform: translateY(0) scale(1.1); }
-      100% { transform: translateY(-30px) scale(0.9); text-shadow: 0 40px 15px rgba(0,0,0,0.1); }
-    }
+    .bouncing-star { font-size: 50px; animation: bounce 0.6s infinite alternate cubic-bezier(0.5, 0.05, 1, 0.5); margin-bottom: 20px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.2)); }
+    @keyframes bounce { 0% { transform: translateY(0) scale(1.1); } 100% { transform: translateY(-30px) scale(0.9); filter: drop-shadow(0 30px 15px rgba(0,0,0,0.1)); } }
 
     @media (max-width: 768px) {
       .gallery-prev { left: 10px; }
@@ -473,69 +360,16 @@
 
     @media (max-width: 600px) {
       .container { padding: 15px; }
-      
-      /* ★ 修改：手機版改用更穩定的 Flexbox 排版，徹底解決跑版問題 */
-      .location-box { 
-        padding: 16px; 
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        align-items: center;
-        justify-content: space-between;
-      }
-      /* 標題自己佔滿第一行 */
+      .location-box { padding: 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
       .location-box .title { width: 100%; order: 1; margin-bottom: 0; }
-      
-      /* 兩個下拉選單佔滿第二行，並呈現完美的橫向並排 */
-      .select-group { 
-        width: 100%; 
-        order: 2; 
-        flex-direction: row; 
-        gap: 10px;
-        min-width: 0; 
-      }
+      .select-group { width: 100%; order: 2; flex-direction: row; gap: 10px; min-width: 0; }
       .select-group select { width: 50%; font-size: 15px; padding: 10px 12px; background-position: right 8px top 50%; height: auto;}
-      
-      /* 記住位置 與 搜尋按鈕 共用第三行 */
-      .checkbox-wrapper { 
-        width: auto; 
-        order: 3;
-        margin: 0; 
-        justify-content: flex-start; 
-        align-items: center; 
-        font-size: 14px; 
-        padding-top: 0;
-      }
+      .checkbox-wrapper { width: auto; order: 3; margin: 0; justify-content: flex-start; align-items: center; font-size: 14px; padding-top: 0; }
       .checkbox-wrapper input { width: 18px; height: 18px; flex-shrink: 0; margin-top: 0; margin-right: 6px;}
 
-      .btn-search { 
-        width: auto; 
-        flex-grow: 1;
-        margin-left: 10px;
-        order: 4;
-        height: auto; 
-        padding: 10px 15px; 
-        font-size: 15px; 
-        white-space: normal; 
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        line-height: 1.3;
-        box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2), 0 3px 0 rgba(0,0,0,0.15);
-      }
-      
-      /* 溫馨提示放在最後一行 */
-      .notice-text { 
-        width: 100%; 
-        order: 5;
-        text-align: left; 
-        margin: 0; 
-        font-size: 12px; 
-        line-height: 1.4;
-      }
+      .btn-search { width: auto; flex-grow: 1; margin-left: 10px; order: 4; height: auto; padding: 10px 15px; font-size: 15px; white-space: normal; display: flex; justify-content: center; align-items: center; text-align: center; line-height: 1.3; box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2), 0 3px 0 rgba(0,0,0,0.15); }
+      .notice-text { width: 100%; order: 5; text-align: left; margin: 0; font-size: 12px; line-height: 1.4; }
 
-      /* 手機版雙排卡片優化 */
       .product-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
       .p-img-box { height: 140px; padding: 5px; }
       .p-info { padding: 10px; }
@@ -560,44 +394,45 @@
 
   <!-- 圖片畫廊 Lightbox -->
   <div id="galleryLightbox" onclick="closeGallery()">
-    <button class="gallery-close" aria-label="關閉預覽" onclick="closeGallery()">&times;</button>
-    
+    <button class="gallery-close" aria-label="關閉預覽" onclick="closeGallery()"><i class="fa-solid fa-xmark"></i></button>
     <div class="gallery-container" onclick="event.stopPropagation()">
-      <button id="btnPrevImg" class="gallery-btn gallery-prev" aria-label="上一張圖片" onclick="changeGalleryImage(-1)">&#10094;</button>
+      <button id="btnPrevImg" class="gallery-btn gallery-prev" aria-label="上一張圖片" onclick="changeGalleryImage(-1)"><i class="fa-solid fa-chevron-left"></i></button>
       <img id="galleryImg" class="gallery-img" src="" alt="放大圖片">
-      <button id="btnNextImg" class="gallery-btn gallery-next" aria-label="下一張圖片" onclick="changeGalleryImage(1)">&#10095;</button>
+      <button id="btnNextImg" class="gallery-btn gallery-next" aria-label="下一張圖片" onclick="changeGalleryImage(1)"><i class="fa-solid fa-chevron-right"></i></button>
     </div>
-    
     <div id="galleryTitle" class="gallery-title"></div>
     <div id="galleryDesc" class="gallery-desc"></div>
     <div id="galleryCounter" class="gallery-counter"></div>
   </div>
 
   <div id="loader" aria-live="polite">
-    <div class="bouncing-star">✨</div>
-    <div style="font-weight:bold; color:var(--sd-text); font-size: 18px; background: #fff; padding: 10px 20px; border: 3px solid var(--sd-border); border-radius: 8px;">正在向小精靈確認庫存清單... 📦</div>
+    <i class="fa-solid fa-box-open bouncing-star" style="color: var(--sd-wood);"></i>
+    <div id="loaderText" style="font-weight:bold; color:var(--sd-text); font-size: 18px; background: #fff; padding: 10px 20px; border: 3px solid var(--sd-border); border-radius: 8px;">
+      正在向資料庫索取整理好的商品清單... <i class="fa-solid fa-database" style="color: var(--sd-wood); margin-left: 5px;"></i>
+    </div>
   </div>
 
   <header class="header">
-    <h1>🪧 高雄郵局｜郵風商品櫥窗</h1>
+    <h1><i class="fa-solid fa-sign-hanging" style="margin-right: 8px; color: #fdeca6;"></i>高雄郵局｜郵風商品櫥窗</h1>
   </header>
 
   <main class="container">
     <section class="location-box sd-ui-box">
-      <h2 class="title" style="margin: 0; padding-bottom: 5px;">🏡 告訴我們您的位置</h2>
+      <h2 class="title" style="margin: 0; padding-bottom: 5px;"><i class="fa-solid fa-house-chimney" style="color: #d9382e; margin-right: 8px;"></i>告訴我們您的位置</h2>
       <div class="select-group">
         <select id="citySelect" aria-label="選擇縣市" onchange="updateDistricts();"></select>
         <select id="districtSelect" aria-label="選擇鄉鎮市區" onchange="saveLocation()"></select>
       </div>
-      
       <label class="checkbox-wrapper">
         <input type="checkbox" id="rememberLoc" aria-label="記住選擇的位置" onchange="saveLocation()">
         記住位置
       </label>
-      
-      <button class="btn-search" aria-label="搜尋鄰近郵局" onclick="fetchAndRenderProducts()">🔍 鄰近郵局</button>
-      
-      <div class="notice-text">💡 溫馨提示~查詢結果僅供參考，建議前往購買前先洽電詢問庫存。前往購買時攜帶郵政VISA卡，部分商品還有優惠唷！</div>
+      <button class="btn-search" aria-label="搜尋鄰近郵局" onclick="fetchAndRenderProducts()">
+        <i class="fa-solid fa-magnifying-glass" style="margin-right: 6px;"></i>鄰近郵局
+      </button>
+      <div class="notice-text">
+        <i class="fa-solid fa-lightbulb" style="color: #e58715; margin-right: 4px;"></i>溫馨提示~查詢結果僅供參考，建議前往購買前先洽電詢問庫存。前往購買時攜帶郵政VISA卡，部分商品還有優惠唷！
+      </div>
     </section>
 
     <section class="quick-search-box" id="quickSearchBox">
@@ -608,8 +443,12 @@
       <div class="initial-state">
         <h2>歡迎來到<br>高雄郵局郵風商品櫥窗</h2>
         <p>在這裡，我們以郵政元素或郵票圖樣延伸，開發了許多可愛、實用，且獨一無二的產品</p>
-        <p>🌻🌻🌻</p>
-        <p>請先設定您所在的縣市與區域<br>並點擊「🔍 鄰近郵局」來尋寶吧！</p>
+        <p>
+          <i class="fa-solid fa-seedling" style="color: var(--sd-grass-dark); margin: 0 5px; font-size: 24px;"></i>
+          <i class="fa-solid fa-seedling" style="color: var(--sd-grass-dark); margin: 0 5px; font-size: 24px;"></i>
+          <i class="fa-solid fa-seedling" style="color: var(--sd-grass-dark); margin: 0 5px; font-size: 24px;"></i>
+        </p>
+        <p>請先設定您所在的縣市與區域<br>並點擊「<i class="fa-solid fa-magnifying-glass"></i> 鄰近郵局」來尋寶吧！</p>
       </div>
     </article>
   </main>
@@ -626,7 +465,7 @@
     <div class="modal-content sd-ui-box" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span id="modalProductName" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">鄰近販售據點</span>
-        <button class="btn-close" onclick="closeBranchModal()" aria-label="關閉視窗">&times;</button>
+        <button class="btn-close" onclick="closeBranchModal()" aria-label="關閉視窗"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="modal-body">
         <ul class="branch-list" id="modalBranchList"></ul>
@@ -634,11 +473,14 @@
     </div>
   </div>
 
-  <button id="scrollToTopBtn" onclick="scrollToTop()" title="回到最上方" aria-label="回到網頁最上方">
-    ⭐
-  </button>
+  <button id="scrollToTopBtn" onclick="scrollToTop()" title="回到最上方" aria-label="回到網頁最上方"><i class="fa-solid fa-arrow-up"></i></button>
 
   <script>
+    // ★ 系統設定
+    const _supabaseUrl = 'https://tukzmdtkhdxdpbnvkjzz.supabase.co';
+    const _supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA';
+    const supabaseClient = window.supabase.createClient(_supabaseUrl, _supabaseKey);
+
     const twData = {
       "基隆市": ["仁愛區", "信義區", "中正區", "中山區", "安樂區", "暖暖區", "七堵區"],
       "臺北市": ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"],
@@ -664,10 +506,18 @@
       "連江縣": ["南竿鄉", "北竿鄉", "莒光鄉", "東引鄉"]
     };
 
-    let globalData = {}; 
+    let globalData = { products: [] }; 
     let isInitialLoadFromUrl = true;
 
-    window.handleImageError = function(imgElement, sheetImgUrl) {
+    // ★ 圖片讀取備援機制 (Fallback) 升級版
+    window.handleImageError = function(imgElement, barcode, sheetImgUrl) {
+      // 1. 如果 .jpg 失敗，自動嘗試載入 .webp
+      if (!imgElement.dataset.triedWebp) {
+        imgElement.dataset.triedWebp = 'true';
+        imgElement.src = `./images/${barcode}.webp`;
+        return;
+      }
+      // 2. 如果 .webp 也失敗，嘗試載入資料庫的外部圖片連結
       if (!imgElement.dataset.triedSheet) {
         imgElement.dataset.triedSheet = 'true';
         if (sheetImgUrl && sheetImgUrl.trim() !== '' && !sheetImgUrl.includes('暫無商品圖片')) {
@@ -675,44 +525,38 @@
             return;
         }
       }
+      // 3. 都失敗的話，載入預設圖片
       if (!imgElement.dataset.triedDefault) {
         imgElement.dataset.triedDefault = 'true';
         imgElement.src = './images/080000AA.jpg';
         return;
       }
+      // 最終放棄
       imgElement.onerror = null; 
+      // 就算失敗了，也要強制移除骨架屏，避免一直閃爍
+      imgElement.classList.add('loaded');
+      if (imgElement.parentElement) {
+        imgElement.parentElement.classList.remove('skeleton-bg');
+      }
     };
 
     window.onload = () => {
       initLocationDropdowns();
-
-      // 檢查網址是否帶有特定的查詢參數 (例如: ?city=高雄市&keyword=個人化郵票)
       const urlParams = new URLSearchParams(window.location.search);
       const urlCity = urlParams.get('city');
       if (urlCity) {
         document.getElementById('citySelect').value = urlCity;
         updateDistricts();
         const urlDist = urlParams.get('dist');
-        if (urlDist) {
-          document.getElementById('districtSelect').value = urlDist;
-        } else {
-          document.getElementById('districtSelect').value = ""; // 預設全區
-        }
-        // 如果網址有帶縣市，就自動幫使用者按下搜尋按鈕
+        if (urlDist) document.getElementById('districtSelect').value = urlDist;
         fetchAndRenderProducts();
-      }
-
-      if(GAS_API_URL.includes('請在此填入')) {
-         alert('⚠️ 系統提示：請務必在程式碼最上方的 GAS_API_URL 填入您的專屬網址！');
       }
     };
 
     function initLocationDropdowns() {
       const citySel = document.getElementById('citySelect');
       citySel.innerHTML = '<option value="">請選擇縣市</option>';
-      for (let city in twData) {
-        citySel.add(new Option(city, city));
-      }
+      for (let city in twData) citySel.add(new Option(city, city));
 
       const savedCity = localStorage.getItem('cust_city');
       const savedDist = localStorage.getItem('cust_dist');
@@ -722,9 +566,7 @@
         document.getElementById('rememberLoc').checked = true;
         citySel.value = savedCity;
         updateDistricts();
-        if (savedDist) {
-          document.getElementById('districtSelect').value = savedDist;
-        }
+        if (savedDist) document.getElementById('districtSelect').value = savedDist;
       } else {
         updateDistricts();
       }
@@ -734,11 +576,8 @@
       const city = document.getElementById('citySelect').value;
       const distSel = document.getElementById('districtSelect');
       distSel.innerHTML = '<option value="">請選擇區域 (全區)</option>';
-      
       if (city && twData[city]) {
-        twData[city].forEach(dist => {
-          distSel.add(new Option(dist, dist));
-        });
+        twData[city].forEach(dist => distSel.add(new Option(dist, dist)));
       }
       saveLocation();
     }
@@ -758,93 +597,62 @@
       }
     }
 
-    function fetchAndRenderProducts() {
+    // ★ 從 View 拿整理好的資料
+    async function fetchAndRenderProducts() {
       const city = document.getElementById('citySelect').value;
       if (!city) return alert("請先選擇您所在的縣市，以利為您推薦最近的郵局！");
 
       document.getElementById('loader').style.display = 'flex';
       
-      fetch(GAS_API_URL + '?action=getCustomerData')
-        .then(response => response.json())
-        .then(res => {
-          document.getElementById('loader').style.display = 'none';
-          if(res.status === 'success') {
-            globalData = res;
-            document.getElementById('quickSearchBox').style.display = 'block';
-            
-            // 檢查網址是否有帶入關鍵字
-            const urlParams = new URLSearchParams(window.location.search);
-            const urlKeyword = urlParams.get('keyword');
+      try {
+        const { data: products, error } = await supabaseClient.from('view_frontend_products').select('*');
+        if (error) throw error;
 
-            if (isInitialLoadFromUrl && urlKeyword) {
-              document.getElementById('localSearchInput').value = urlKeyword;
-              localFilterProducts();
-              isInitialLoadFromUrl = false; // 確保只在第一次載入時套用網址的關鍵字
-            } else {
-              document.getElementById('localSearchInput').value = ''; 
-              renderProducts(globalData.products);
-            }
-          } else {
-            alert('資料載入失敗：' + res.message);
-          }
-        })
-        .catch(err => {
-          document.getElementById('loader').style.display = 'none';
-          alert('網路連線發生錯誤，請確認 GAS API 網址是否正確且已發布！\n' + err);
+        products.sort((a, b) => {
+          const aStock = a.hasStockCount > 0 ? 1 : 0;
+          const bStock = b.hasStockCount > 0 ? 1 : 0;
+          if (aStock !== bStock) return bStock - aStock; 
+          if (a.clicks !== b.clicks) return b.clicks - a.clicks; 
+          return b.rawDate - a.rawDate; 
         });
+
+        globalData.products = products;
+        
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('quickSearchBox').style.display = 'block';
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlKeyword = urlParams.get('keyword');
+
+        if (isInitialLoadFromUrl && urlKeyword) {
+          document.getElementById('localSearchInput').value = urlKeyword;
+          localFilterProducts();
+          isInitialLoadFromUrl = false;
+        } else {
+          document.getElementById('localSearchInput').value = ''; 
+          renderProducts(globalData.products);
+        }
+      } catch (err) {
+        document.getElementById('loader').style.display = 'none';
+        alert('網路連線發生錯誤，請確認視圖 (View) 是否建立成功！\n' + err.message);
+      }
     }
 
-    function getTop5Branches(productKey) {
-      const selCity = document.getElementById('citySelect').value;
-      const selDist = document.getElementById('districtSelect').value;
-      
-      const stockList = globalData.stockMap[productKey] || [];
-      if (stockList.length === 0) return []; 
+    function openBranchModalByKey(key) {
+        const p = globalData.products.find(x => x.key === key);
+        if (p) openBranchModal(p.key, p.name);
+    }
 
-      let branchPool = stockList.map(stock => {
-        const info = globalData.branchInfo[stock.branchId];
-        if (!info) return null;
-        
-        let priority = 3; 
-        if (selCity && info.address.includes(selCity)) {
-          priority = 2; 
-          if (selDist && info.address.includes(selDist)) {
-            priority = 1; 
-          }
-        }
-        
-        return {
-          branchId: stock.branchId,
-          name: info.name,
-          address: info.address,
-          phone: info.phone,
-          qty: stock.qty,
-          priority: priority,
-          activeScore: info.baseActiveScore || 0 
-        };
-      }).filter(b => b !== null);
-
-      branchPool.sort((a, b) => {
-        if (a.priority !== b.priority) return a.priority - b.priority;
-
-        const aStockBonus = a.qty > 5 ? 10 : 0;
-        const bStockBonus = b.qty > 5 ? 10 : 0;
-        const aTotalScore = a.activeScore + aStockBonus;
-        const bTotalScore = b.activeScore + bStockBonus;
-
-        if (aTotalScore !== bTotalScore) return bTotalScore - aTotalScore; 
-
-        return b.qty - a.qty;
-      });
-
-      return branchPool.slice(0, 5);
+    function openGalleryByKey(key, imgElementSrc) {
+        const p = globalData.products.find(x => x.key === key);
+        if (p) openGallery(p.barcode, p.name, p.desc, imgElementSrc);
     }
 
     function renderProducts(filteredList) {
       const container = document.getElementById('productContainer');
       
       if (!filteredList || filteredList.length === 0) {
-        container.innerHTML = '<div class="initial-state"><h2>找不到符合的商品 🍂</h2><p>請嘗試更換搜尋關鍵字，或郵局目前暫未提供該商品。</p></div>';
+        container.innerHTML = '<div class="initial-state"><h2>找不到符合的商品 <i class="fa-solid fa-box-open" style="color: var(--sd-text-muted); margin-left: 8px;"></i></h2><p>請嘗試更換搜尋關鍵字，或郵局目前暫未提供該商品。</p></div>';
         return;
       }
 
@@ -852,50 +660,50 @@
       let topBadgeCount = 0;
       
       filteredList.forEach((p) => {
-        const hasStock = (globalData.stockMap[p.key] || []).length > 0;
-        
+        const hasStock = p.hasStockCount > 0;
         let badgeHtml = '';
         if (hasStock && p.clicks > 0 && topBadgeCount < 3) {
           topBadgeCount++;
-          badgeHtml = `<div class="hot-badge">⭐ 人氣商品 TOP ${topBadgeCount}</div>`;
+          badgeHtml = `<div class="hot-badge"><i class="fa-solid fa-star" style="color: #fdeca6; margin-right: 4px;"></i>人氣商品 TOP ${topBadgeCount}</div>`;
         }
 
         const outOfStockStyle = hasStock ? '' : 'opacity: 0.75; filter: grayscale(40%);';
-
-        let btnText = '📍 查看鄰近郵局';
+        let btnText = '<i class="fa-solid fa-location-dot" style="margin-right: 6px;"></i>查看鄰近郵局';
         let btnStyle = '';
         
         if (!hasStock) {
-          if (p.totalInvQty === 0) {
-            btnText = '已售罄 🪧';
-            btnStyle = 'disabled style="background:#5c5c5c !important; border-color:#383838 !important; color:#a3a3a3 !important; cursor:not-allowed; box-shadow:none; transform:none;"';
-          } else {
-            btnText = '補貨中...';
-            btnStyle = 'disabled style="background:#8c7562 !important; border-color:#4a3219 !important; color:#dcdcdc !important; cursor:not-allowed; box-shadow:none; transform:none;"';
-          }
+          btnText = '<i class="fa-solid fa-clock" style="margin-right: 6px;"></i>補貨中...';
+          btnStyle = 'disabled style="background:#8c7562 !important; border-color:#4a3219 !important; color:#dcdcdc !important; cursor:not-allowed; box-shadow:none; transform:none;"';
         }
 
-        const safeName = encodeURIComponent(p.name || "未命名商品");
-        const safeDesc = encodeURIComponent(p.desc || "目前尚未提供商品詳細說明，款式與規格請依現場實物為主。");
+        const safeName = String(p.name || "未命名商品").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeDesc = String(p.desc || "目前尚未提供商品詳細說明，款式與規格請依現場實物為主。").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeBarcode = String(p.barcode || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeImg = String(p.img || "").replace(/"/g, '&quot;').replace(/'/g, "&#039;");
+        const safeKey = String(p.key).replace(/"/g, '&quot;').replace(/'/g, "\\'");
 
         const card = document.createElement('article');
         card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
         
+        // ★ 核心優化：加上 skeleton-bg 類別，加入 loading="lazy" 屬性
+        // 當圖片 onload 成功時，移除 skeleton-bg 並顯示圖片
         card.innerHTML = `
           ${badgeHtml}
-          <div class="p-img-box" onclick="openGallery('${p.barcode}', '${safeName}', '${safeDesc}', this.querySelector('img').src)">
-            <img src="./images/${p.barcode}.jpg" alt="${p.name}" onerror="handleImageError(this, '${p.img}')">
+          <div class="p-img-box skeleton-bg" onclick="openGalleryByKey('${safeKey}', this.querySelector('img').src)">
+            <img src="./images/${safeBarcode}.jpg" alt="${safeName.replace(/"/g, '&quot;')}" loading="lazy" 
+                 onload="this.classList.add('loaded'); this.parentElement.classList.remove('skeleton-bg');" 
+                 onerror="handleImageError(this, '${safeBarcode}', '${safeImg}')">
           </div>
           <div class="p-info">
-            <h3 class="p-title">${p.name}</h3>
-            <div class="p-desc">${p.desc}</div>
+            <h3 class="p-title">${safeName}</h3>
+            <div class="p-desc">${safeDesc}</div>
             <div class="p-meta">
-              <span class="p-barcode">條碼: ${p.barcode}</span>
+              <span class="p-barcode">條碼: ${safeBarcode}</span>
               <span class="p-price">${p.price}</span>
             </div>
           </div>
-          <button class="btn-view-branch" aria-label="查看鄰近販售據點：${p.name}" onclick="openBranchModal('${p.key}', '${p.name}')" ${btnStyle}>
+          <button class="btn-view-branch" aria-label="查看鄰近販售據點：${safeName.replace(/"/g, '&quot;')}" onclick="openBranchModalByKey('${safeKey}')" ${btnStyle}>
             ${btnText}
           </button>
         `;
@@ -905,25 +713,25 @@
 
     function localFilterProducts() {
       const searchText = document.getElementById('localSearchInput').value.toLowerCase();
-      
       const filteredResults = globalData.products.filter(p => {
         const titleMatch = p.name.toLowerCase().includes(searchText);
         const barcodeMatch = String(p.barcode).toLowerCase().includes(searchText);
         return titleMatch || barcodeMatch;
       });
-
       renderProducts(filteredResults);
     }
 
+    // ==========================================
+    // Lightbox 相關控制邏輯
+    // ==========================================
     let currentGalleryImgs = [];
     let currentGalleryIdx = 0;
 
     function openGallery(barcode, encName, encDesc, activeImgSrc) {
       currentGalleryImgs = [activeImgSrc]; 
       currentGalleryIdx = 0;
-      
-      document.getElementById('galleryTitle').innerText = decodeURIComponent(encName);
-      document.getElementById('galleryDesc').innerText = decodeURIComponent(encDesc); 
+      document.getElementById('galleryTitle').innerText = encName; 
+      document.getElementById('galleryDesc').innerText = encDesc;  
       document.getElementById('galleryImg').src = activeImgSrc;
       document.getElementById('galleryLightbox').style.display = 'flex';
       
@@ -938,9 +746,7 @@
         updateGalleryArrows();
         checkExtraImages(barcode, fileIndex + 1);
       };
-      testImg.onerror = function() {
-        // 偵測結束
-      };
+      testImg.onerror = function() {}; // 偵測結束
       testImg.src = `./images/${barcode}-${fileIndex}.jpg`;
     }
 
@@ -948,7 +754,6 @@
       const total = currentGalleryImgs.length;
       document.getElementById('btnPrevImg').style.display = currentGalleryIdx > 0 ? 'flex' : 'none';
       document.getElementById('btnNextImg').style.display = currentGalleryIdx < total - 1 ? 'flex' : 'none';
-      
       if (total > 1) {
         document.getElementById('galleryCounter').innerText = `${currentGalleryIdx + 1} / ${total}`;
         document.getElementById('galleryCounter').style.display = 'block';
@@ -961,7 +766,6 @@
       currentGalleryIdx += step;
       if (currentGalleryIdx < 0) currentGalleryIdx = 0;
       if (currentGalleryIdx >= currentGalleryImgs.length) currentGalleryIdx = currentGalleryImgs.length - 1;
-      
       document.getElementById('galleryImg').src = currentGalleryImgs[currentGalleryIdx];
       updateGalleryArrows();
     }
@@ -982,46 +786,54 @@
       }
     });
 
-    function openBranchModal(productKey, productName) {
-      fetch(GAS_API_URL + '?action=recordClick&productId=' + encodeURIComponent(productKey))
-        .catch(e => console.log('人氣紀錄錯誤:', e));
+    async function openBranchModal(productKey, productName) {
+      try {
+        document.getElementById('modalProductName').innerText = `尋找「${productName}」`;
+        const listUl = document.getElementById('modalBranchList');
+        listUl.innerHTML = '<li style="text-align:center; padding: 30px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:30px; margin-bottom:10px; color: var(--sd-wood);"></i><br>正在呼叫精靈查詢...</li>';
+        document.getElementById('branchModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden'; 
 
-      document.getElementById('modalProductName').innerText = `尋找「${productName}」`;
-      const listUl = document.getElementById('modalBranchList');
-      const branches = getTop5Branches(productKey);
-      
-      listUl.innerHTML = '';
-      if(branches.length === 0) {
-        listUl.innerHTML = '<li class="branch-item" style="text-align:center;color:var(--sd-text-muted);padding:40px;font-weight:bold;">目前此區域尚未查詢到庫存 🍂</li>';
-      } else {
-        branches.forEach((b, index) => {
-          const qtyClass = b.qty <= 5 ? 'b-qty low-stock' : 'b-qty';
-          const qtyLabel = b.qty <= 5 ? `即將完售 (${b.qty})` : `架上剩餘: ${b.qty}`;
+        supabaseClient.rpc('record_click', { p_product_key: productKey }).then(({ error }) => { if (error) console.log('紀錄錯誤', error); });
 
-          let highlightClass = index === 0 ? ' highlight' : '';
-          let rankIcon = '🛖 ';
+        const selCity = document.getElementById('citySelect').value || '';
+        const selDist = document.getElementById('districtSelect').value || '';
 
-          listUl.innerHTML += `
-            <li class="branch-item${highlightClass}">
-              <div class="b-header">
-                <div class="b-name-wrapper">
-                  <span class="b-name">${rankIcon}${b.name}</span>
-                </div>
-                <span class="${qtyClass}">${qtyLabel}</span>
-              </div>
-              <div class="b-detail">
-                <span>📍 ${b.address}</span>
-              </div>
-              <div class="b-detail">
-                <span>📞 ${b.phone}</span>
-              </div>
-            </li>
-          `;
+        const { data: branches, error } = await supabaseClient.rpc('get_top_branches', { 
+            p_product_key: productKey, 
+            p_city: selCity, 
+            p_dist: selDist 
         });
-      }
 
-      document.getElementById('branchModal').style.display = 'flex';
-      document.body.style.overflow = 'hidden'; 
+        if (error) throw error;
+        
+        listUl.innerHTML = '';
+        if(!branches || branches.length === 0) {
+          listUl.innerHTML = '<li class="branch-item" style="text-align:center;color:var(--sd-text-muted);padding:40px;font-weight:bold;">目前此區域尚未查詢到庫存 <i class="fa-solid fa-leaf" style="margin-left: 6px; color: var(--sd-warning);"></i></li>';
+        } else {
+          branches.forEach((b, index) => {
+            const qtyClass = b.qty <= 5 ? 'b-qty low-stock' : 'b-qty';
+            const qtyLabel = b.qty <= 5 ? `即將完售 (${b.qty})` : `架上剩餘: ${b.qty}`;
+            let highlightClass = index === 0 ? ' highlight' : '';
+            let rankIcon = '<i class="fa-solid fa-store" style="color: var(--sd-wood); margin-right: 6px;"></i>';
+
+            listUl.innerHTML += `
+              <li class="branch-item${highlightClass}">
+                <div class="b-header">
+                  <div class="b-name-wrapper">
+                    <span class="b-name">${rankIcon}${b.name}</span>
+                  </div>
+                  <span class="${qtyClass}">${qtyLabel}</span>
+                </div>
+                <div class="b-detail"><i class="fa-solid fa-map-location-dot" style="color: var(--sd-hot); margin-right: 6px; width: 16px; text-align: center;"></i> <span>${b.address}</span></div>
+                <div class="b-detail"><i class="fa-solid fa-phone-volume" style="color: var(--sd-grass-dark); margin-right: 6px; width: 16px; text-align: center;"></i> <span>${b.phone}</span></div>
+              </li>
+            `;
+          });
+        }
+      } catch(err) {
+        document.getElementById('modalBranchList').innerHTML = `<li style="color:red; text-align:center; padding: 20px;">錯誤：${err.message}</li>`;
+      }
     }
 
     function closeBranchModal() {
@@ -1031,19 +843,11 @@
 
     window.onscroll = function() {
       const btn = document.getElementById('scrollToTopBtn');
-      if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) {
-        btn.classList.add('show');
-      } else {
-        btn.classList.remove('show');
-      }
+      if (document.body.scrollTop > 400 || document.documentElement.scrollTop > 400) btn.classList.add('show');
+      else btn.classList.remove('show');
     };
 
-    function scrollToTop() {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    }
+    function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
   </script>
 </body>
 </html>
