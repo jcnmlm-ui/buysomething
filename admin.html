@@ -9,6 +9,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <!-- 引入 Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 引入 Font Awesome 6 (圖片上傳模組需要) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
     /* === 基礎設定與變數 === */
@@ -179,8 +181,21 @@
     .modal-header h3 { margin: 0; color: var(--text-main); font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%;}
     .modal-close { background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 20px; color: #64748b; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; line-height: 1;}
     .modal-close:hover { background: #e2e8f0; color: #333; }
-    .modal-body { padding: 20px; text-align: center; background: #fff; max-height: 60vh; overflow-y: auto;}
+    .modal-body { padding: 20px; text-align: center; background: #fff; max-height: 70vh; overflow-y: auto;}
     .modal-img { max-width: 100%; max-height: 50vh; object-fit: contain; border-radius: 8px; }
+
+    /* === 圖片上傳模組專用樣式 === */
+    .upload-area { border: 2px dashed #94a3b8; background: #f8fafc; padding: 20px; text-align: center; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; margin-bottom: 15px; }
+    .upload-area:hover, .upload-area.dragover { background: #f1f5f9; border-color: var(--primary); }
+    .upload-area i { font-size: 32px; color: var(--primary); margin-bottom: 10px; }
+    .upload-area p { margin: 0; font-size: 14px; font-weight: bold; color: var(--text-main); }
+    .upload-area span { display: block; font-size: 12px; color: var(--text-light); margin-top: 5px; }
+    #fileInput { display: none; }
+    .preview-container { display: flex; gap: 10px; margin-bottom: 15px; display: none; }
+    .preview-box { flex: 1; text-align: center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .preview-box img { max-width: 100%; height: auto; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 5px; }
+    .preview-info { font-size: 11px; color: var(--text-light); font-weight: bold; }
+    #logBox { margin-bottom: 15px; padding: 10px; background: #1e293b; color: #34d399; font-family: monospace; border-radius: 6px; font-size: 12px; max-height: 150px; overflow-y: auto; display: none; text-align: left; }
 
     /* === 回到最上方按鈕 === */
     #scrollToTopBtn { 
@@ -232,7 +247,6 @@
     <button class="btn-login" onclick="doLogin()" id="loginBtn">登入系統</button>
     <div id="loginMsg" style="color: #e53e3e; margin-top: 15px; font-size: 14px;"></div>
     
-    <!-- ★ 新增：聯絡企劃行銷科提示 -->
     <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #e2e8f0; font-size: 13px; color: #94a3b8; font-weight: bold;">
       💬 有操作問題可以請洽企劃行銷科
     </div>
@@ -336,7 +350,7 @@
               <div class="selection-count">修改庫存大表中的商品名稱、圖片與說明</div>
             </div>
             <div class="filters">
-              <input type="search" id="masterSearchInput" placeholder="🔍 輸入條碼或商品名稱搜尋..." oninput="filterMasterProducts()">
+              <input type="search" id="masterSearchInput" placeholder="🔍 輸入條碼或名稱搜尋..." oninput="filterMasterProducts()">
             </div>
             <div class="controls">
               <button class="btn-primary" onclick="loadMasterData()" id="btnLoadMaster">🔄 載入最新主檔</button>
@@ -450,6 +464,7 @@
     </div>
   </div>
 
+  <!-- ★ 更新：整合了圖片壓縮上傳的商品編輯視窗 -->
   <div id="editMasterModal" class="modal">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -457,17 +472,45 @@
         <button class="modal-close" onclick="closeEditMasterModal()">&times;</button>
       </div>
       <div class="modal-body" style="padding: 20px; text-align: left;">
-        <input type="hidden" id="editMasterProductKey"> <!-- 改用 Product Key 儲存 -->
+        <input type="hidden" id="editMasterProductKey">
+        
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">商品條碼 (對照用)</label>
         <input type="text" id="editMasterBarcode" readonly style="width: 100%; padding: 10px; margin-bottom: 15px; background: #f1f5f9; border: 1px solid #cbd5e0; border-radius: 6px; color: #64748b; outline: none;">
+        
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">原始中文說明 (H欄 - 對照用)</label>
         <input type="text" id="editMasterOriginalName" readonly style="width: 100%; padding: 10px; margin-bottom: 15px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; color: #b45309; outline: none; font-weight: bold;">
+        
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">商品名稱 (AE欄)</label>
         <input type="text" id="editMasterName" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none;">
-        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">備用圖片連結 (AF欄)</label>
-        <input type="text" id="editMasterImg" placeholder="留空或輸入備用圖片連結..." style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none;">
+        
+        <!-- ★ 全新的圖片拖曳上傳區塊 -->
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">更換商品圖片 (自動壓縮為 WebP 小/大圖)</label>
+        <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <i class="fa-solid fa-images"></i>
+          <p>點擊或將圖片拖曳至此處更新</p>
+          <span>支援 JPG, PNG, WEBP (將會覆蓋舊圖)</span>
+          <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
+        </div>
+
+        <div class="preview-container" id="previewContainer">
+          <div class="preview-box">
+            <div style="font-size: 12px; font-weight: bold; color: #16a34a; margin-bottom: 5px;">小圖 (列表用)</div>
+            <img id="thumbPreview" src="" alt="縮圖預覽">
+            <div class="preview-info" id="thumbInfo">準備中...</div>
+          </div>
+          <div class="preview-box">
+            <div style="font-size: 12px; font-weight: bold; color: #2563eb; margin-bottom: 5px;">大圖 (放大用)</div>
+            <img id="largePreview" src="" alt="大圖預覽">
+            <div class="preview-info" id="largeInfo">準備中...</div>
+          </div>
+        </div>
+
+        <!-- 日誌顯示區塊 -->
+        <div id="logBox"></div>
+
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">商品說明 (AG欄 - 限 65 字)</label>
         <textarea id="editMasterDesc" maxlength="65" rows="4" placeholder="請輸入商品說明 (限 65 字內)..." style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical; outline: none;"></textarea>
+        
         <button onclick="saveMasterDataEdit()" id="btnSaveMasterEdit" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;">💾 確認儲存修改</button>
       </div>
     </div>
@@ -483,16 +526,16 @@
 
   <!-- ================= Supabase API & 核心邏輯 ================= -->
   <script>
-    // ✅ 這裡已經填入您的 Supabase 專屬網址與密鑰
     const _supabaseUrl = 'https://tukzmdtkhdxdpbnvkjzz.supabase.co';
     const _supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA';
-    
-    // 💡將變數名稱改為 supabaseClient，避免與 CDN 宣告的全域變數產生衝突
     const supabaseClient = window.supabase.createClient(_supabaseUrl, _supabaseKey);
 
     let myBranchId = '';
     let myAccount = '';
     let currentRole = '';
+
+    // ★ 圖片處理狀態變數
+    let processedFiles = { thumb: null, large: null };
 
     window.onload = () => {
       const savedAcc = localStorage.getItem('kp_acc');
@@ -503,14 +546,20 @@
         document.getElementById('rememberMe').checked = true;
       }
 
-      // ★ 新增：監聽 Enter 鍵執行登入
       const handleEnter = (e) => {
-        if (e.key === 'Enter') {
-          doLogin();
-        }
+        if (e.key === 'Enter') { doLogin(); }
       };
       document.getElementById('account').addEventListener('keydown', handleEnter);
       document.getElementById('password').addEventListener('keydown', handleEnter);
+
+      // ★ 綁定圖片拖曳事件
+      const dropZone = document.getElementById('dropZone');
+      dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+      dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault(); dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) processImage(e.dataTransfer.files[0]);
+      });
     };
 
     // --- 突破 Supabase 1000 筆限制的抓取小幫手 ---
@@ -534,7 +583,6 @@
       return allData;
     }
 
-    // 系統寫入日誌共用函式
     async function logSystemAction(account, actionText) {
       try {
         const { error } = await supabaseClient.from('system_logs').insert([{ account: account, action: actionText }]);
@@ -556,9 +604,7 @@
       document.getElementById('loginMsg').innerText = '';
 
       try {
-        // 呼叫我們在 Supabase 建立的驗證 RPC
         const { data, error } = await supabaseClient.rpc('verify_login', { p_account: acc, p_password: pwd });
-        
         if (error) throw error;
 
         if (data.status === 'success') {
@@ -654,19 +700,15 @@
     /* ========================================================= */
     async function loadBranchData() {
       try {
-        // 1. 抓取允許清單
         const allowlistData = await fetchAllData('global_allowlist', 'product_key');
         const allowedKeys = allowlistData.map(r => r.product_key);
 
-        // 2. 抓取商品主檔
         const masterData = await fetchAllData('products_master', '*');
         const mainMap = {};
         masterData.forEach(row => mainMap[row.product_key] = row);
 
-        // 3. 抓取這間支局的大庫存
         const invData = await fetchAllData('inventory', '*', [{op: 'eq', col: 'branch_id', val: myBranchId}]);
 
-        // 4. 抓取這間支局已經上架的資料與額外數量
         const listingsData = await fetchAllData('branch_listings', '*', [{op: 'eq', col: 'branch_id', val: myBranchId}, {op: 'eq', col: 'is_listed', val: true}]);
         const selectedItemsMap = {};
         listingsData.forEach(row => {
@@ -675,7 +717,6 @@
           }
         });
 
-        // 5. 組合資料 (只顯示有配發庫存且被允許的商品)
         const myProducts = invData.map(row => {
           const info = mainMap[row.product_key];
           return {
@@ -709,7 +750,6 @@
         const li = document.createElement('li');
         li.className = isChecked ? 'item-card branch-item selected' : 'item-card branch-item';
         
-        // ★ 將搜尋所需的屬性綁定到標籤上，方便模糊搜尋
         li.setAttribute('data-key', p.key);
         li.setAttribute('data-barcode', p.barcode);
         li.setAttribute('data-name', p.name);
@@ -791,7 +831,6 @@
       const items = document.querySelectorAll('.branch-item');
 
       items.forEach(item => {
-        // ★ 從元素自訂屬性中提取多個條件進行比對
         const key = (item.dataset.key || '').toLowerCase();
         const barcode = (item.dataset.barcode || '').toLowerCase();
         const name = (item.dataset.name || '').toLowerCase();
@@ -800,7 +839,6 @@
         
         const isChecked = item.querySelector('.branch-cb').checked;
 
-        // ★ 只要其中一個條件符合就算成功
         const matchesSearch = key.includes(searchText) || barcode.includes(searchText) || name.includes(searchText) || originalName.includes(searchText) || price.includes(searchText);
         
         let matchesStatus = true;
@@ -843,14 +881,11 @@
       btnMob.innerText = "儲存中..."; btnMob.disabled = true;
 
       try {
-        // 先刪除該支局所有舊的上架紀錄
         const { error: delErr } = await supabaseClient.from('branch_listings').delete().eq('branch_id', myBranchId);
         if (delErr) throw delErr;
         
-        // 抓取當下時間 (ISO 格式)
         const nowISO = new Date().toISOString();
 
-        // 準備寫入新的紀錄
         const inserts = Object.keys(itemsData).map(key => ({
             branch_id: myBranchId,
             product_key: key,
@@ -860,7 +895,6 @@
         }));
         
         if (inserts.length > 0) {
-            // Supabase 可以一次寫入陣列
             const { error: insErr } = await supabaseClient.from('branch_listings').insert(inserts);
             if (insErr) throw insErr;
         }
@@ -880,7 +914,6 @@
     /* ================= A 級操作 (Supabase版) ================= */
     /* ========================================================= */
 
-    /* ====== 讀取全域權限 ====== */
     async function loadAdminData() {
       document.getElementById('adminLoading').style.display = 'block';
       document.getElementById('adminProductContainer').style.display = 'none';
@@ -891,7 +924,6 @@
 
         const allowedKeys = allowlistData.map(r => r.product_key);
         
-        // 彙整每個商品的 A庫庫存總和
         const qtyMap = {};
         inventoryData.forEach(inv => {
           qtyMap[inv.product_key] = (qtyMap[inv.product_key] || 0) + Number(inv.qty || 0);
@@ -920,7 +952,6 @@
         const div = document.createElement('label');
         div.className = 'admin-item';
         
-        // 將所有供搜尋的屬性綁定到元素上，大幅提升效能
         div.setAttribute('data-key', p.key);
         div.setAttribute('data-barcode', p.barcode);
         div.setAttribute('data-name', p.name);
@@ -928,7 +959,6 @@
         div.setAttribute('data-price', p.price);
         div.setAttribute('data-qty', p.qty);
 
-        // 庫存為 0 時顯示紅字「無」
         const qtyDisplay = p.qty > 0 ? p.qty : '<span style="color:#ef4444; font-weight:bold;">無</span>';
 
         div.innerHTML = `
@@ -957,13 +987,12 @@
       document.getElementById('adminSelectionCount').innerText = `共 ${total} 筆，已開放 ${checked} 筆`;
     }
 
-    // 打字防呆延遲小幫手
     let adminSearchTimeout = null;
     function debounceFilterAdminProducts() {
       clearTimeout(adminSearchTimeout);
       adminSearchTimeout = setTimeout(() => {
         filterAdminProducts();
-      }, 300); // 延遲 0.3 秒執行
+      }, 300);
     }
 
     function filterAdminProducts() {
@@ -972,7 +1001,6 @@
       const items = document.querySelectorAll('.admin-item');
 
       items.forEach(item => {
-        // 透過 dataset 一次抓取所有條件，不再讀取 DOM text
         const ds = item.dataset;
         const key = (ds.key || '').toLowerCase();
         const barcode = (ds.barcode || '').toLowerCase();
@@ -983,13 +1011,7 @@
 
         const isChecked = item.querySelector('.admin-cb').checked;
 
-        // 比對所有條件
-        const matchesSearch = key.includes(searchText) || 
-                              barcode.includes(searchText) || 
-                              name.includes(searchText) || 
-                              originalName.includes(searchText) || 
-                              price.includes(searchText) ||
-                              qty.includes(searchText);
+        const matchesSearch = key.includes(searchText) || barcode.includes(searchText) || name.includes(searchText) || originalName.includes(searchText) || price.includes(searchText) || qty.includes(searchText);
 
         let matchesStatus = true;
         if (statusFilter === 'checked' && !isChecked) matchesStatus = false;
@@ -1017,11 +1039,9 @@
       btnMob.innerText = "處理中..."; btnMob.disabled = true;
 
       try {
-        // 清空整個全局清單
         const { error: delErr } = await supabaseClient.from('global_allowlist').delete().neq('product_key', '!!!');
         if (delErr) throw delErr;
         
-        // 寫入新清單
         const inserts = selectedKeys.map(k => ({ product_key: k }));
         if (inserts.length > 0) {
           const { error: insErr } = await supabaseClient.from('global_allowlist').insert(inserts);
@@ -1038,7 +1058,6 @@
     }
 
 
-    /* ====== 檔案讀取輔助函數 ====== */
     function readFileAsArrayBuffer(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -1048,7 +1067,6 @@
       });
     }
 
-    /* ====== A 級批次更新大庫存 ====== */
     async function handleUpload() {
       const files = document.getElementById('excelFile').files;
       if (files.length === 0) return alert("請先選取庫存 Excel 檔案！");
@@ -1080,7 +1098,6 @@
 
         const nowISO = new Date().toISOString();
 
-        // 轉換為 Supabase 格式
         const inserts = allMergedRows.map(row => {
             const branchId = String(row[1]).trim();
             const cat = String(row[2]).trim();
@@ -1091,11 +1108,9 @@
             return { branch_id: branchId, product_key: key, qty: qty, updated_at: nowISO };
         }).filter(item => item.branch_id && item.product_key);
 
-        // 先刪除全庫存
         const { error: delErr } = await supabaseClient.from('inventory').delete().neq('branch_id', '!!!');
         if (delErr) throw delErr;
         
-        // 分批寫入 (每次 1000 筆)
         for (let i = 0; i < inserts.length; i += 1000) {
             const { error: insErr } = await supabaseClient.from('inventory').insert(inserts.slice(i, i + 1000));
             if (insErr) throw insErr;
@@ -1116,7 +1131,6 @@
       btn.innerText = "開始合併並覆蓋"; btn.disabled = false;
     }
 
-    /* ====== A 級批次匯入商品主檔 ====== */
     async function handleMasterUpload() {
       const files = document.getElementById('masterExcelFile').files;
       if (files.length === 0) return alert("請先選取商品主檔 Excel 檔案！");
@@ -1140,7 +1154,6 @@
           allMergedRows = allMergedRows.concat(dataRows);
         }
 
-        // 去資料庫抓現有 keys
         const existing = await fetchAllData('products_master', 'product_key');
         const existKeys = new Set(existing.map(r => r.product_key));
 
@@ -1161,7 +1174,7 @@
                       img_url: String(row[31] || '').trim(),
                       publish_date: String(row[8] || '').trim()
                   });
-                  existKeys.add(key); // 防止檔案內部重複
+                  existKeys.add(key);
               }
           }
         });
@@ -1185,7 +1198,6 @@
       btn.innerText = "開始比對並新增"; btn.disabled = false;
     }
 
-    /* ====== 🏆 A 級排行榜 ====== */
     let globalLeaderboardData = []; 
     async function loadLeaderboard() {
       document.getElementById('leaderboardLoading').style.display = 'block';
@@ -1193,10 +1205,8 @@
       if(document.getElementById('leaderboardSearchInput')) document.getElementById('leaderboardSearchInput').value = ''; 
       
       try {
-        // 抓支局
         const branches = await fetchAllData('users', 'branch_id, branch_name', [{op: 'eq', col: 'role', val: 'B'}]);
         
-        // 抓日誌 (30天內) 計算活躍分
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const logs = await fetchAllData('system_logs', 'account, created_at', [{op: 'gte', col: 'created_at', val: thirtyDaysAgo.toISOString()}]);
@@ -1222,7 +1232,6 @@
           }
         });
 
-        // 抓豐富度分數 (有大庫且有勾上架，並在全局名單內)
         const allowed = await fetchAllData('global_allowlist', 'product_key');
         const allowedKeys = allowed.map(r => r.product_key);
 
@@ -1295,7 +1304,7 @@
       renderLeaderboardList(filtered);
     }
 
-    /* ====== ★ A 級商品主檔編輯 ====== */
+    /* ====== ★ A 級商品主檔與圖片壓縮引擎 ====== */
     let globalMasterData = [];
     async function loadMasterData() {
       const btn = document.getElementById('btnLoadMaster');
@@ -1311,6 +1320,7 @@
           originalName: row.original_name,
           name: row.name,
           img: row.img_url,
+          thumb: row.thumb_url,
           desc: row.description
         }));
         globalMasterData = results;
@@ -1368,46 +1378,152 @@
       document.getElementById('editMasterBarcode').value = p.barcode;
       document.getElementById('editMasterOriginalName').value = p.originalName || '';
       document.getElementById('editMasterName').value = p.name || '';
-      document.getElementById('editMasterImg').value = p.img || '';
       document.getElementById('editMasterDesc').value = p.desc || '';
+      
+      // 重置圖片處理狀態
+      processedFiles = { thumb: null, large: null };
+      document.getElementById('previewContainer').style.display = 'none';
+      document.getElementById('logBox').style.display = 'none';
+      document.getElementById('logBox').innerHTML = '';
+      
       document.getElementById('editMasterModal').style.display = 'flex';
     }
 
     function closeEditMasterModal() { document.getElementById('editMasterModal').style.display = 'none'; }
 
+    // --- 處理圖片上傳選擇 ---
+    function handleFileSelect(event) {
+      if (event.target.files.length > 0) {
+        processImage(event.target.files[0]);
+      }
+    }
+
+    function processImage(file) {
+      if (!file.type.startsWith('image/')) {
+        alert('請上傳圖片檔案！');
+        return;
+      }
+
+      logMsg(`讀取檔案：${file.name} (${(file.size/1024).toFixed(2)} KB)`);
+      document.getElementById('previewContainer').style.display = 'flex';
+      document.getElementById('logBox').style.display = 'block';
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const size = Math.min(img.width, img.height);
+          const startX = (img.width - size) / 2;
+          const startY = (img.height - size) / 2;
+
+          createWebP(img, startX, startY, size, 600, 0.8, 'thumb');
+          createWebP(img, startX, startY, size, 1200, 0.85, 'large');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function createWebP(img, sX, sY, sSize, targetSize, quality, type) {
+      const canvas = document.createElement('canvas');
+      canvas.width = targetSize;
+      canvas.height = targetSize;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, targetSize, targetSize);
+      ctx.drawImage(img, sX, sY, sSize, sSize, 0, 0, targetSize, targetSize);
+
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const kbSize = (blob.size / 1024).toFixed(2);
+        
+        if (type === 'thumb') {
+          document.getElementById('thumbPreview').src = url;
+          document.getElementById('thumbInfo').innerText = `600x600 px | WebP | ${kbSize} KB`;
+          processedFiles.thumb = blob;
+          logMsg(`生成小圖成功：${kbSize} KB`);
+        } else {
+          document.getElementById('largePreview').src = url;
+          document.getElementById('largeInfo').innerText = `1200x1200 px | WebP | ${kbSize} KB`;
+          processedFiles.large = blob;
+          logMsg(`生成大圖成功：${kbSize} KB`);
+        }
+      }, 'image/webp', quality);
+    }
+
+    function logMsg(msg) {
+      const box = document.getElementById('logBox');
+      const time = new Date().toLocaleTimeString();
+      box.innerHTML += `<div>[${time}] ${msg}</div>`;
+      box.scrollTop = box.scrollHeight;
+    }
+
     async function saveMasterDataEdit() {
       const productKey = document.getElementById('editMasterProductKey').value;
+      const barcode = document.getElementById('editMasterBarcode').value;
       const name = document.getElementById('editMasterName').value;
-      const img = document.getElementById('editMasterImg').value;
       const desc = document.getElementById('editMasterDesc').value;
       
       const btn = document.getElementById('btnSaveMasterEdit');
-      btn.innerText = "儲存中..."; btn.disabled = true;
+      btn.innerText = "處理中..."; btn.disabled = true;
+      document.getElementById('logBox').style.display = 'block';
+
+      let updatePayload = { name: name, description: desc };
 
       try {
-        const { error: upErr } = await supabaseClient.from('products_master').update({
-          name: name,
-          img_url: img,
-          description: desc
-        }).eq('product_key', productKey);
+        // 如果有重新上傳圖片，執行 Storage 上傳
+        if (processedFiles.thumb && processedFiles.large) {
+          logMsg('============== 開始上傳圖片 ==============');
+          const thumbFileName = `${barcode}_thumb.webp`;
+          const largeFileName = `${barcode}.webp`;
+          const bucketName = 'product-images';
+
+          logMsg(`[1/3] 正在上傳小圖...`);
+          const { error: thumbErr } = await supabaseClient.storage.from(bucketName).upload(thumbFileName, processedFiles.thumb, { upsert: true, contentType: 'image/webp' });
+          if (thumbErr) throw thumbErr;
+
+          logMsg(`[2/3] 正在上傳大圖...`);
+          const { error: largeErr } = await supabaseClient.storage.from(bucketName).upload(largeFileName, processedFiles.large, { upsert: true, contentType: 'image/webp' });
+          if (largeErr) throw largeErr;
+
+          logMsg(`[3/3] 取得公開網址...`);
+          const thumbUrl = supabaseClient.storage.from(bucketName).getPublicUrl(thumbFileName).data.publicUrl;
+          const largeUrl = supabaseClient.storage.from(bucketName).getPublicUrl(largeFileName).data.publicUrl;
+
+          updatePayload.thumb_url = thumbUrl;
+          updatePayload.image_url = largeUrl;
+          updatePayload.img_url = largeUrl; // 相容舊有寫法
+        }
+
+        logMsg(`開始更新主檔資料庫...`);
+        const { error: upErr } = await supabaseClient.from('products_master').update(updatePayload).eq('product_key', productKey);
         
         if (upErr) throw upErr;
         
         await logSystemAction(myAccount, `修改商品主檔資訊 (名稱:${name})`);
         
-        alert('主檔修改成功！');
-        closeEditMasterModal();
+        logMsg(`🎉 任務完成！主檔已更新。`);
         
-        const item = globalMasterData.find(p => String(p.product_key) === String(productKey));
-        if (item) {
-          item.name = name; item.img = img; item.desc = desc;
-          filterMasterProducts(); 
-        }
+        setTimeout(() => {
+            alert('主檔修改成功！');
+            closeEditMasterModal();
+            const item = globalMasterData.find(p => String(p.product_key) === String(productKey));
+            if (item) {
+              item.name = name; item.desc = desc;
+              if (updatePayload.img_url) { item.img = updatePayload.img_url; item.thumb = updatePayload.thumb_url; }
+              filterMasterProducts(); 
+            }
+        }, 600);
+        
       } catch (err) {
+        logMsg(`❌ 發生錯誤: ${err.message}`);
         alert('儲存失敗：' + err.message);
+      } finally {
+        btn.innerText = "💾 確認儲存修改"; btn.disabled = false;
       }
-      btn.innerText = "💾 確認儲存修改"; btn.disabled = false;
     }
+
 
     /* ====== ★ A 級專屬：現場庫存 ======= */
     let globalExtraStockData = [];
