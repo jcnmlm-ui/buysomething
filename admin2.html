@@ -483,6 +483,9 @@
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">商品條碼 (對照用)</label>
         <input type="text" id="editMasterBarcode" readonly style="width: 100%; padding: 10px; margin-bottom: 15px; background: #f1f5f9; border: 1px solid #cbd5e0; border-radius: 6px; color: #64748b; outline: none;">
         
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">原始中文說明 (H欄 - 對照用)</label>
+        <input type="text" id="editMasterOriginalName" readonly style="width: 100%; padding: 10px; margin-bottom: 15px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; color: #b45309; outline: none; font-weight: bold;">
+        
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">商品名稱 (AE欄)</label>
         <input type="text" id="editMasterName" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none;">
         
@@ -712,7 +715,7 @@
           img: row.img_url,
           thumb: row.thumb_url,
           desc: row.description,
-          extra_images: row.extra_images || []
+          extra_images: row.extra_images || [] 
         }));
         globalMasterData = results;
         renderMasterProducts(globalMasterData);
@@ -765,7 +768,7 @@
       if(!p) return alert('載入商品資料錯誤，請重新整理頁面。');
       
       document.getElementById('editMasterProductKey').value = p.product_key;
-      document.getElementById('editMasterBarcode').value = p.barcode;
+      document.getElementById('editMasterBarcode').value = p.barcode || '';
       document.getElementById('editMasterOriginalName').value = p.originalName || '';
       document.getElementById('editMasterName').value = p.name || '';
       document.getElementById('editMasterDesc').value = p.desc || '';
@@ -776,8 +779,27 @@
       document.getElementById('logBox').style.display = 'none';
       document.getElementById('logBox').innerHTML = '';
       
-      // ★ 渲染目前的附圖畫廊
-      renderExtraGallery(p.extra_images);
+      // ★ 渲染目前的附圖畫廊 (加入型別安全防呆機制)
+      let extras = p.extra_images;
+      
+      // 確保將字串解析回正常的陣列 (防止 Supabase 丟出 "[]" 字串導致 forEach 崩潰)
+      if (typeof extras === 'string') {
+          try { 
+              extras = JSON.parse(extras); 
+          } catch(e) { 
+              extras = []; 
+          }
+      }
+      
+      // 最終確保一定是陣列
+      if (!Array.isArray(extras)) {
+          extras = [];
+      }
+      
+      // 回寫以確保後續操作安全
+      p.extra_images = extras; 
+      
+      renderExtraGallery(extras);
       
       document.getElementById('editMasterModal').style.display = 'flex';
     }
@@ -846,10 +868,13 @@
     function renderExtraGallery(imagesArr) {
       const container = document.getElementById('extraGalleryContainer');
       container.innerHTML = '';
-      if (!imagesArr || imagesArr.length === 0) {
+      
+      // 最後防線保護
+      if (!Array.isArray(imagesArr) || imagesArr.length === 0) {
         container.innerHTML = '<div style="font-size: 13px; color: #94a3b8;">目前沒有任何附加圖片</div>';
         return;
       }
+      
       imagesArr.forEach((url, idx) => {
         container.innerHTML += `
           <div class="extra-img-box">
@@ -895,7 +920,8 @@
       const productKey = document.getElementById('editMasterProductKey').value;
       const barcode = document.getElementById('editMasterBarcode').value;
       const product = globalMasterData.find(p => String(p.product_key) === String(productKey));
-      let currentExtras = product.extra_images ? [...product.extra_images] : [];
+      
+      let currentExtras = Array.isArray(product.extra_images) ? [...product.extra_images] : [];
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -938,7 +964,8 @@
       document.getElementById('logBox').style.display = 'block';
       const productKey = document.getElementById('editMasterProductKey').value;
       const product = globalMasterData.find(p => String(p.product_key) === String(productKey));
-      let currentExtras = product.extra_images ? [...product.extra_images] : [];
+      
+      let currentExtras = Array.isArray(product.extra_images) ? [...product.extra_images] : [];
 
       try {
         logMsg(`🗑️ 正在從雲端刪除圖片...`);
