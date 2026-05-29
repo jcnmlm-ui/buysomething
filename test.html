@@ -17,9 +17,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=VT323&display=swap" rel="stylesheet">
   
-  <!-- ★ 引入 Font Awesome 6 圖標字體庫 -->
+  <!-- ★ 引入 Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
   <!-- ★ 引入 Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -54,7 +53,6 @@
       -webkit-tap-highlight-color: transparent; 
     }
     
-    /* 木製招牌頂部導航 */
     .header { 
       background: linear-gradient(to bottom, #d6833b 0%, var(--sd-wood) 100%); 
       color: #fff; 
@@ -86,7 +84,6 @@
     .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 2px;}
     .container { max-width: 1200px; margin: 0 auto; padding: 25px 20px; }
 
-    /* 共用 UI 對話框風格 */
     .sd-ui-box {
       background: var(--sd-parchment);
       border: 4px solid var(--sd-border);
@@ -94,7 +91,6 @@
       box-shadow: inset 0 0 0 3px var(--sd-parchment-dark), 0 8px 0 rgba(0,0,0,0.1);
     }
 
-    /* 位置設定區 */
     .location-box { 
       padding: 22px; 
       margin-bottom: 30px; 
@@ -126,6 +122,23 @@
     }
     .select-group select:focus { border-color: var(--sd-border); background: #fff;}
     
+    .btn-gps {
+      background: #fff8d6;
+      color: var(--sd-wood-dark);
+      border: 3px solid var(--sd-wood-dark);
+      padding: 10px 15px;
+      border-radius: 6px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: 0.1s;
+      box-shadow: inset -2px -2px 0px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-gps:hover { background: #fdeca6; }
+    .btn-gps:active { box-shadow: inset 2px 2px 0px rgba(0,0,0,0.2); transform: translateY(2px); }
+
     .checkbox-wrapper { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 16px; font-weight: bold; color: var(--sd-text); margin-right: auto; }
     .checkbox-wrapper input { width: 22px; height: 22px; cursor: pointer; accent-color: var(--sd-wood); border: 2px solid var(--sd-border);}
     
@@ -221,7 +234,7 @@
       cursor: pointer; 
     }
     
-    /* ★ 骨架屏與懶加載樣式開始 ★ */
+    /* 骨架屏與懶加載樣式 */
     .skeleton-bg {
       background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%) !important;
       background-size: 200% 100% !important;
@@ -235,13 +248,12 @@
       width: 100%; 
       height: 100%; 
       object-fit: contain; 
-      opacity: 0; /* 預設透明，載入後淡入 */
+      opacity: 0; 
       transition: opacity 0.4s ease-in-out;
     }
     .p-img-box img.loaded {
-      opacity: 1; /* 載入完成顯示 */
+      opacity: 1; 
     }
-    /* ★ 骨架屏與懶加載樣式結束 ★ */
     
     .p-img-box::after {
       content: '\f00e\00a0\00a0點擊放大';
@@ -321,6 +333,9 @@
     .b-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 10px;}
     .b-name-wrapper { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; flex: 1;}
     .b-name { font-weight: bold; color: var(--sd-text); font-size: 18px; text-shadow: 1px 1px 0px #fff;}
+    
+    .b-dist { background: #3b82f6; color: white; padding: 4px 8px; border: 2px solid var(--sd-border); border-radius: 4px; font-size: 13px; font-weight: bold; white-space: nowrap; box-shadow: 1px 1px 0px rgba(0,0,0,0.15); margin-left: 4px;}
+
     .b-qty { background: var(--sd-grass-dark); color: white; padding: 4px 10px; border: 2px solid var(--sd-border); border-radius: 4px; font-size: 14px; font-weight: bold; white-space: nowrap; box-shadow: 2px 2px 0px rgba(0,0,0,0.15); }
     .b-qty.low-stock { background: var(--sd-warning); }
     .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
@@ -362,8 +377,9 @@
       .container { padding: 15px; }
       .location-box { padding: 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
       .location-box .title { width: 100%; order: 1; margin-bottom: 0; }
-      .select-group { width: 100%; order: 2; flex-direction: row; gap: 10px; min-width: 0; }
-      .select-group select { width: 50%; font-size: 15px; padding: 10px 12px; background-position: right 8px top 50%; height: auto;}
+      .select-group { width: 100%; order: 2; flex-direction: row; gap: 8px; min-width: 0; }
+      .select-group select { flex: 1; font-size: 15px; padding: 10px 12px; background-position: right 8px top 50%; height: auto; min-width: 0;}
+      .btn-gps { padding: 10px; }
       .checkbox-wrapper { width: auto; order: 3; margin: 0; justify-content: flex-start; align-items: center; font-size: 14px; padding-top: 0; }
       .checkbox-wrapper input { width: 18px; height: 18px; flex-shrink: 0; margin-top: 0; margin-right: 6px;}
 
@@ -422,6 +438,7 @@
       <div class="select-group">
         <select id="citySelect" aria-label="選擇縣市" onchange="updateDistricts();"></select>
         <select id="districtSelect" aria-label="選擇鄉鎮市區" onchange="saveLocation()"></select>
+        <button id="btnGps" class="btn-gps" onclick="getLocation()" title="使用 GPS 自動定位" aria-label="使用 GPS 自動定位"><i class="fa-solid fa-location-crosshairs"></i></button>
       </div>
       <label class="checkbox-wrapper">
         <input type="checkbox" id="rememberLoc" aria-label="記住選擇的位置" onchange="saveLocation()">
@@ -460,7 +477,6 @@
     © Design by Chiahsien
   </footer>
 
-  <!-- 鄰近郵局彈出視窗 -->
   <div id="branchModal" class="modal" onclick="closeBranchModal()">
     <div class="modal-content sd-ui-box" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -476,7 +492,6 @@
   <button id="scrollToTopBtn" onclick="scrollToTop()" title="回到最上方" aria-label="回到網頁最上方"><i class="fa-solid fa-arrow-up"></i></button>
 
   <script>
-    // ★ 系統設定
     const _supabaseUrl = 'https://tukzmdtkhdxdpbnvkjzz.supabase.co';
     const _supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA';
     const supabaseClient = window.supabase.createClient(_supabaseUrl, _supabaseKey);
@@ -508,35 +523,45 @@
 
     let globalData = { products: [] }; 
     let isInitialLoadFromUrl = true;
+    
+    let userLat = null;
+    let userLng = null;
 
-    // ★ 圖片讀取備援機制 (Fallback) 升級版
+    let imageObserver = null;
+
+    // ★ 圖片讀取備援機制：加入無縫降級回大圖、JPG 的邏輯
     window.handleImageError = function(imgElement, barcode, sheetImgUrl) {
-      // 1. 如果 .jpg 失敗，自動嘗試載入 .webp
-      if (!imgElement.dataset.triedWebp) {
-        imgElement.dataset.triedWebp = 'true';
-        imgElement.src = `./images/${barcode}.webp`;
-        return;
-      }
-      // 2. 如果 .webp 也失敗，嘗試載入資料庫的外部圖片連結
-      if (!imgElement.dataset.triedSheet) {
-        imgElement.dataset.triedSheet = 'true';
-        if (sheetImgUrl && sheetImgUrl.trim() !== '' && !sheetImgUrl.includes('暫無商品圖片')) {
-            imgElement.src = sheetImgUrl;
-            return;
-        }
-      }
-      // 3. 都失敗的話，載入預設圖片
-      if (!imgElement.dataset.triedDefault) {
-        imgElement.dataset.triedDefault = 'true';
-        imgElement.src = './images/080000AA.jpg';
-        return;
-      }
-      // 最終放棄
-      imgElement.onerror = null; 
-      // 就算失敗了，也要強制移除骨架屏，避免一直閃爍
-      imgElement.classList.add('loaded');
-      if (imgElement.parentElement) {
-        imgElement.parentElement.classList.remove('skeleton-bg');
+      const state = imgElement.dataset.fallbackState || 0;
+
+      // 降級流程：[條碼]_thumb.webp -> [條碼]_thumb.jpg -> [條碼].webp (大圖代打) -> [條碼].jpg -> 外部網址 -> 預設圖
+      switch(parseInt(state)) {
+        case 0: // _thumb.webp 失敗 -> 找 _thumb.jpg
+          imgElement.dataset.fallbackState = 1;
+          imgElement.src = `./images/${barcode}_thumb.jpg`;
+          break;
+        case 1: // _thumb.jpg 失敗 -> 找大圖 .webp 代打
+          imgElement.dataset.fallbackState = 2;
+          imgElement.src = `./images/${barcode}.webp`;
+          break;
+        case 2: // 大圖 .webp 失敗 -> 找大圖 .jpg
+          imgElement.dataset.fallbackState = 3;
+          imgElement.src = `./images/${barcode}.jpg`;
+          break;
+        case 3: // 本地全滅 -> 找資料庫登錄的雲端連結
+          imgElement.dataset.fallbackState = 4;
+          if (sheetImgUrl && sheetImgUrl.trim() !== '' && !sheetImgUrl.includes('暫無商品圖片')) {
+              imgElement.src = sheetImgUrl;
+          } else {
+              // 觸發下一次錯誤
+              imgElement.src = 'fail.jpg'; 
+          }
+          break;
+        default: // 都失敗 -> 載入終極公用預設圖片
+          imgElement.onerror = null; 
+          imgElement.src = './images/080000AA.jpg';
+          imgElement.classList.add('loaded');
+          if (imgElement.parentElement) imgElement.parentElement.classList.remove('skeleton-bg');
+          break;
       }
     };
 
@@ -555,7 +580,7 @@
 
     function initLocationDropdowns() {
       const citySel = document.getElementById('citySelect');
-      citySel.innerHTML = '<option value="">請選擇縣市</option>';
+      citySel.innerHTML = '<option value="" disabled selected>請選擇縣市</option>';
       for (let city in twData) citySel.add(new Option(city, city));
 
       const savedCity = localStorage.getItem('cust_city');
@@ -575,11 +600,14 @@
     function updateDistricts() {
       const city = document.getElementById('citySelect').value;
       const distSel = document.getElementById('districtSelect');
-      distSel.innerHTML = '<option value="">請選擇區域 (全區)</option>';
+      distSel.innerHTML = '<option value="" disabled selected>請選擇區域</option>';
       if (city && twData[city]) {
         twData[city].forEach(dist => distSel.add(new Option(dist, dist)));
       }
       saveLocation();
+      
+      userLat = null;
+      userLng = null;
     }
 
     function saveLocation() {
@@ -597,11 +625,13 @@
       }
     }
 
-    // ★ 從 View 拿整理好的資料
     async function fetchAndRenderProducts() {
       const city = document.getElementById('citySelect').value;
-      if (!city) return alert("請先選擇您所在的縣市，以利為您推薦最近的郵局！");
+      const dist = document.getElementById('districtSelect').value;
+      
+      if (!userLat && (!city || !dist)) return alert("請先選擇您所在的「縣市」與「區域」，或點擊 GPS 按鈕自動定位！");
 
+      document.getElementById('loaderText').innerText = "正在向資料庫索取整理好的商品清單... 📦";
       document.getElementById('loader').style.display = 'flex';
       
       try {
@@ -643,9 +673,12 @@
         if (p) openBranchModal(p.key, p.name);
     }
 
-    function openGalleryByKey(key, imgElementSrc) {
+    // ★ 開啟大圖畫廊
+    function openGalleryByKey(key) {
         const p = globalData.products.find(x => x.key === key);
-        if (p) openGallery(p.barcode, p.name, p.desc, imgElementSrc);
+        // ★ 如果有 Supabase 雲端大圖就用它，沒有才去 GitHub 找
+        const largeWebpPath = p.image_url ? String(p.image_url).replace(/"/g, '&quot;') : `./images/${p.barcode}.webp`;
+        if (p) openGallery(p.barcode, p.name, p.desc, largeWebpPath);
     }
 
     function renderProducts(filteredList) {
@@ -657,9 +690,26 @@
       }
 
       container.innerHTML = '';
+      
+      if (imageObserver) {
+        imageObserver.disconnect();
+      }
+
+      imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            img.src = img.dataset.src; 
+            observer.unobserve(img); 
+          }
+        });
+      }, {
+        rootMargin: '200px 0px 200px 0px' 
+      });
+
       let topBadgeCount = 0;
       
-      filteredList.forEach((p) => {
+      filteredList.forEach((p, index) => {
         const hasStock = p.hasStockCount > 0;
         let badgeHtml = '';
         if (hasStock && p.clicks > 0 && topBadgeCount < 3) {
@@ -681,19 +731,32 @@
         const safeBarcode = String(p.barcode || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         const safeImg = String(p.img || "").replace(/"/g, '&quot;').replace(/'/g, "&#039;");
         const safeKey = String(p.key).replace(/"/g, '&quot;').replace(/'/g, "\\'");
+        
+        // 取出 Supabase 圖片網址
+        const safeThumbUrl = p.thumb_url ? String(p.thumb_url).replace(/"/g, '&quot;') : '';
 
         const card = document.createElement('article');
         card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
         
-        // ★ 核心優化：加上 skeleton-bg 類別，加入 loading="lazy" 屬性
-        // 當圖片 onload 成功時，移除 skeleton-bg 並顯示圖片
+        const isAboveFold = index < 4;
+        
+        // ★ 核心優化：如果有 Supabase 上傳的縮圖，就優先用它！否則找 GitHub 的
+        const thumbWebpPath = safeThumbUrl ? safeThumbUrl : `./images/${safeBarcode}_thumb.webp`;
+
+        const imgHtml = isAboveFold 
+          ? `<img src="${thumbWebpPath}" alt="${safeName.replace(/"/g, '&quot;')}" loading="eager" 
+                  onload="this.classList.add('loaded'); this.parentElement.classList.remove('skeleton-bg');" 
+                  onerror="handleImageError(this, '${safeBarcode}', '${safeImg}')">`
+          : `<img data-src="${thumbWebpPath}" alt="${safeName.replace(/"/g, '&quot;')}" class="lazy-load-image"
+                  onload="this.classList.add('loaded'); this.parentElement.classList.remove('skeleton-bg');" 
+                  onerror="handleImageError(this, '${safeBarcode}', '${safeImg}')">`;
+
+        // ★ onclick 綁定 openGalleryByKey，把點擊事件導向大圖
         card.innerHTML = `
           ${badgeHtml}
-          <div class="p-img-box skeleton-bg" onclick="openGalleryByKey('${safeKey}', this.querySelector('img').src)">
-            <img src="./images/${safeBarcode}.jpg" alt="${safeName.replace(/"/g, '&quot;')}" loading="lazy" 
-                 onload="this.classList.add('loaded'); this.parentElement.classList.remove('skeleton-bg');" 
-                 onerror="handleImageError(this, '${safeBarcode}', '${safeImg}')">
+          <div class="p-img-box skeleton-bg" onclick="openGalleryByKey('${safeKey}')">
+            ${imgHtml}
           </div>
           <div class="p-info">
             <h3 class="p-title">${safeName}</h3>
@@ -707,7 +770,15 @@
             ${btnText}
           </button>
         `;
+        
         container.appendChild(card);
+
+        if (!isAboveFold) {
+          const imgEl = card.querySelector('.lazy-load-image');
+          if (imgEl) {
+            imageObserver.observe(imgEl);
+          }
+        }
       });
     }
 
@@ -721,33 +792,45 @@
       renderProducts(filteredResults);
     }
 
-    // ==========================================
-    // Lightbox 相關控制邏輯
-    // ==========================================
     let currentGalleryImgs = [];
     let currentGalleryIdx = 0;
 
-    function openGallery(barcode, encName, encDesc, activeImgSrc) {
-      currentGalleryImgs = [activeImgSrc]; 
+    // ★ 開啟大圖畫廊 (直接接收資料庫傳來的附圖陣列)
+    function openGalleryByKey(key) {
+        const p = globalData.products.find(x => x.key === key);
+        // 如果有 Supabase 雲端大圖就用它，沒有才去 GitHub 找
+        const largeWebpPath = p.image_url ? String(p.image_url).replace(/"/g, '&quot;') : `./images/${p.barcode}.webp`;
+        // 提取附圖陣列
+        const extraImgs = Array.isArray(p.extra_images) ? p.extra_images : [];
+        
+        if (p) openGallery(p.barcode, p.name, p.desc, largeWebpPath, extraImgs);
+    }
+
+    function openGallery(barcode, encName, encDesc, activeImgSrc, extraImgs = []) {
+      // 直接組合主圖與所有附圖，實現 0 延遲載入！
+      currentGalleryImgs = [activeImgSrc, ...extraImgs]; 
       currentGalleryIdx = 0;
+      
       document.getElementById('galleryTitle').innerText = encName; 
       document.getElementById('galleryDesc').innerText = encDesc;  
-      document.getElementById('galleryImg').src = activeImgSrc;
+      
+      let galleryImg = document.getElementById('galleryImg');
+      galleryImg.src = activeImgSrc;
+      
+      // 主圖的備援機制 (如果是舊的 GitHub JPG，需要退回找 .jpg)
+      galleryImg.onerror = function() {
+        if (currentGalleryIdx === 0 && activeImgSrc.includes(barcode)) {
+          this.onerror = function() { this.src = './images/080000AA.jpg'; }; 
+          this.src = `./images/${barcode}.jpg`; 
+        } else {
+          this.onerror = null;
+          this.src = './images/080000AA.jpg';
+        }
+      };
+
       document.getElementById('galleryLightbox').style.display = 'flex';
       
       updateGalleryArrows();
-      checkExtraImages(barcode, 1);
-    }
-
-    function checkExtraImages(barcode, fileIndex) {
-      let testImg = new Image();
-      testImg.onload = function() {
-        currentGalleryImgs.push(this.src);
-        updateGalleryArrows();
-        checkExtraImages(barcode, fileIndex + 1);
-      };
-      testImg.onerror = function() {}; // 偵測結束
-      testImg.src = `./images/${barcode}-${fileIndex}.jpg`;
     }
 
     function updateGalleryArrows() {
@@ -788,6 +871,14 @@
 
     async function openBranchModal(productKey, productName) {
       try {
+        const selCity = document.getElementById('citySelect').value || '';
+        const selDist = document.getElementById('districtSelect').value || '';
+        
+        if(!userLat && (!selCity || !selDist)) {
+             alert("請確保已選擇縣市與區域，或點選 GPS 按鈕自動定位！");
+             return;
+        }
+
         document.getElementById('modalProductName').innerText = `尋找「${productName}」`;
         const listUl = document.getElementById('modalBranchList');
         listUl.innerHTML = '<li style="text-align:center; padding: 30px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:30px; margin-bottom:10px; color: var(--sd-wood);"></i><br>正在呼叫精靈查詢...</li>';
@@ -796,13 +887,12 @@
 
         supabaseClient.rpc('record_click', { p_product_key: productKey }).then(({ error }) => { if (error) console.log('紀錄錯誤', error); });
 
-        const selCity = document.getElementById('citySelect').value || '';
-        const selDist = document.getElementById('districtSelect').value || '';
-
         const { data: branches, error } = await supabaseClient.rpc('get_top_branches', { 
             p_product_key: productKey, 
             p_city: selCity, 
-            p_dist: selDist 
+            p_dist: selDist,
+            p_user_lat: userLat,
+            p_user_lng: userLng
         });
 
         if (error) throw error;
@@ -817,11 +907,17 @@
             let highlightClass = index === 0 ? ' highlight' : '';
             let rankIcon = '<i class="fa-solid fa-store" style="color: var(--sd-wood); margin-right: 6px;"></i>';
 
+            let distBadge = '';
+            if (b.distance_km !== null && b.distance_km !== undefined) {
+               distBadge = `<span class="b-dist"><i class="fa-solid fa-location-arrow"></i> ${b.distance_km} km</span>`;
+            }
+
             listUl.innerHTML += `
               <li class="branch-item${highlightClass}">
                 <div class="b-header">
                   <div class="b-name-wrapper">
                     <span class="b-name">${rankIcon}${b.name}</span>
+                    ${distBadge}
                   </div>
                   <span class="${qtyClass}">${qtyLabel}</span>
                 </div>
@@ -848,6 +944,107 @@
     };
 
     function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+    function getLocation() {
+      if (!navigator.geolocation) {
+        alert("您的瀏覽器不支援地理定位功能。");
+        return;
+      }
+      const btn = document.getElementById('btnGps');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+      navigator.geolocation.getCurrentPosition(
+        showPosition,
+        (err) => {
+          console.warn("高精度定位超時或失敗，切換快速定位...", err);
+          navigator.geolocation.getCurrentPosition(
+            showPosition,
+            showError,
+            { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+          );
+        },
+        { enableHighAccuracy: true, timeout: 4000, maximumAge: 10000 }
+      );
+    }
+
+    async function showPosition(position) {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      
+      userLat = lat;
+      userLng = lon;
+
+      const btn = document.getElementById('btnGps');
+      
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=14&addressdetails=1&accept-language=zh-TW`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        const data = await response.json();
+        
+        if (data && data.address) {
+           let city = data.address.city || data.address.county || data.address.state || "";
+           let dist = data.address.town || data.address.city_district || data.address.suburb || data.address.village || "";
+           
+           city = city.replace(/台/g, '臺');
+           dist = dist.replace(/台/g, '臺');
+
+           const citySel = document.getElementById('citySelect');
+           const distSel = document.getElementById('districtSelect');
+           
+           let found = false;
+           
+           if (Array.from(citySel.options).some(opt => opt.value === city)) {
+               citySel.value = city;
+               
+               distSel.innerHTML = '<option value="" disabled selected>請選擇區域</option>';
+               twData[city].forEach(d => distSel.add(new Option(d, d)));
+               
+               const matchedDist = Array.from(distSel.options).find(opt => dist.includes(opt.value) || opt.value.includes(dist));
+               if (matchedDist) {
+                   distSel.value = matchedDist.value;
+               }
+               saveLocation();
+               found = true;
+               alert(`📍 已精準鎖定座標！\n目前大約位置：${city} ${distSel.value || dist}\n(已為您啟用實際距離排序推薦)`);
+           }
+           
+           if(!found) {
+               alert("📍 定位成功！座標已鎖定 (將啟用實際距離排序推薦)\n(文字地址無法精確配對，但不影響計算功能)");
+           }
+        } else {
+           alert("📍 定位成功！座標已鎖定 (將啟用實際距離排序推薦)\n(唯地址解析伺服器無回應)");
+        }
+      } catch (e) {
+         alert("📍 定位成功！座標已鎖定 (將啟用實際距離排序推薦)");
+      } finally {
+         btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>';
+      }
+    }
+
+    function showError(error) {
+      const btn = document.getElementById('btnGps');
+      btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i>';
+      userLat = null;
+      userLng = null;
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          alert("您拒絕了定位請求，請手動選擇縣市與區域。");
+          break;
+        case error.POSITION_UNAVAILABLE:
+          alert("位置資訊無法取得，請手動選擇。");
+          break;
+        case error.TIMEOUT:
+          alert("定位請求超時，請手動選擇。");
+          break;
+        default:
+          alert("發生未知錯誤，請手動選擇。");
+          break;
+      }
+    }
   </script>
 </body>
 </html>
