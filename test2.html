@@ -5,15 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>高雄郵局｜郵風商品櫥窗</title>
   
+  <!-- ================= SEO Meta Tags 開始 ================= -->
   <meta name="description" content="高雄郵局官方推出的「郵風商品櫥窗」，提供快速查詢高雄各地角落的郵局特色集郵票品、紀念品與代售商品即時庫存。透過溫馨便利的介面，輕鬆尋找離您最近的郵局販售據點，尋寶不撲空！">
   <meta name="keywords" content="中華郵政, 高雄郵局, 集郵商品, 集郵票品, 郵政商品, 郵風商品, 郵局代售商品, 郵局庫存查詢, 高雄郵風MALL, 紀念品, 尋寶">
   <meta name="author" content="Chiahsien">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <link rel="canonical" href="https://jcnmlm-ui.github.io/khpostgoods/">
 
+  <!-- 引入 Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+  
+  <!-- 引入 Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- 引入 Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -190,6 +196,7 @@
       color: var(--sd-wood-dark);
     }
 
+    /* 商品網格與卡片 */
     .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 24px; }
     .p-card { 
       display: flex; 
@@ -199,6 +206,17 @@
     }
     .p-card:hover { transform: translateY(-6px); }
     
+    /* ★ SEO URL 定位專屬的發光特效 */
+    @keyframes highlight-glow {
+      0% { box-shadow: 0 0 0 0 rgba(217, 56, 46, 0.7); border-color: var(--sd-hot); transform: translateY(-6px); }
+      50% { box-shadow: 0 0 20px 10px rgba(217, 56, 46, 0); border-color: var(--sd-hot); transform: translateY(-6px); }
+      100% { box-shadow: 0 0 0 0 rgba(217, 56, 46, 0); border-color: var(--sd-border); transform: translateY(0); }
+    }
+    .highlight-target {
+      animation: highlight-glow 2.5s ease-out;
+      border-color: var(--sd-hot) !important;
+    }
+
     .hot-badge { 
       position: absolute; 
       top: -10px; 
@@ -227,6 +245,7 @@
       cursor: pointer; 
     }
     
+    /* 骨架屏與懶加載樣式 */
     .skeleton-bg {
       background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%) !important;
       background-size: 200% 100% !important;
@@ -241,9 +260,11 @@
       height: 100%; 
       object-fit: contain; 
       opacity: 0; 
-      transition: opacity 0.4s ease-in-out; 
+      transition: opacity 0.4s ease-in-out;
     }
-    .p-img-box img.loaded { opacity: 1; }
+    .p-img-box img.loaded {
+      opacity: 1; 
+    }
     
     .p-img-box::after {
       content: '\f00e\00a0\00a0點擊放大';
@@ -306,6 +327,7 @@
     .initial-state h2 { color: var(--sd-wood-dark); margin-bottom: 15px; font-size: 24px;}
     .initial-state p { font-size: 18px; line-height: 1.6; font-weight: bold;}
 
+    /* 分局彈出視窗 (Modal) */
     .modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); justify-content: center; align-items: center; }
     .modal-content { width: 90%; max-width: 500px; max-height: 85vh; display: flex; flex-direction: column; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
@@ -329,6 +351,7 @@
     .b-qty.low-stock { background: var(--sd-warning); }
     .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
 
+    /* 圖片畫廊 (Lightbox) 樣式 */
     #galleryLightbox { display: none; position: fixed; z-index: 10005; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; flex-direction: column; }
     .gallery-container { position: relative; width: 90vw; max-width: 800px; max-height: 80vh; display: flex; justify-content: center; align-items: center; }
     .gallery-img { max-width: 100%; max-height: 80vh; border: 6px solid var(--sd-wood); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); object-fit: contain; background: white; }
@@ -343,6 +366,7 @@
     .gallery-prev { left: -70px; }
     .gallery-next { right: -70px; }
 
+    /* 版權宣告 */
     .footer { text-align: center; padding: 30px 20px; color: var(--sd-text); font-weight: bold; font-size: 15px; text-shadow: 1px 1px 0px rgba(255,255,255,0.5); letter-spacing: 1px; }
 
     #scrollToTopBtn { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background-color: #fdeca6; color: var(--sd-text); font-size: 24px; border: 3px solid var(--sd-border); border-radius: 50%; box-shadow: 0 4px 0px rgba(0,0,0,0.2), inset -2px -2px 0px #dcb360; cursor: pointer; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 999; }
@@ -395,6 +419,7 @@
 </head>
 <body>
 
+  <!-- 圖片畫廊 Lightbox -->
   <div id="galleryLightbox" onclick="closeGallery()">
     <button class="gallery-close" aria-label="關閉預覽" onclick="closeGallery()"><i class="fa-solid fa-xmark"></i></button>
     <div class="gallery-container" onclick="event.stopPropagation()">
@@ -430,7 +455,7 @@
         <input type="checkbox" id="rememberLoc" aria-label="記住選擇的位置" onchange="saveLocation()">
         記住位置
       </label>
-      <button class="btn-search" aria-label="搜尋鄰近郵局" onclick="fetchAndRenderProducts()">
+      <button class="btn-search" aria-label="搜尋鄰近郵局" onclick="fetchAndRenderProducts(true)">
         <i class="fa-solid fa-magnifying-glass" style="margin-right: 6px;"></i>鄰近郵局
       </button>
       <div class="notice-text">
@@ -451,7 +476,7 @@
           <i class="fa-solid fa-seedling" style="color: var(--sd-grass-dark); margin: 0 5px; font-size: 24px;"></i>
           <i class="fa-solid fa-seedling" style="color: var(--sd-grass-dark); margin: 0 5px; font-size: 24px;"></i>
         </p>
-        <p>請先設定您所在的縣市與區域<br>並點擊「<i class="fa-solid fa-magnifying-glass"></i> 鄰近郵局」來尋寶吧！</p>
+        <p>商品載入中，請稍候... <i class="fa-solid fa-spinner fa-spin"></i></p>
       </div>
     </article>
   </main>
@@ -515,34 +540,33 @@
 
     let imageObserver = null;
 
-    // ★ 圖片讀取備援機制：加入無縫降級回大圖、JPG 的邏輯
+    // ★ 圖片讀取備援機制：無縫降級
     window.handleImageError = function(imgElement, barcode, sheetImgUrl) {
       const state = imgElement.dataset.fallbackState || 0;
 
       // 降級流程：[條碼]_thumb.webp -> [條碼]_thumb.jpg -> [條碼].webp (大圖代打) -> [條碼].jpg -> 外部網址 -> 預設圖
       switch(parseInt(state)) {
-        case 0: // _thumb.webp 失敗 -> 找 _thumb.jpg
+        case 0:
           imgElement.dataset.fallbackState = 1;
           imgElement.src = `./images/${barcode}_thumb.jpg`;
           break;
-        case 1: // _thumb.jpg 失敗 -> 找大圖 .webp 代打
+        case 1:
           imgElement.dataset.fallbackState = 2;
           imgElement.src = `./images/${barcode}.webp`;
           break;
-        case 2: // 大圖 .webp 失敗 -> 找大圖 .jpg
+        case 2:
           imgElement.dataset.fallbackState = 3;
           imgElement.src = `./images/${barcode}.jpg`;
           break;
-        case 3: // 本地全滅 -> 找資料庫登錄的雲端連結
+        case 3:
           imgElement.dataset.fallbackState = 4;
           if (sheetImgUrl && sheetImgUrl.trim() !== '' && !sheetImgUrl.includes('暫無商品圖片')) {
               imgElement.src = sheetImgUrl;
           } else {
-              // 觸發下一次錯誤
               imgElement.src = 'fail.jpg'; 
           }
           break;
-        default: // 都失敗 -> 載入終極公用預設圖片
+        default:
           imgElement.onerror = null; 
           imgElement.src = './images/080000AA.jpg';
           imgElement.classList.add('loaded');
@@ -550,6 +574,34 @@
           break;
       }
     };
+
+    // ★ 注入 JSON-LD 結構化資料，讓 Google 爬蟲精準了解您的商品
+    function injectJSONLD(products) {
+      let oldScript = document.getElementById('seo-json-ld');
+      if (oldScript) oldScript.remove();
+
+      const schemaData = products.map(p => ({
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": p.name || '未命名商品',
+        "image": p.image_url || p.img || '',
+        "description": p.desc || '目前尚未提供商品詳細說明',
+        "sku": p.barcode || p.key,
+        "offers": {
+          "@type": "Offer",
+          "url": window.location.origin + window.location.pathname + "?item=" + p.key,
+          "priceCurrency": "TWD",
+          "price": p.price || 0,
+          "availability": p.hasStockCount > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+        }
+      }));
+
+      const script = document.createElement('script');
+      script.id = 'seo-json-ld';
+      script.type = 'application/ld+json';
+      script.text = JSON.stringify(schemaData);
+      document.head.appendChild(script);
+    }
 
     window.onload = () => {
       initLocationDropdowns();
@@ -560,8 +612,11 @@
         updateDistricts();
         const urlDist = urlParams.get('dist');
         if (urlDist) document.getElementById('districtSelect').value = urlDist;
-        fetchAndRenderProducts();
       }
+      
+      // ★ SEO 關鍵優化：網頁載入時，直接無條件取得商品清單，讓 Google 爬蟲能看到資料！
+      // 移除了原本的阻擋機制，現在使用者進站就能看到型錄
+      fetchAndRenderProducts(false);
     };
 
     function initLocationDropdowns() {
@@ -591,7 +646,6 @@
         twData[city].forEach(dist => distSel.add(new Option(dist, dist)));
       }
       saveLocation();
-      
       userLat = null;
       userLng = null;
     }
@@ -611,11 +665,14 @@
       }
     }
 
-    async function fetchAndRenderProducts() {
+    async function fetchAndRenderProducts(isUserClick = false) {
       const city = document.getElementById('citySelect').value;
       const dist = document.getElementById('districtSelect').value;
       
-      if (!userLat && (!city || !dist)) return alert("請先選擇您所在的「縣市」與「區域」，或點擊 GPS 按鈕自動定位！");
+      // 如果是使用者點擊「搜尋鄰近郵局」按鈕，才檢查是否有選擇地區
+      if (isUserClick && !userLat && (!city || !dist)) {
+        return alert("請先選擇您所在的「縣市」與「區域」，或點擊 GPS 按鈕自動定位！");
+      }
 
       document.getElementById('loaderText').innerText = "正在向資料庫索取整理好的商品清單... 📦";
       document.getElementById('loader').style.display = 'flex';
@@ -634,15 +691,34 @@
 
         globalData.products = products;
         
+        // ★ SEO 優化：把資料寫進 JSON-LD
+        injectJSONLD(globalData.products);
+        
         document.getElementById('loader').style.display = 'none';
         document.getElementById('quickSearchBox').style.display = 'block';
 
         const urlParams = new URLSearchParams(window.location.search);
-        const urlKeyword = urlParams.get('keyword');
 
-        if (isInitialLoadFromUrl && urlKeyword) {
-          document.getElementById('localSearchInput').value = urlKeyword;
-          localFilterProducts();
+        if (isInitialLoadFromUrl) {
+          const urlKeyword = urlParams.get('keyword');
+          if (urlKeyword) {
+            document.getElementById('localSearchInput').value = urlKeyword;
+            localFilterProducts();
+          } else {
+            renderProducts(globalData.products);
+          }
+
+          // ★ SEO 著陸頁優化：偵測網址中的 ?item=xxx 參數，自動滾動並高亮商品
+          const urlItem = urlParams.get('item');
+          if (urlItem) {
+            setTimeout(() => {
+              const targetCard = document.getElementById(`card-${urlItem}`);
+              if (targetCard) {
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                targetCard.classList.add('highlight-target');
+              }
+            }, 600);
+          }
           isInitialLoadFromUrl = false;
         } else {
           document.getElementById('localSearchInput').value = ''; 
@@ -656,15 +732,23 @@
 
     function openBranchModalByKey(key) {
         const p = globalData.products.find(x => x.key === key);
+        // ★ 變更網址列 (不重新整理)，讓使用者能直接複製專屬網址分享
+        window.history.replaceState(null, '', '?item=' + key);
         if (p) openBranchModal(p.key, p.name);
     }
 
-    // ★ 開啟大圖畫廊
+    // ★ 開啟大圖畫廊 (直接接收資料庫傳來的附圖陣列)
     function openGalleryByKey(key) {
         const p = globalData.products.find(x => x.key === key);
-        // ★ 當用戶點擊時，送出高畫質「大圖」的路徑 (1200x1200px)
-        const largeWebpPath = `./images/${p.barcode}.webp`;
-        if (p) openGallery(p.barcode, p.name, p.desc, largeWebpPath);
+        // ★ 變更網址列
+        window.history.replaceState(null, '', '?item=' + key);
+        
+        // 如果有 Supabase 雲端大圖就用它，沒有才去 GitHub 找
+        const largeWebpPath = p.image_url ? String(p.image_url).replace(/"/g, '&quot;') : `./images/${p.barcode}.webp`;
+        // 提取附圖陣列
+        const extraImgs = Array.isArray(p.extra_images) ? p.extra_images : [];
+        
+        if (p) openGallery(p.barcode, p.name, p.desc, largeWebpPath, extraImgs);
     }
 
     function renderProducts(filteredList) {
@@ -717,15 +801,19 @@
         const safeBarcode = String(p.barcode || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         const safeImg = String(p.img || "").replace(/"/g, '&quot;').replace(/'/g, "&#039;");
         const safeKey = String(p.key).replace(/"/g, '&quot;').replace(/'/g, "\\'");
+        
+        // 取出 Supabase 圖片網址
+        const safeThumbUrl = p.thumb_url ? String(p.thumb_url).replace(/"/g, '&quot;') : '';
 
         const card = document.createElement('article');
+        card.id = `card-${safeKey}`; // ★ 設定專屬 ID 供 URL 參數捲動定位用
         card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
         
         const isAboveFold = index < 4;
         
-        // ★ 核心：首頁列表統一指定載入體積極小、尺寸為 600x600 的小圖 (Thumbnail)
-        const thumbWebpPath = `./images/${safeBarcode}_thumb.webp`;
+        // 核心優化：如果有 Supabase 上傳的縮圖，就優先用它！否則找 GitHub 的
+        const thumbWebpPath = safeThumbUrl ? safeThumbUrl : `./images/${safeBarcode}_thumb.webp`;
 
         const imgHtml = isAboveFold 
           ? `<img src="${thumbWebpPath}" alt="${safeName.replace(/"/g, '&quot;')}" loading="eager" 
@@ -735,7 +823,7 @@
                   onload="this.classList.add('loaded'); this.parentElement.classList.remove('skeleton-bg');" 
                   onerror="handleImageError(this, '${safeBarcode}', '${safeImg}')">`;
 
-        // ★ onclick 綁定 openGalleryByKey，把點擊事件導向大圖
+        // onclick 綁定 openGalleryByKey，把點擊事件導向大圖
         card.innerHTML = `
           ${badgeHtml}
           <div class="p-img-box skeleton-bg" onclick="openGalleryByKey('${safeKey}')">
@@ -778,36 +866,60 @@
     let currentGalleryImgs = [];
     let currentGalleryIdx = 0;
 
-    function openGallery(barcode, encName, encDesc, activeImgSrc) {
-      currentGalleryImgs = [activeImgSrc]; 
+    function openGallery(barcode, encName, encDesc, activeImgSrc, extraImgs = []) {
+      // 結合主圖與所有附圖，實現真正的 0 延遲讀取
+      currentGalleryImgs = [activeImgSrc, ...extraImgs]; 
       currentGalleryIdx = 0;
+      
       document.getElementById('galleryTitle').innerText = encName; 
       document.getElementById('galleryDesc').innerText = encDesc;  
       
-      // ★ 大圖畫廊的獨立備援機制：如果高畫質 WebP 失敗，退回要求高畫質 JPG
       let galleryImg = document.getElementById('galleryImg');
       galleryImg.src = activeImgSrc;
+      
+      // 主圖的備援機制 (如果是舊的 GitHub JPG，需要退回找 .jpg)
       galleryImg.onerror = function() {
-          this.onerror = function() { this.src = './images/080000AA.jpg'; }; // 最終失敗
-          this.src = `./images/${barcode}.jpg`; // 請求大圖 JPG
+        if (currentGalleryIdx === 0 && activeImgSrc.includes(barcode)) {
+          this.onerror = function() { this.src = './images/080000AA.jpg'; }; 
+          this.src = `./images/${barcode}.jpg`; 
+        } else {
+          this.onerror = null;
+          this.src = './images/080000AA.jpg';
+        }
       };
 
       document.getElementById('galleryLightbox').style.display = 'flex';
       
       updateGalleryArrows();
-      checkExtraImages(barcode, 1);
+      
+      // 如果附圖陣列為空，為了完全向下相容，還是試著去 GitHub 找找看有沒有舊的附圖
+      if (extraImgs.length === 0) {
+        checkExtraImages(barcode, 1);
+      }
     }
 
-    // 檢查是否有第二張以上的附圖大圖
+    // 檢查是否有第二張以上的舊版附圖 (完美向下相容 WebP 與 JPG)
     function checkExtraImages(barcode, fileIndex) {
-      let testImg = new Image();
-      testImg.onload = function() {
+      let testWebp = new Image();
+      
+      testWebp.onload = function() {
         currentGalleryImgs.push(this.src);
         updateGalleryArrows();
-        checkExtraImages(barcode, fileIndex + 1);
+        checkExtraImages(barcode, fileIndex + 1); 
       };
-      testImg.onerror = function() {};
-      testImg.src = `./images/${barcode}-${fileIndex}.webp`; // 嘗試抓附圖的 WebP 大圖
+      
+      testWebp.onerror = function() {
+        let testJpg = new Image();
+        testJpg.onload = function() {
+          currentGalleryImgs.push(this.src);
+          updateGalleryArrows();
+          checkExtraImages(barcode, fileIndex + 1);
+        };
+        testJpg.onerror = function() {}; // 都找不到就安靜結束
+        testJpg.src = `./images/${barcode}-${fileIndex}.jpg`; 
+      };
+      
+      testWebp.src = `./images/${barcode}-${fileIndex}.webp`; 
     }
 
     function updateGalleryArrows() {
@@ -831,6 +943,8 @@
     }
 
     function closeGallery() {
+      // 關閉時清空 URL 參數
+      window.history.replaceState(null, '', window.location.pathname);
       document.getElementById('galleryLightbox').style.display = 'none';
       currentGalleryImgs = [];
     }
@@ -851,6 +965,7 @@
         const selCity = document.getElementById('citySelect').value || '';
         const selDist = document.getElementById('districtSelect').value || '';
         
+        // ★ 在開啟庫存視窗時，才強制檢查定位！讓首頁保持開放
         if(!userLat && (!selCity || !selDist)) {
              alert("請確保已選擇縣市與區域，或點選 GPS 按鈕自動定位！");
              return;
@@ -910,6 +1025,8 @@
     }
 
     function closeBranchModal() {
+      // 關閉時清空 URL 參數
+      window.history.replaceState(null, '', window.location.pathname);
       document.getElementById('branchModal').style.display = 'none';
       document.body.style.overflow = 'auto'; 
     }
