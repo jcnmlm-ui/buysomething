@@ -183,7 +183,7 @@
     .modal-body { padding: 20px; text-align: center; background: #fff; max-height: 70vh; overflow-y: auto;}
     .modal-img { max-width: 100%; max-height: 50vh; object-fit: contain; border-radius: 8px; }
 
-    /* === 圖片上傳模組專用樣式 === */
+    /* === 圖片預覽與上傳模組專用樣式 === */
     .upload-area { border: 2px dashed #94a3b8; background: #f8fafc; padding: 20px; text-align: center; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; margin-bottom: 15px; }
     .upload-area:hover, .upload-area.dragover { background: #f1f5f9; border-color: var(--primary); }
     .upload-area i { font-size: 32px; color: var(--primary); margin-bottom: 10px; }
@@ -191,19 +191,25 @@
     .upload-area span { display: block; font-size: 12px; color: var(--text-light); margin-top: 5px; }
     #fileInput, #extraFileInput { display: none; }
     
-    .preview-container { display: flex; gap: 10px; margin-bottom: 15px; display: none; }
-    .preview-box { flex: 1; text-align: center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .preview-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; display: none; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; }
+    .preview-box { flex: 1; text-align: center; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
     .preview-box img { max-width: 100%; height: auto; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 5px; }
     .preview-info { font-size: 11px; color: var(--text-light); font-weight: bold; }
     
     #logBox { margin-bottom: 15px; padding: 10px; background: #1e293b; color: #34d399; font-family: monospace; border-radius: 6px; font-size: 12px; max-height: 150px; overflow-y: auto; display: none; text-align: left; }
 
+    /* ★ 統一的垃圾桶刪除按鈕樣式 (主圖與附圖共用) */
+    .btn-delete-img { 
+      position: absolute; top: -10px; right: -10px; background: #ef4444; color: white; border: 2px solid white; 
+      width: 28px; height: 28px; border-radius: 50%; font-size: 12px; cursor: pointer; 
+      display: flex; justify-content: center; align-items: center; transition: 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+    .btn-delete-img:hover { background: #dc2626; transform: scale(1.15); }
+
     /* === 附圖畫廊專用樣式 === */
-    .extra-gallery { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; scrollbar-width: thin; }
-    .extra-img-box { position: relative; width: 80px; height: 80px; flex-shrink: 0; border: 1px solid #cbd5e0; border-radius: 8px; overflow: hidden; background: #f8fafc; }
-    .extra-img-box img { width: 100%; height: 100%; object-fit: cover; }
-    .btn-delete-extra { position: absolute; top: 4px; right: 4px; background: rgba(239, 68, 68, 0.9); color: white; border: none; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;}
-    .btn-delete-extra:hover { background: #dc2626; transform: scale(1.1); }
+    .extra-gallery { display: flex; gap: 15px; overflow-x: auto; padding: 15px 5px; scrollbar-width: thin; }
+    .extra-img-box { position: relative; width: 80px; height: 80px; flex-shrink: 0; border: 1px solid #cbd5e0; border-radius: 8px; background: #f8fafc; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+    .extra-img-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px;}
 
     /* === 回到最上方按鈕 === */
     #scrollToTopBtn { 
@@ -489,38 +495,50 @@
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">商品名稱 (AE欄)</label>
         <input type="text" id="editMasterName" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none;">
         
+        <!-- ★ 新增：目前商品主圖現況預覽區 -->
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">目前商品主圖 (封面照)</label>
+        <div id="currentMainImgContainer" style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px dashed #cbd5e0; border-radius: 8px; text-align: center; min-height: 80px; display: flex; justify-content: center; align-items: center;">
+          <!-- JS 自動渲染 -->
+        </div>
+
         <!-- 主圖拖曳上傳區塊 -->
-        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">更換商品主圖 (封面照)</label>
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">上傳新主圖 (將覆蓋現有主圖)</label>
         <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
-          <i class="fa-solid fa-image"></i>
-          <p>點擊或將圖片拖曳至此處更新封面</p>
-          <span>支援 JPG, PNG, WEBP (自動轉 WebP 並覆蓋舊圖)</span>
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <p>點擊或將圖片拖曳至此處上傳新主圖</p>
+          <span>支援 JPG, PNG, WEBP (自動裁切轉 WebP)</span>
           <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
         </div>
 
         <div class="preview-container" id="previewContainer">
-          <div class="preview-box">
-            <div style="font-size: 12px; font-weight: bold; color: #16a34a; margin-bottom: 5px;">小圖 (列表用)</div>
-            <img id="thumbPreview" src="" alt="縮圖預覽">
-            <div class="preview-info" id="thumbInfo">準備中...</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-weight: bold; color: #166534;"><i class="fa-solid fa-circle-check"></i> 新主圖已準備就緒</span>
+            <button type="button" onclick="clearPendingMainImage()" style="background: #fecaca; color: #991b1b; border: 1px solid #f87171; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s;">❌ 取消預備上傳</button>
           </div>
-          <div class="preview-box">
-            <div style="font-size: 12px; font-weight: bold; color: #2563eb; margin-bottom: 5px;">大圖 (放大用)</div>
-            <img id="largePreview" src="" alt="大圖預覽">
-            <div class="preview-info" id="largeInfo">準備中...</div>
+          <div style="display: flex; gap: 10px;">
+            <div class="preview-box">
+              <div style="font-size: 12px; font-weight: bold; color: #16a34a; margin-bottom: 5px;">小圖 (列表用)</div>
+              <img id="thumbPreview" src="" alt="縮圖預覽">
+              <div class="preview-info" id="thumbInfo">準備中...</div>
+            </div>
+            <div class="preview-box">
+              <div style="font-size: 12px; font-weight: bold; color: #2563eb; margin-bottom: 5px;">大圖 (放大用)</div>
+              <img id="largePreview" src="" alt="大圖預覽">
+              <div class="preview-info" id="largeInfo">準備中...</div>
+            </div>
           </div>
         </div>
 
-        <!-- ★ 附圖畫廊專區 -->
+        <!-- 附圖畫廊專區 -->
         <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #cbd5e0;">
-        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">附加圖片 (多圖畫廊)</label>
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">目前附加圖片 (多圖畫廊)</label>
         <div id="extraGalleryContainer" class="extra-gallery">
           <!-- 附圖縮圖將渲染在這裡 -->
         </div>
         <div class="upload-area" id="extraDropZone" onclick="document.getElementById('extraFileInput').click()" style="padding: 15px; margin-top: 10px; border-color: #cbd5e0;">
           <i class="fa-solid fa-images" style="font-size: 24px; color: #94a3b8;"></i>
           <p style="color: #64748b;">點擊或拖曳新增附圖 (可多選)</p>
-          <span>新增後會立即上傳並儲存</span>
+          <span>選取後會立即上傳至雲端並自動儲存</span>
           <input type="file" id="extraFileInput" accept="image/*" multiple onchange="handleExtraFileSelect(event)">
         </div>
 
@@ -531,7 +549,7 @@
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">商品說明 (AG欄 - 限 65 字)</label>
         <textarea id="editMasterDesc" maxlength="65" rows="4" placeholder="請輸入商品說明 (限 65 字內)..." style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical; outline: none;"></textarea>
         
-        <button onclick="saveMasterDataEdit()" id="btnSaveMasterEdit" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;">💾 僅儲存名稱與封面圖修改</button>
+        <button onclick="saveMasterDataEdit()" id="btnSaveMasterEdit" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;">💾 儲存修改</button>
       </div>
     </div>
   </div>
@@ -773,33 +791,22 @@
       document.getElementById('editMasterName').value = p.name || '';
       document.getElementById('editMasterDesc').value = p.desc || '';
       
-      // 重置主圖處理狀態
-      processedFiles = { thumb: null, large: null };
-      document.getElementById('previewContainer').style.display = 'none';
+      // 渲染目前的主圖預覽
+      renderCurrentMainImage(p);
+
+      // 渲染目前的附圖畫廊
+      let extras = p.extra_images;
+      if (typeof extras === 'string') {
+          try { extras = JSON.parse(extras); } catch(e) { extras = []; }
+      }
+      if (!Array.isArray(extras)) extras = [];
+      p.extra_images = extras; 
+      renderExtraGallery(extras);
+
+      // 清空預備上傳的新主圖狀態
+      clearPendingMainImage();
       document.getElementById('logBox').style.display = 'none';
       document.getElementById('logBox').innerHTML = '';
-      
-      // ★ 渲染目前的附圖畫廊 (加入型別安全防呆機制)
-      let extras = p.extra_images;
-      
-      // 確保將字串解析回正常的陣列 (防止 Supabase 丟出 "[]" 字串導致 forEach 崩潰)
-      if (typeof extras === 'string') {
-          try { 
-              extras = JSON.parse(extras); 
-          } catch(e) { 
-              extras = []; 
-          }
-      }
-      
-      // 最終確保一定是陣列
-      if (!Array.isArray(extras)) {
-          extras = [];
-      }
-      
-      // 回寫以確保後續操作安全
-      p.extra_images = extras; 
-      
-      renderExtraGallery(extras);
       
       document.getElementById('editMasterModal').style.display = 'flex';
     }
@@ -807,6 +814,71 @@
     function closeEditMasterModal() { document.getElementById('editMasterModal').style.display = 'none'; }
 
     // ====== 主圖處理邏輯 ======
+    
+    // 渲染目前已存在的主圖
+    function renderCurrentMainImage(p) {
+      const container = document.getElementById('currentMainImgContainer');
+      if (p.img && p.img.trim() !== '' && !p.img.includes('暫無商品圖片')) {
+         container.innerHTML = `
+           <div style="position: relative; display: inline-block;">
+             <img src="${p.img}" style="max-height: 120px; border-radius: 6px; border: 2px solid #cbd5e0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+             <button type="button" class="btn-delete-img" onclick="deleteMainImage('${p.product_key}', '${p.img}', '${p.thumb}')" title="永久刪除目前主圖">
+               <i class="fa-solid fa-trash"></i>
+             </button>
+           </div>
+         `;
+      } else {
+         container.innerHTML = '<span style="color: #94a3b8; font-size: 14px;"><i class="fa-solid fa-image" style="margin-right:6px;"></i>目前尚未設定主圖</span>';
+      }
+    }
+
+    // 刪除目前已存在的主圖
+    async function deleteMainImage(productKey, imgUrl, thumbUrl) {
+      if (!confirm('確定要永久刪除目前的主圖嗎？\\n（⚠️ 此動作會立即清除雲端檔案與資料庫，無法復原！）')) return;
+      
+      document.getElementById('logBox').style.display = 'block';
+      const product = globalMasterData.find(p => String(p.product_key) === String(productKey));
+
+      try {
+        logMsg(`🗑️ 正在清除資料庫中的主圖紀錄...`);
+        const { error: dbErr } = await supabaseClient.from('products_master').update({
+            img_url: null,
+            thumb_url: null,
+            image_url: null
+        }).eq('product_key', productKey);
+        
+        if (dbErr) throw dbErr;
+
+        if (imgUrl && imgUrl.includes('supabase.co')) {
+            logMsg(`🗑️ 正在從雲端空間移除舊大圖...`);
+            const fileName = imgUrl.substring(imgUrl.lastIndexOf('/') + 1);
+            await supabaseClient.storage.from('product-images').remove([fileName]);
+        }
+        if (thumbUrl && thumbUrl.includes('supabase.co')) {
+            logMsg(`🗑️ 正在從雲端空間移除舊小圖...`);
+            const thumbFileName = thumbUrl.substring(thumbUrl.lastIndexOf('/') + 1);
+            await supabaseClient.storage.from('product-images').remove([thumbFileName]);
+        }
+
+        // 更新記憶體與畫面
+        product.img = null;
+        product.thumb = null;
+        renderCurrentMainImage(product);
+        filterMasterProducts(); 
+        
+        logMsg(`✅ 主圖已成功刪除！`);
+      } catch (e) {
+        logMsg(`❌ 刪除失敗: ${e.message}`);
+      }
+    }
+
+    // 清空拖曳進來但尚未儲存的新主圖
+    function clearPendingMainImage() {
+        processedFiles = { thumb: null, large: null };
+        document.getElementById('previewContainer').style.display = 'none';
+        document.getElementById('fileInput').value = '';
+    }
+
     function handleFileSelect(event) {
       if (event.target.files.length > 0) processImage(event.target.files[0]);
     }
@@ -869,9 +941,8 @@
       const container = document.getElementById('extraGalleryContainer');
       container.innerHTML = '';
       
-      // 最後防線保護
       if (!Array.isArray(imagesArr) || imagesArr.length === 0) {
-        container.innerHTML = '<div style="font-size: 13px; color: #94a3b8;">目前沒有任何附加圖片</div>';
+        container.innerHTML = '<div style="font-size: 13px; color: #94a3b8; width: 100%; text-align: center;"><i class="fa-solid fa-folder-open" style="margin-right:6px;"></i>目前沒有任何附加圖片</div>';
         return;
       }
       
@@ -879,7 +950,9 @@
         container.innerHTML += `
           <div class="extra-img-box">
             <img src="${url}">
-            <button class="btn-delete-extra" onclick="deleteExtraImage('${url}', ${idx})" title="刪除附圖"><i class="fa-solid fa-times"></i></button>
+            <button type="button" class="btn-delete-img" onclick="deleteExtraImage('${url}', ${idx})" title="永久刪除這張附圖">
+              <i class="fa-solid fa-trash"></i>
+            </button>
           </div>
         `;
       });
@@ -889,7 +962,7 @@
       if (event.target.files.length > 0) processAndUploadExtraImages(event.target.files);
     }
 
-    // 將 File 轉換為 1200px 大圖 WebP Blob 的 Promise (已修復變數問題)
+    // 將 File 轉換為 1200px 大圖 WebP Blob 的 Promise 
     function processExtraToWebP(file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -959,7 +1032,7 @@
     }
 
     async function deleteExtraImage(url, idx) {
-      if (!confirm('確定要永久刪除這張附圖嗎？（此動作無法復原）')) return;
+      if (!confirm('確定要永久刪除這張附圖嗎？\\n（⚠️ 此動作會立即清除雲端檔案與資料庫，無法復原！）')) return;
       
       document.getElementById('logBox').style.display = 'block';
       const productKey = document.getElementById('editMasterProductKey').value;
@@ -1000,7 +1073,7 @@
 
       try {
         if (processedFiles.thumb && processedFiles.large) {
-          logMsg('============== 開始上傳主圖 ==============');
+          logMsg('============== 開始上傳新主圖 ==============');
           const thumbFileName = `${barcode}_thumb.webp`;
           const largeFileName = `${barcode}.webp`;
           const bucketName = 'product-images';
@@ -1044,7 +1117,7 @@
         logMsg(`❌ 發生錯誤: ${err.message}`);
         alert('儲存失敗：' + err.message);
       } finally {
-        btn.innerText = "💾 僅儲存名稱與封面圖修改"; btn.disabled = false;
+        btn.innerText = "💾 儲存修改"; btn.disabled = false;
       }
     }
 
