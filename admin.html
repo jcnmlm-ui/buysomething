@@ -142,7 +142,6 @@
     .branch-action input[type="checkbox"] { width: 20px; height: 20px; margin-right: 10px; cursor: pointer; accent-color: white;}
     .branch-action span { font-weight: bold; color: #475569; font-size: 15px; }
 
-    /* 額外數量調整的 CSS */
     .extra-qty-container { background: #f8fafc; border: 1px dashed #cbd5e0; padding: 8px; border-radius: 6px; margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 10px;}
     .btn-qty { background: white; border: 1px solid #cbd5e0; width: 30px; height: 30px; border-radius: 4px; font-weight: bold; color: var(--text-main); cursor: pointer; display: flex; justify-content: center; align-items: center; padding: 0; outline: none; user-select: none; transition: 0.1s;}
     .btn-qty:hover { background: #e2e8f0; }
@@ -184,18 +183,33 @@
     .modal-body { padding: 20px; text-align: center; background: #fff; max-height: 70vh; overflow-y: auto;}
     .modal-img { max-width: 100%; max-height: 50vh; object-fit: contain; border-radius: 8px; }
 
-    /* === 圖片上傳模組專用樣式 === */
+    /* === 圖片預覽與上傳模組專用樣式 === */
     .upload-area { border: 2px dashed #94a3b8; background: #f8fafc; padding: 20px; text-align: center; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; margin-bottom: 15px; }
     .upload-area:hover, .upload-area.dragover { background: #f1f5f9; border-color: var(--primary); }
     .upload-area i { font-size: 32px; color: var(--primary); margin-bottom: 10px; }
     .upload-area p { margin: 0; font-size: 14px; font-weight: bold; color: var(--text-main); }
     .upload-area span { display: block; font-size: 12px; color: var(--text-light); margin-top: 5px; }
-    #fileInput { display: none; }
-    .preview-container { display: flex; gap: 10px; margin-bottom: 15px; display: none; }
-    .preview-box { flex: 1; text-align: center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    #fileInput, #extraFileInput { display: none; }
+    
+    .preview-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; display: none; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; }
+    .preview-box { flex: 1; text-align: center; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
     .preview-box img { max-width: 100%; height: auto; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 5px; }
     .preview-info { font-size: 11px; color: var(--text-light); font-weight: bold; }
+    
     #logBox { margin-bottom: 15px; padding: 10px; background: #1e293b; color: #34d399; font-family: monospace; border-radius: 6px; font-size: 12px; max-height: 150px; overflow-y: auto; display: none; text-align: left; }
+
+    /* ★ 統一的垃圾桶刪除按鈕樣式 (主圖與附圖共用) */
+    .btn-delete-img { 
+      position: absolute; top: -10px; right: -10px; background: #ef4444; color: white; border: 2px solid white; 
+      width: 28px; height: 28px; border-radius: 50%; font-size: 12px; cursor: pointer; 
+      display: flex; justify-content: center; align-items: center; transition: 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+    .btn-delete-img:hover { background: #dc2626; transform: scale(1.15); }
+
+    /* === 附圖畫廊專用樣式 === */
+    .extra-gallery { display: flex; gap: 15px; overflow-x: auto; padding: 15px 5px; scrollbar-width: thin; }
+    .extra-img-box { position: relative; width: 80px; height: 80px; flex-shrink: 0; border: 1px solid #cbd5e0; border-radius: 8px; background: #f8fafc; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+    .extra-img-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px;}
 
     /* === 回到最上方按鈕 === */
     #scrollToTopBtn { 
@@ -271,7 +285,6 @@
 
       <div id="tab-upload" class="tab-content active">
         <div style="display: flex; flex-wrap: wrap; gap: 20px; max-width: 1200px; margin: 0 auto;">
-          <!-- 庫存更新 -->
           <div class="box-container" style="flex: 1; min-width: 300px; border: 2px dashed #cbd5e0; background: #fafbfc; text-align: center; padding: 40px 20px;">
             <h3 style="color:#5f746b; margin-top:0;">📦 更新商品庫存資料</h3>
             <p style="color:var(--text-light); font-size:14px; line-height: 1.6;">
@@ -283,7 +296,6 @@
             <button onclick="handleUpload()" id="upBtn" class="btn-primary" style="padding:12px 30px; border:none; border-radius:8px; font-size: 16px; cursor: pointer; width: 100%; max-width: 250px;">開始合併並覆蓋</button>
           </div>
 
-          <!-- 主檔匯入 -->
           <div class="box-container" style="flex: 1; min-width: 300px; border: 2px dashed #94a3b8; background: #f8fafc; text-align: center; padding: 40px 20px;">
             <h3 style="color:#475569; margin-top:0;">📝 匯入全新商品主檔</h3>
             <p style="color:var(--text-light); font-size:14px; line-height: 1.6;">
@@ -464,7 +476,7 @@
     </div>
   </div>
 
-  <!-- ★ 更新：整合了圖片壓縮上傳的商品編輯視窗 -->
+  <!-- ★ 更新：整合主圖與附圖畫廊上傳的商品編輯視窗 -->
   <div id="editMasterModal" class="modal">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -483,35 +495,61 @@
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">商品名稱 (AE欄)</label>
         <input type="text" id="editMasterName" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none;">
         
-        <!-- ★ 全新的圖片拖曳上傳區塊 -->
-        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">更換商品圖片 (自動壓縮為 WebP 小/大圖)</label>
+        <!-- ★ 新增：目前商品主圖現況預覽區 -->
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">目前商品主圖 (封面照)</label>
+        <div id="currentMainImgContainer" style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px dashed #cbd5e0; border-radius: 8px; text-align: center; min-height: 80px; display: flex; justify-content: center; align-items: center;">
+          <!-- JS 自動渲染 -->
+        </div>
+
+        <!-- 主圖拖曳上傳區塊 -->
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">上傳新主圖 (將覆蓋現有主圖)</label>
         <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
-          <i class="fa-solid fa-images"></i>
-          <p>點擊或將圖片拖曳至此處更新</p>
-          <span>支援 JPG, PNG, WEBP (將會覆蓋舊圖)</span>
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <p>點擊或將圖片拖曳至此處上傳新主圖</p>
+          <span>支援 JPG, PNG, WEBP (自動裁切轉 WebP)</span>
           <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
         </div>
 
         <div class="preview-container" id="previewContainer">
-          <div class="preview-box">
-            <div style="font-size: 12px; font-weight: bold; color: #16a34a; margin-bottom: 5px;">小圖 (列表用)</div>
-            <img id="thumbPreview" src="" alt="縮圖預覽">
-            <div class="preview-info" id="thumbInfo">準備中...</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="font-weight: bold; color: #166534;"><i class="fa-solid fa-circle-check"></i> 新主圖已準備就緒</span>
+            <button type="button" onclick="clearPendingMainImage()" style="background: #fecaca; color: #991b1b; border: 1px solid #f87171; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s;">❌ 取消預備上傳</button>
           </div>
-          <div class="preview-box">
-            <div style="font-size: 12px; font-weight: bold; color: #2563eb; margin-bottom: 5px;">大圖 (放大用)</div>
-            <img id="largePreview" src="" alt="大圖預覽">
-            <div class="preview-info" id="largeInfo">準備中...</div>
+          <div style="display: flex; gap: 10px;">
+            <div class="preview-box">
+              <div style="font-size: 12px; font-weight: bold; color: #16a34a; margin-bottom: 5px;">小圖 (列表用)</div>
+              <img id="thumbPreview" src="" alt="縮圖預覽">
+              <div class="preview-info" id="thumbInfo">準備中...</div>
+            </div>
+            <div class="preview-box">
+              <div style="font-size: 12px; font-weight: bold; color: #2563eb; margin-bottom: 5px;">大圖 (放大用)</div>
+              <img id="largePreview" src="" alt="大圖預覽">
+              <div class="preview-info" id="largeInfo">準備中...</div>
+            </div>
           </div>
+        </div>
+
+        <!-- 附圖畫廊專區 -->
+        <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #cbd5e0;">
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">目前附加圖片 (多圖畫廊)</label>
+        <div id="extraGalleryContainer" class="extra-gallery">
+          <!-- 附圖縮圖將渲染在這裡 -->
+        </div>
+        <div class="upload-area" id="extraDropZone" onclick="document.getElementById('extraFileInput').click()" style="padding: 15px; margin-top: 10px; border-color: #cbd5e0;">
+          <i class="fa-solid fa-images" style="font-size: 24px; color: #94a3b8;"></i>
+          <p style="color: #64748b;">點擊或拖曳新增附圖 (可多選)</p>
+          <span>選取後會立即上傳至雲端並自動儲存</span>
+          <input type="file" id="extraFileInput" accept="image/*" multiple onchange="handleExtraFileSelect(event)">
         </div>
 
         <!-- 日誌顯示區塊 -->
         <div id="logBox"></div>
 
+        <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #cbd5e0;">
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">商品說明 (AG欄 - 限 65 字)</label>
         <textarea id="editMasterDesc" maxlength="65" rows="4" placeholder="請輸入商品說明 (限 65 字內)..." style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical; outline: none;"></textarea>
         
-        <button onclick="saveMasterDataEdit()" id="btnSaveMasterEdit" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;">💾 確認儲存修改</button>
+        <button onclick="saveMasterDataEdit()" id="btnSaveMasterEdit" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;">💾 儲存修改</button>
       </div>
     </div>
   </div>
@@ -552,7 +590,7 @@
       document.getElementById('account').addEventListener('keydown', handleEnter);
       document.getElementById('password').addEventListener('keydown', handleEnter);
 
-      // ★ 綁定圖片拖曳事件
+      // ★ 綁定主圖拖曳事件
       const dropZone = document.getElementById('dropZone');
       dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
       dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
@@ -560,9 +598,17 @@
         e.preventDefault(); dropZone.classList.remove('dragover');
         if (e.dataTransfer.files.length > 0) processImage(e.dataTransfer.files[0]);
       });
+
+      // ★ 綁定附圖拖曳事件
+      const extraDropZone = document.getElementById('extraDropZone');
+      extraDropZone.addEventListener('dragover', (e) => { e.preventDefault(); extraDropZone.classList.add('dragover'); });
+      extraDropZone.addEventListener('dragleave', () => { extraDropZone.classList.remove('dragover'); });
+      extraDropZone.addEventListener('drop', (e) => {
+        e.preventDefault(); extraDropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) processAndUploadExtraImages(e.dataTransfer.files);
+      });
     };
 
-    // --- 突破 Supabase 1000 筆限制的抓取小幫手 ---
     async function fetchAllData(table, select = '*', conditions = []) {
       let allData = [];
       let from = 0;
@@ -586,13 +632,9 @@
     async function logSystemAction(account, actionText) {
       try {
         const { error } = await supabaseClient.from('system_logs').insert([{ account: account, action: actionText }]);
-        if (error) console.error("寫入日誌失敗", error);
-      } catch (e) {
-        console.error("寫入日誌失敗", e);
-      }
+      } catch (e) { console.error("寫入日誌失敗", e); }
     }
 
-    // 1. 登入系統
     async function doLogin() {
       const acc = document.getElementById('account').value;
       const pwd = document.getElementById('password').value;
@@ -608,13 +650,8 @@
         if (error) throw error;
 
         if (data.status === 'success') {
-          if (remember) {
-            localStorage.setItem('kp_acc', acc);
-            localStorage.setItem('kp_pwd', pwd);
-          } else {
-            localStorage.removeItem('kp_acc');
-            localStorage.removeItem('kp_pwd');
-          }
+          if (remember) { localStorage.setItem('kp_acc', acc); localStorage.setItem('kp_pwd', pwd); } 
+          else { localStorage.removeItem('kp_acc'); localStorage.removeItem('kp_pwd'); }
           
           myBranchId = data.branchId;
           myAccount = acc;
@@ -627,16 +664,12 @@
           if (currentRole === 'A') {
             document.getElementById('adminArea').style.display = 'block';
             switchAdminTab('tab-upload', document.querySelector('#adminArea .tab-btn'));
-            loadAdminData(); 
-            loadLeaderboard(); 
-            loadMasterData();
-            loadExtraStock(); 
+            loadAdminData(); loadLeaderboard(); loadMasterData(); loadExtraStock(); 
           } else {
             document.getElementById('loadingStatus').style.display = 'block';
             document.getElementById('managerContent').style.display = 'none';
             document.getElementById('branchTabsContainer').style.display = 'none';
             document.getElementById('managerArea').style.display = 'block';
-            
             switchBranchTab('tab-branch-upload', document.querySelector('#managerArea .tab-btn'));
             loadBranchData();
           }
@@ -658,19 +691,16 @@
       document.getElementById('loginMsg').innerText = '';
       
       const btn = document.getElementById('loginBtn');
-      btn.innerText = "登入系統";
-      btn.disabled = false;
+      btn.innerText = "登入系統"; btn.disabled = false;
       document.getElementById('loginBox').style.display = 'block'; 
     }
 
-    // 頁籤切換
     function switchAdminTab(tabId, btnElement) {
       document.querySelectorAll('#adminArea .tab-content').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('#adminArea .tab-btn').forEach(el => el.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       if (btnElement) btnElement.classList.add('active');
       else document.querySelector(`[onclick="switchAdminTab('${tabId}', this)"]`).classList.add('active');
-
       document.getElementById('adminMobileFooter').style.display = (window.innerWidth <= 768 && tabId === 'tab-permissions') ? 'flex' : 'none';
     }
 
@@ -680,242 +710,421 @@
       document.getElementById(tabId).classList.add('active');
       if (btnElement) btnElement.classList.add('active');
       else document.querySelector(`[onclick="switchBranchTab('${tabId}', this)"]`).classList.add('active');
-
       document.getElementById('branchMobileFooter').style.display = (window.innerWidth <= 768 && tabId === 'tab-branch-upload') ? 'flex' : 'none';
     }
 
-    window.addEventListener('resize', () => {
-      if(document.getElementById('adminArea').style.display === 'block') {
-         const isPermTabActive = document.getElementById('tab-permissions').classList.contains('active');
-         document.getElementById('adminMobileFooter').style.display = (window.innerWidth <= 768 && isPermTabActive) ? 'flex' : 'none';
-      }
-      if(document.getElementById('managerArea').style.display === 'block') {
-         const isUploadTabActive = document.getElementById('tab-branch-upload').classList.contains('active');
-         document.getElementById('branchMobileFooter').style.display = (window.innerWidth <= 768 && isUploadTabActive) ? 'flex' : 'none';
-      }
-    });
+    /* ====== A 級主檔管理 (包含多圖畫廊邏輯) ====== */
+    let globalMasterData = [];
 
-    /* ========================================================= */
-    /* ================= B 級操作 (Supabase版) ================= */
-    /* ========================================================= */
-    async function loadBranchData() {
+    async function loadMasterData() {
+      const btn = document.getElementById('btnLoadMaster');
+      btn.innerText = "載入中..."; btn.disabled = true;
+      document.getElementById('masterLoading').style.display = 'block';
+      document.getElementById('masterLoading').innerText = "讀取主檔清單中...";
+      document.getElementById('masterProductContainer').style.display = 'none';
+      
       try {
-        const allowlistData = await fetchAllData('global_allowlist', 'product_key');
-        const allowedKeys = allowlistData.map(r => r.product_key);
-
-        const masterData = await fetchAllData('products_master', '*');
-        const mainMap = {};
-        masterData.forEach(row => mainMap[row.product_key] = row);
-
-        const invData = await fetchAllData('inventory', '*', [{op: 'eq', col: 'branch_id', val: myBranchId}]);
-
-        const listingsData = await fetchAllData('branch_listings', '*', [{op: 'eq', col: 'branch_id', val: myBranchId}, {op: 'eq', col: 'is_listed', val: true}]);
-        const selectedItemsMap = {};
-        listingsData.forEach(row => {
-          if (allowedKeys.includes(row.product_key)) {
-            selectedItemsMap[row.product_key] = row.extra_qty || 0;
-          }
-        });
-
-        const myProducts = invData.map(row => {
-          const info = mainMap[row.product_key];
-          return {
-            key: row.product_key,
-            barcode: info ? (info.barcode || row.product_key) : row.product_key,
-            name: info ? (info.original_name || info.name || "未命名商品") : "未命名商品",
-            originalName: info ? (info.original_name || "") : "",
-            price: info ? (info.price || 0) : 0,
-            date: (info && info.publish_date && info.publish_date !== 'null') ? info.publish_date : "未提供",
-            img: info ? (info.img_url || "") : "",
-            qty: row.qty || 0
-          };
-        }).filter(p => allowedKeys.includes(p.key));
-
-        renderBranch({ allProducts: myProducts, selectedItemsMap: selectedItemsMap });
+        const data = await fetchAllData('products_master', '*');
+        const results = data.map((row) => ({
+          product_key: row.product_key,
+          barcode: row.barcode,
+          originalName: row.original_name,
+          name: row.name,
+          img: row.img_url,
+          thumb: row.thumb_url,
+          desc: row.description,
+          extra_images: row.extra_images || [] 
+        }));
+        globalMasterData = results;
+        renderMasterProducts(globalMasterData);
+        document.getElementById('masterLoading').style.display = 'none';
       } catch (err) {
-        alert("載入出錯：" + err.message);
+        document.getElementById('masterLoading').innerHTML = `<div style="color:#ef4444; font-weight:bold; padding: 20px; text-align:center;">讀取失敗：${err.message}</div>`;
+      }
+      btn.innerText = "🔄 載入最新主檔"; btn.disabled = false;
+    }
+
+    function renderMasterProducts(list) {
+      const container = document.getElementById('masterProductContainer');
+      container.innerHTML = '';
+      if (list.length === 0) {
+        container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 20px;">找不到符合的商品</div>';
+        container.style.display = 'grid'; return;
+      }
+      list.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'admin-item';
+        div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center';
+        const safeKey = encodeURIComponent(p.product_key || "");
+        div.innerHTML = `
+          <div class="admin-item-info">
+            <span class="admin-item-title" style="color: var(--primary-dark);">${p.name || '(未命名商品)'}</span>
+            <span class="admin-item-code">條碼: ${p.barcode}</span>
+            <span class="admin-item-code" style="margin-top: 4px;">原始說明: <span style="color:#b45309; font-weight:bold;">${p.originalName || '無'}</span></span>
+          </div>
+          <button type="button" class="btn-edit-master" onclick="openEditMasterModalByKey('${safeKey}')">✏️ 編輯</button>
+        `;
+        container.appendChild(div);
+      });
+      container.style.display = 'grid';
+    }
+
+    function filterMasterProducts() {
+      const search = document.getElementById('masterSearchInput').value.toLowerCase();
+      const filtered = globalMasterData.filter(p => 
+        (p.name || '').toLowerCase().includes(search) || 
+        (p.barcode || '').toLowerCase().includes(search) || 
+        (p.originalName || '').toLowerCase().includes(search) ||
+        (p.product_key || '').toLowerCase().includes(search)
+      );
+      renderMasterProducts(filtered);
+    }
+
+    function openEditMasterModalByKey(encKey) {
+      const realKey = decodeURIComponent(encKey);
+      const p = globalMasterData.find(item => String(item.product_key) === realKey);
+      if(!p) return alert('載入商品資料錯誤，請重新整理頁面。');
+      
+      document.getElementById('editMasterProductKey').value = p.product_key;
+      document.getElementById('editMasterBarcode').value = p.barcode || '';
+      document.getElementById('editMasterOriginalName').value = p.originalName || '';
+      document.getElementById('editMasterName').value = p.name || '';
+      document.getElementById('editMasterDesc').value = p.desc || '';
+      
+      // 渲染目前的主圖預覽
+      renderCurrentMainImage(p);
+
+      // 渲染目前的附圖畫廊
+      let extras = p.extra_images;
+      if (typeof extras === 'string') {
+          try { extras = JSON.parse(extras); } catch(e) { extras = []; }
+      }
+      if (!Array.isArray(extras)) extras = [];
+      p.extra_images = extras; 
+      renderExtraGallery(extras);
+
+      // 清空預備上傳的新主圖狀態
+      clearPendingMainImage();
+      document.getElementById('logBox').style.display = 'none';
+      document.getElementById('logBox').innerHTML = '';
+      
+      document.getElementById('editMasterModal').style.display = 'flex';
+    }
+
+    function closeEditMasterModal() { document.getElementById('editMasterModal').style.display = 'none'; }
+
+    // ====== 主圖處理邏輯 ======
+    
+    // 渲染目前已存在的主圖
+    function renderCurrentMainImage(p) {
+      const container = document.getElementById('currentMainImgContainer');
+      if (p.img && p.img.trim() !== '' && !p.img.includes('暫無商品圖片')) {
+         container.innerHTML = `
+           <div style="position: relative; display: inline-block;">
+             <img src="${p.img}" style="max-height: 120px; border-radius: 6px; border: 2px solid #cbd5e0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+             <button type="button" class="btn-delete-img" onclick="deleteMainImage('${p.product_key}', '${p.img}', '${p.thumb}')" title="永久刪除目前主圖">
+               <i class="fa-solid fa-trash"></i>
+             </button>
+           </div>
+         `;
+      } else {
+         container.innerHTML = '<span style="color: #94a3b8; font-size: 14px;"><i class="fa-solid fa-image" style="margin-right:6px;"></i>目前尚未設定主圖</span>';
       }
     }
 
-    function renderBranch(data) {
-      const list = document.getElementById('branchProductList');
-      list.innerHTML = '';
-      let checkedCount = 0;
+    // 刪除目前已存在的主圖
+    async function deleteMainImage(productKey, imgUrl, thumbUrl) {
+      if (!confirm('確定要永久刪除目前的主圖嗎？\\n（⚠️ 此動作會立即清除雲端檔案與資料庫，無法復原！）')) return;
+      
+      document.getElementById('logBox').style.display = 'block';
+      const product = globalMasterData.find(p => String(p.product_key) === String(productKey));
 
-      data.allProducts.forEach(p => {
-        const isChecked = data.selectedItemsMap.hasOwnProperty(p.key);
-        const extraQty = isChecked ? (data.selectedItemsMap[p.key] || 0) : 0;
-        if (isChecked) checkedCount++;
+      try {
+        logMsg(`🗑️ 正在清除資料庫中的主圖紀錄...`);
+        const { error: dbErr } = await supabaseClient.from('products_master').update({
+            img_url: null,
+            thumb_url: null,
+            image_url: null
+        }).eq('product_key', productKey);
         
-        const li = document.createElement('li');
-        li.className = isChecked ? 'item-card branch-item selected' : 'item-card branch-item';
-        
-        li.setAttribute('data-key', p.key);
-        li.setAttribute('data-barcode', p.barcode);
-        li.setAttribute('data-name', p.name);
-        li.setAttribute('data-originalname', p.originalName);
-        li.setAttribute('data-price', p.price);
-        
-        const qtyBadgeClass = p.qty <= 5 ? 'qty-badge low' : 'qty-badge';
+        if (dbErr) throw dbErr;
 
-        li.innerHTML = `
-          <div class="card-header">
-            <div class="barcode">條碼: ${p.barcode}</div>
-            <div class="${qtyBadgeClass}">A庫: ${p.qty}</div>
-          </div>
-          <div class="desc">${p.name}</div>
-          <div class="card-footer">
-            <div class="info-group">
-              <div class="price">$${p.price}</div>
-              <div class="date-label">發行日期：${p.date}</div>
-            </div>
-            ${p.img ? `<button class="btn-img" onclick="openImg('${p.name}', '${p.img}')">圖片預覽</button>` : ''}
-          </div>
-          <label class="branch-action">
-            <input type="checkbox" class="branch-cb" value="${p.key}" ${isChecked ? 'checked' : ''} onchange="updateBranchCardStyle(this)">
-            <span>${isChecked ? '已上架' : '尚未上架'}</span>
-          </label>
-          <div class="extra-qty-container" style="display: ${isChecked ? 'flex' : 'none'};">
-            <span style="font-size:13px; color:var(--text-light); font-weight:bold;">現場額外數量:</span>
-            <button class="btn-qty" type="button" onclick="changeExtraQty(this, -1)">-</button>
-            <input type="number" class="extra-qty-input" value="${extraQty}" min="0" onchange="validateExtraQty(this)">
-            <button class="btn-qty" type="button" onclick="changeExtraQty(this, 1)">+</button>
+        if (imgUrl && imgUrl.includes('supabase.co')) {
+            logMsg(`🗑️ 正在從雲端空間移除舊大圖...`);
+            const fileName = imgUrl.substring(imgUrl.lastIndexOf('/') + 1);
+            await supabaseClient.storage.from('product-images').remove([fileName]);
+        }
+        if (thumbUrl && thumbUrl.includes('supabase.co')) {
+            logMsg(`🗑️ 正在從雲端空間移除舊小圖...`);
+            const thumbFileName = thumbUrl.substring(thumbUrl.lastIndexOf('/') + 1);
+            await supabaseClient.storage.from('product-images').remove([thumbFileName]);
+        }
+
+        // 更新記憶體與畫面
+        product.img = null;
+        product.thumb = null;
+        renderCurrentMainImage(product);
+        filterMasterProducts(); 
+        
+        logMsg(`✅ 主圖已成功刪除！`);
+      } catch (e) {
+        logMsg(`❌ 刪除失敗: ${e.message}`);
+      }
+    }
+
+    // 清空拖曳進來但尚未儲存的新主圖
+    function clearPendingMainImage() {
+        processedFiles = { thumb: null, large: null };
+        document.getElementById('previewContainer').style.display = 'none';
+        document.getElementById('fileInput').value = '';
+    }
+
+    function handleFileSelect(event) {
+      if (event.target.files.length > 0) processImage(event.target.files[0]);
+    }
+
+    function processImage(file) {
+      if (!file.type.startsWith('image/')) return alert('請上傳圖片檔案！');
+      logMsg(`讀取主圖檔案：${file.name} (${(file.size/1024).toFixed(2)} KB)`);
+      document.getElementById('previewContainer').style.display = 'flex';
+      document.getElementById('logBox').style.display = 'block';
+      
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const size = Math.min(img.width, img.height);
+          const startX = (img.width - size) / 2;
+          const startY = (img.height - size) / 2;
+          createWebP(img, startX, startY, size, 600, 0.8, 'thumb');
+          createWebP(img, startX, startY, size, 1200, 0.85, 'large');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function createWebP(img, sX, sY, sSize, targetSize, quality, type) {
+      const canvas = document.createElement('canvas');
+      canvas.width = targetSize; canvas.height = targetSize;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, targetSize, targetSize);
+      ctx.drawImage(img, sX, sY, sSize, sSize, 0, 0, targetSize, targetSize);
+
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const kbSize = (blob.size / 1024).toFixed(2);
+        
+        if (type === 'thumb') {
+          document.getElementById('thumbPreview').src = url;
+          document.getElementById('thumbInfo').innerText = `600x600 px | WebP | ${kbSize} KB`;
+          processedFiles.thumb = blob;
+          logMsg(`生成小圖成功：${kbSize} KB`);
+        } else {
+          document.getElementById('largePreview').src = url;
+          document.getElementById('largeInfo').innerText = `1200x1200 px | WebP | ${kbSize} KB`;
+          processedFiles.large = blob;
+          logMsg(`生成大圖成功：${kbSize} KB`);
+        }
+      }, 'image/webp', quality);
+    }
+
+    function logMsg(msg) {
+      const box = document.getElementById('logBox');
+      const time = new Date().toLocaleTimeString();
+      box.innerHTML += `<div>[${time}] ${msg}</div>`;
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // ====== 附圖(畫廊)處理邏輯 ======
+    function renderExtraGallery(imagesArr) {
+      const container = document.getElementById('extraGalleryContainer');
+      container.innerHTML = '';
+      
+      if (!Array.isArray(imagesArr) || imagesArr.length === 0) {
+        container.innerHTML = '<div style="font-size: 13px; color: #94a3b8; width: 100%; text-align: center;"><i class="fa-solid fa-folder-open" style="margin-right:6px;"></i>目前沒有任何附加圖片</div>';
+        return;
+      }
+      
+      imagesArr.forEach((url, idx) => {
+        container.innerHTML += `
+          <div class="extra-img-box">
+            <img src="${url}">
+            <button type="button" class="btn-delete-img" onclick="deleteExtraImage('${url}', ${idx})" title="永久刪除這張附圖">
+              <i class="fa-solid fa-trash"></i>
+            </button>
           </div>
         `;
-        list.appendChild(li);
       });
+    }
 
-      document.getElementById('branchSelectionCount').innerText = `已上架: ${checkedCount} 筆`;
+    async function handleExtraFileSelect(event) {
+      if (event.target.files.length > 0) processAndUploadExtraImages(event.target.files);
+    }
+
+    // 將 File 轉換為 1200px 大圖 WebP Blob 的 Promise 
+    function processExtraToWebP(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = new Image();
+          img.onload = function() {
+            const size = Math.min(img.width, img.height);
+            const startX = (img.width - size) / 2;
+            const startY = (img.height - size) / 2;
+            const targetSize = 1200;
+            const canvas = document.createElement('canvas');
+            canvas.width = targetSize; canvas.height = targetSize;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, targetSize, targetSize);
+            ctx.drawImage(img, startX, startY, size, size, 0, 0, targetSize, targetSize);
+            canvas.toBlob((blob) => resolve(blob), 'image/webp', 0.85);
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function processAndUploadExtraImages(files) {
+      document.getElementById('logBox').style.display = 'block';
+      const productKey = document.getElementById('editMasterProductKey').value;
+      const barcode = document.getElementById('editMasterBarcode').value;
+      const product = globalMasterData.find(p => String(p.product_key) === String(productKey));
       
-      document.getElementById('loadingStatus').style.display = 'none';
-      document.getElementById('branchTabsContainer').style.display = 'flex';
-      document.getElementById('managerContent').style.display = 'flex';
-    }
+      let currentExtras = Array.isArray(product.extra_images) ? [...product.extra_images] : [];
 
-    function changeExtraQty(btn, amount) {
-      const input = btn.parentElement.querySelector('.extra-qty-input');
-      let val = parseInt(input.value) || 0;
-      val += amount;
-      if (val < 0) val = 0; 
-      input.value = val;
-    }
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file.type.startsWith('image/')) continue;
+        
+        logMsg(`📦 正在處理附圖 (${i+1}/${files.length}): ${file.name}`);
+        try {
+          const blob = await processExtraToWebP(file);
+          const fileName = `${barcode}_extra_${Date.now()}_${i}.webp`;
+          const bucketName = 'product-images';
 
-    function validateExtraQty(input) {
-      let val = parseInt(input.value) || 0;
-      if (val < 0) val = 0;
-      input.value = val;
-    }
+          logMsg(`📤 正在上傳附圖: ${fileName}`);
+          const { error: upErr } = await supabaseClient.storage.from(bucketName).upload(fileName, blob, { upsert: true, contentType: 'image/webp' });
+          if (upErr) throw upErr;
 
-    function updateBranchCardStyle(checkbox) {
-      const card = checkbox.closest('.item-card');
-      const span = checkbox.nextElementSibling;
-      const extraContainer = card.querySelector('.extra-qty-container');
-      
-      if (checkbox.checked) {
-        card.classList.add('selected');
-        span.innerText = '已上架';
-        extraContainer.style.display = 'flex'; 
-      } else {
-        card.classList.remove('selected');
-        span.innerText = '尚未上架';
-        extraContainer.style.display = 'none'; 
-        extraContainer.querySelector('.extra-qty-input').value = 0;
+          const url = supabaseClient.storage.from(bucketName).getPublicUrl(fileName).data.publicUrl;
+          currentExtras.push(url);
+          logMsg(`✅ 附圖上傳成功！`);
+        } catch (e) {
+          logMsg(`❌ 附圖上傳失敗: ${e.message}`);
+        }
       }
-      const totalChecked = document.querySelectorAll('.branch-cb:checked').length;
-      document.getElementById('branchSelectionCount').innerText = `已上架: ${totalChecked} 筆`;
-    }
 
-    function filterBranchProducts() {
-      const searchText = document.getElementById('branchSearchInput').value.toLowerCase();
-      const statusFilter = document.getElementById('branchStatusFilter').value;
-      const items = document.querySelectorAll('.branch-item');
-
-      items.forEach(item => {
-        const key = (item.dataset.key || '').toLowerCase();
-        const barcode = (item.dataset.barcode || '').toLowerCase();
-        const name = (item.dataset.name || '').toLowerCase();
-        const originalName = (item.dataset.originalname || '').toLowerCase();
-        const price = (item.dataset.price || '').toLowerCase();
-        
-        const isChecked = item.querySelector('.branch-cb').checked;
-
-        const matchesSearch = key.includes(searchText) || barcode.includes(searchText) || name.includes(searchText) || originalName.includes(searchText) || price.includes(searchText);
-        
-        let matchesStatus = true;
-        if (statusFilter === 'checked' && !isChecked) matchesStatus = false;
-        if (statusFilter === 'unchecked' && isChecked) matchesStatus = false;
-
-        if (matchesSearch && matchesStatus) {
-          item.style.display = 'flex';
-        } else {
-          item.style.display = 'none';
-        }
-      });
-    }
-
-    function toggleAllBranchCheckbox(checkState) {
-      const items = document.querySelectorAll('.branch-item');
-      items.forEach(item => {
-        if (item.style.display !== 'none') {
-          const cb = item.querySelector('.branch-cb');
-          if (cb) {
-            cb.checked = checkState;
-            updateBranchCardStyle(cb); 
-          }
-        }
-      });
-    }
-
-    async function saveBranchSettings() {
-      const checkedBoxes = document.querySelectorAll('.branch-cb:checked');
-      const itemsData = {}; 
-      checkedBoxes.forEach(cb => {
-        const card = cb.closest('.item-card');
-        const qtyInput = card.querySelector('.extra-qty-input');
-        itemsData[cb.value] = parseInt(qtyInput.value) || 0; 
-      });
+      logMsg(`🔄 正在更新資料庫...`);
+      const { error: dbErr } = await supabaseClient.from('products_master').update({extra_images: currentExtras}).eq('product_key', productKey);
       
-      const btnDesk = document.getElementById('btnSaveBranch');
-      const btnMob = document.getElementById('btnSaveBranchMobile');
-      btnDesk.innerText = "儲存中..."; btnDesk.disabled = true;
-      btnMob.innerText = "儲存中..."; btnMob.disabled = true;
+      if (!dbErr) {
+        product.extra_images = currentExtras;
+        renderExtraGallery(currentExtras);
+        logMsg(`🎉 附圖新增完成！`);
+        document.getElementById('extraFileInput').value = ''; 
+      } else {
+        logMsg(`❌ 資料庫更新失敗: ${dbErr.message}`);
+      }
+    }
+
+    async function deleteExtraImage(url, idx) {
+      if (!confirm('確定要永久刪除這張附圖嗎？\\n（⚠️ 此動作會立即清除雲端檔案與資料庫，無法復原！）')) return;
+      
+      document.getElementById('logBox').style.display = 'block';
+      const productKey = document.getElementById('editMasterProductKey').value;
+      const product = globalMasterData.find(p => String(p.product_key) === String(productKey));
+      
+      let currentExtras = Array.isArray(product.extra_images) ? [...product.extra_images] : [];
 
       try {
-        const { error: delErr } = await supabaseClient.from('branch_listings').delete().eq('branch_id', myBranchId);
-        if (delErr) throw delErr;
-        
-        const nowISO = new Date().toISOString();
+        logMsg(`🗑️ 正在從雲端刪除圖片...`);
+        const fileName = url.substring(url.lastIndexOf('/') + 1);
+        const { error: rmErr } = await supabaseClient.storage.from('product-images').remove([fileName]);
+        if (rmErr) logMsg(`⚠️ 雲端檔案刪除失敗 (可能已不存在)，但將繼續清理資料庫紀錄: ${rmErr.message}`);
 
-        const inserts = Object.keys(itemsData).map(key => ({
-            branch_id: myBranchId,
-            product_key: key,
-            is_listed: true,
-            extra_qty: itemsData[key],
-            updated_at: nowISO
-        }));
-        
-        if (inserts.length > 0) {
-            const { error: insErr } = await supabaseClient.from('branch_listings').insert(inserts);
-            if (insErr) throw insErr;
-        }
-        
-        await logSystemAction(myAccount, '更新了上架清單與現場數量');
-        alert("儲存成功！");
-      } catch (err) {
-        alert("儲存失敗：" + err.message);
+        logMsg(`🔄 正在更新資料庫...`);
+        currentExtras.splice(idx, 1);
+        const { error: dbErr } = await supabaseClient.from('products_master').update({extra_images: currentExtras}).eq('product_key', productKey);
+        if (dbErr) throw dbErr;
+
+        product.extra_images = currentExtras;
+        renderExtraGallery(currentExtras);
+        logMsg(`✅ 附圖刪除成功！`);
+      } catch (e) {
+        logMsg(`❌ 刪除失敗: ${e.message}`);
       }
-      
-      btnDesk.innerText = "💾 儲存上架清單"; btnDesk.disabled = false;
-      btnMob.innerText = "💾 確認儲存上架清單"; btnMob.disabled = false;
     }
 
+    async function saveMasterDataEdit() {
+      const productKey = document.getElementById('editMasterProductKey').value;
+      const barcode = document.getElementById('editMasterBarcode').value;
+      const name = document.getElementById('editMasterName').value;
+      const desc = document.getElementById('editMasterDesc').value;
+      
+      const btn = document.getElementById('btnSaveMasterEdit');
+      btn.innerText = "處理中..."; btn.disabled = true;
+      document.getElementById('logBox').style.display = 'block';
 
-    /* ========================================================= */
-    /* ================= A 級操作 (Supabase版) ================= */
-    /* ========================================================= */
+      let updatePayload = { name: name, description: desc };
 
+      try {
+        if (processedFiles.thumb && processedFiles.large) {
+          logMsg('============== 開始上傳新主圖 ==============');
+          const thumbFileName = `${barcode}_thumb.webp`;
+          const largeFileName = `${barcode}.webp`;
+          const bucketName = 'product-images';
+
+          logMsg(`[1/3] 正在上傳主圖(小)...`);
+          const { error: thumbErr } = await supabaseClient.storage.from(bucketName).upload(thumbFileName, processedFiles.thumb, { upsert: true, contentType: 'image/webp' });
+          if (thumbErr) throw thumbErr;
+
+          logMsg(`[2/3] 正在上傳主圖(大)...`);
+          const { error: largeErr } = await supabaseClient.storage.from(bucketName).upload(largeFileName, processedFiles.large, { upsert: true, contentType: 'image/webp' });
+          if (largeErr) throw largeErr;
+
+          logMsg(`[3/3] 取得公開網址...`);
+          const thumbUrl = supabaseClient.storage.from(bucketName).getPublicUrl(thumbFileName).data.publicUrl;
+          const largeUrl = supabaseClient.storage.from(bucketName).getPublicUrl(largeFileName).data.publicUrl;
+
+          updatePayload.thumb_url = thumbUrl;
+          updatePayload.image_url = largeUrl;
+          updatePayload.img_url = largeUrl; 
+        }
+
+        logMsg(`開始更新主檔資料庫...`);
+        const { error: upErr } = await supabaseClient.from('products_master').update(updatePayload).eq('product_key', productKey);
+        
+        if (upErr) throw upErr;
+        await logSystemAction(myAccount, `修改商品主檔資訊 (名稱:${name})`);
+        logMsg(`🎉 任務完成！主檔已更新。`);
+        
+        setTimeout(() => {
+            alert('主檔修改成功！');
+            closeEditMasterModal();
+            const item = globalMasterData.find(p => String(p.product_key) === String(productKey));
+            if (item) {
+              item.name = name; item.desc = desc;
+              if (updatePayload.img_url) { item.img = updatePayload.img_url; item.thumb = updatePayload.thumb_url; }
+              filterMasterProducts(); 
+            }
+        }, 600);
+        
+      } catch (err) {
+        logMsg(`❌ 發生錯誤: ${err.message}`);
+        alert('儲存失敗：' + err.message);
+      } finally {
+        btn.innerText = "💾 儲存修改"; btn.disabled = false;
+      }
+    }
+
+    // ====== 下方皆為 A、B 級其他共用與管理功能 ======
     async function loadAdminData() {
       document.getElementById('adminLoading').style.display = 'block';
+      document.getElementById('adminLoading').innerText = '讀取清單中...';
       document.getElementById('adminProductContainer').style.display = 'none';
       try {
         const masterData = await fetchAllData('products_master', '*');
@@ -923,7 +1132,6 @@
         const inventoryData = await fetchAllData('inventory', 'product_key, qty'); 
 
         const allowedKeys = allowlistData.map(r => r.product_key);
-        
         const qtyMap = {};
         inventoryData.forEach(inv => {
           qtyMap[inv.product_key] = (qtyMap[inv.product_key] || 0) + Number(inv.qty || 0);
@@ -939,9 +1147,11 @@
           qty: qtyMap[row.product_key] || 0,
           isAllowed: allowedKeys.includes(row.product_key)
         }));
+        
+        document.getElementById('adminLoading').style.display = 'none';
         renderAdmin(adminProducts);
       } catch (err) {
-        alert("載入出錯：" + err.message);
+        document.getElementById('adminLoading').innerHTML = `<div style="color:#ef4444; font-weight:bold; padding: 20px; text-align:center;">載入出錯：${err.message}</div>`;
       }
     }
 
@@ -951,7 +1161,6 @@
       products.forEach(p => {
         const div = document.createElement('label');
         div.className = 'admin-item';
-        
         div.setAttribute('data-key', p.key);
         div.setAttribute('data-barcode', p.barcode);
         div.setAttribute('data-name', p.name);
@@ -976,7 +1185,6 @@
         `;
         container.appendChild(div);
       });
-      document.getElementById('adminLoading').style.display = 'none';
       container.style.display = 'grid';
       updateAdminCount();
     }
@@ -990,9 +1198,7 @@
     let adminSearchTimeout = null;
     function debounceFilterAdminProducts() {
       clearTimeout(adminSearchTimeout);
-      adminSearchTimeout = setTimeout(() => {
-        filterAdminProducts();
-      }, 300);
+      adminSearchTimeout = setTimeout(() => { filterAdminProducts(); }, 300);
     }
 
     function filterAdminProducts() {
@@ -1010,7 +1216,6 @@
         const qty = (ds.qty || '').toLowerCase();
 
         const isChecked = item.querySelector('.admin-cb').checked;
-
         const matchesSearch = key.includes(searchText) || barcode.includes(searchText) || name.includes(searchText) || originalName.includes(searchText) || price.includes(searchText) || qty.includes(searchText);
 
         let matchesStatus = true;
@@ -1052,11 +1257,9 @@
       } catch (err) {
         alert("儲存失敗：" + err.message);
       }
-
       btnDesk.innerText = "儲存權限設定"; btnDesk.disabled = false;
       btnMob.innerText = "💾 儲存權限"; btnMob.disabled = false;
     }
-
 
     function readFileAsArrayBuffer(file) {
       return new Promise((resolve, reject) => {
@@ -1071,8 +1274,7 @@
       const files = document.getElementById('excelFile').files;
       if (files.length === 0) return alert("請先選取庫存 Excel 檔案！");
       const btn = document.getElementById('upBtn');
-      btn.innerText = "檔案讀取與合併中..."; 
-      btn.disabled = true;
+      btn.innerText = "檔案讀取與合併中..."; btn.disabled = true;
 
       try {
         let allMergedRows = [];
@@ -1097,7 +1299,6 @@
         }
 
         const nowISO = new Date().toISOString();
-
         const inserts = allMergedRows.map(row => {
             const branchId = String(row[1]).trim();
             const cat = String(row[2]).trim();
@@ -1120,11 +1321,7 @@
         alert("大資料庫已成功覆蓋更新");
 
         document.getElementById('excelFile').value = '';
-        loadAdminData(); 
-        loadLeaderboard(); 
-        loadMasterData();
-        loadExtraStock();
-
+        loadAdminData(); loadLeaderboard(); loadMasterData(); loadExtraStock();
       } catch (error) {
         alert("Excel 解析或上傳失敗！\n" + error.message);
       }
@@ -1135,8 +1332,7 @@
       const files = document.getElementById('masterExcelFile').files;
       if (files.length === 0) return alert("請先選取商品主檔 Excel 檔案！");
       const btn = document.getElementById('upMasterBtn');
-      btn.innerText = "檔案比對與上傳中..."; 
-      btn.disabled = true;
+      btn.innerText = "檔案比對與上傳中..."; btn.disabled = true;
 
       try {
         let allMergedRows = [];
@@ -1156,7 +1352,6 @@
 
         const existing = await fetchAllData('products_master', 'product_key');
         const existKeys = new Set(existing.map(r => r.product_key));
-
         const newInserts = [];
         allMergedRows.forEach(row => {
           const cat = String(row[1]).trim();
@@ -1191,7 +1386,6 @@
         
         document.getElementById('masterExcelFile').value = '';
         loadMasterData();
-
       } catch (error) {
         alert("Excel 解析或上傳失敗！\n" + error.message);
       }
@@ -1201,12 +1395,12 @@
     let globalLeaderboardData = []; 
     async function loadLeaderboard() {
       document.getElementById('leaderboardLoading').style.display = 'block';
+      document.getElementById('leaderboardLoading').innerText = "計算排行榜中...";
       document.getElementById('leaderboardContainer').style.display = 'none';
       if(document.getElementById('leaderboardSearchInput')) document.getElementById('leaderboardSearchInput').value = ''; 
       
       try {
         const branches = await fetchAllData('users', 'branch_id, branch_name', [{op: 'eq', col: 'role', val: 'B'}]);
-        
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const logs = await fetchAllData('system_logs', 'account, created_at', [{op: 'gte', col: 'created_at', val: thirtyDaysAgo.toISOString()}]);
@@ -1261,13 +1455,13 @@
           };
         });
         leaderboard.sort((a,b) => b.totalScore - a.totalScore);
-        
         globalLeaderboardData = leaderboard;
+        
         document.getElementById('leaderboardLoading').style.display = 'none';
         renderLeaderboardList(globalLeaderboardData);
         document.getElementById('leaderboardContainer').style.display = 'block';
       } catch (err) {
-        document.getElementById('leaderboardLoading').innerText = "計算失敗：" + err.message;
+        document.getElementById('leaderboardLoading').innerHTML = `<div style="color:#ef4444; font-weight:bold; padding: 20px; text-align:center;">計算失敗：${err.message}</div>`;
       }
     }
 
@@ -1304,231 +1498,10 @@
       renderLeaderboardList(filtered);
     }
 
-    /* ====== ★ A 級商品主檔與圖片壓縮引擎 ====== */
-    let globalMasterData = [];
-    async function loadMasterData() {
-      const btn = document.getElementById('btnLoadMaster');
-      btn.innerText = "載入中..."; btn.disabled = true;
-      document.getElementById('masterLoading').style.display = 'block';
-      document.getElementById('masterProductContainer').style.display = 'none';
-      
-      try {
-        const data = await fetchAllData('products_master', '*');
-        const results = data.map((row) => ({
-          product_key: row.product_key,
-          barcode: row.barcode,
-          originalName: row.original_name,
-          name: row.name,
-          img: row.img_url,
-          thumb: row.thumb_url,
-          desc: row.description
-        }));
-        globalMasterData = results;
-        renderMasterProducts(globalMasterData);
-      } catch (err) {
-        alert('讀取失敗：' + err.message);
-      }
-      
-      btn.innerText = "🔄 載入最新主檔"; btn.disabled = false;
-      document.getElementById('masterLoading').style.display = 'none';
-    }
-
-    function renderMasterProducts(list) {
-      const container = document.getElementById('masterProductContainer');
-      container.innerHTML = '';
-      if (list.length === 0) {
-        container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 20px;">找不到符合的商品</div>';
-        container.style.display = 'grid'; return;
-      }
-      list.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'admin-item';
-        div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center';
-        const safeKey = encodeURIComponent(p.product_key || "");
-        div.innerHTML = `
-          <div class="admin-item-info">
-            <span class="admin-item-title" style="color: var(--primary-dark);">${p.name || '(未命名商品)'}</span>
-            <span class="admin-item-code">條碼: ${p.barcode}</span>
-            <span class="admin-item-code" style="margin-top: 4px;">原始說明: <span style="color:#b45309; font-weight:bold;">${p.originalName || '無'}</span></span>
-          </div>
-          <button type="button" class="btn-edit-master" onclick="openEditMasterModalByKey('${safeKey}')">✏️ 編輯</button>
-        `;
-        container.appendChild(div);
-      });
-      container.style.display = 'grid';
-    }
-
-    function filterMasterProducts() {
-      const search = document.getElementById('masterSearchInput').value.toLowerCase();
-      const filtered = globalMasterData.filter(p => 
-        (p.name || '').toLowerCase().includes(search) || 
-        (p.barcode || '').toLowerCase().includes(search) || 
-        (p.originalName || '').toLowerCase().includes(search) ||
-        (p.product_key || '').toLowerCase().includes(search)
-      );
-      renderMasterProducts(filtered);
-    }
-
-    function openEditMasterModalByKey(encKey) {
-      const realKey = decodeURIComponent(encKey);
-      const p = globalMasterData.find(item => String(item.product_key) === realKey);
-      if(!p) return alert('載入商品資料錯誤，請重新整理頁面。');
-      
-      document.getElementById('editMasterProductKey').value = p.product_key;
-      document.getElementById('editMasterBarcode').value = p.barcode;
-      document.getElementById('editMasterOriginalName').value = p.originalName || '';
-      document.getElementById('editMasterName').value = p.name || '';
-      document.getElementById('editMasterDesc').value = p.desc || '';
-      
-      // 重置圖片處理狀態
-      processedFiles = { thumb: null, large: null };
-      document.getElementById('previewContainer').style.display = 'none';
-      document.getElementById('logBox').style.display = 'none';
-      document.getElementById('logBox').innerHTML = '';
-      
-      document.getElementById('editMasterModal').style.display = 'flex';
-    }
-
-    function closeEditMasterModal() { document.getElementById('editMasterModal').style.display = 'none'; }
-
-    // --- 處理圖片上傳選擇 ---
-    function handleFileSelect(event) {
-      if (event.target.files.length > 0) {
-        processImage(event.target.files[0]);
-      }
-    }
-
-    function processImage(file) {
-      if (!file.type.startsWith('image/')) {
-        alert('請上傳圖片檔案！');
-        return;
-      }
-
-      logMsg(`讀取檔案：${file.name} (${(file.size/1024).toFixed(2)} KB)`);
-      document.getElementById('previewContainer').style.display = 'flex';
-      document.getElementById('logBox').style.display = 'block';
-      
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const img = new Image();
-        img.onload = function() {
-          const size = Math.min(img.width, img.height);
-          const startX = (img.width - size) / 2;
-          const startY = (img.height - size) / 2;
-
-          createWebP(img, startX, startY, size, 600, 0.8, 'thumb');
-          createWebP(img, startX, startY, size, 1200, 0.85, 'large');
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function createWebP(img, sX, sY, sSize, targetSize, quality, type) {
-      const canvas = document.createElement('canvas');
-      canvas.width = targetSize;
-      canvas.height = targetSize;
-      const ctx = canvas.getContext('2d');
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, targetSize, targetSize);
-      ctx.drawImage(img, sX, sY, sSize, sSize, 0, 0, targetSize, targetSize);
-
-      canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob);
-        const kbSize = (blob.size / 1024).toFixed(2);
-        
-        if (type === 'thumb') {
-          document.getElementById('thumbPreview').src = url;
-          document.getElementById('thumbInfo').innerText = `600x600 px | WebP | ${kbSize} KB`;
-          processedFiles.thumb = blob;
-          logMsg(`生成小圖成功：${kbSize} KB`);
-        } else {
-          document.getElementById('largePreview').src = url;
-          document.getElementById('largeInfo').innerText = `1200x1200 px | WebP | ${kbSize} KB`;
-          processedFiles.large = blob;
-          logMsg(`生成大圖成功：${kbSize} KB`);
-        }
-      }, 'image/webp', quality);
-    }
-
-    function logMsg(msg) {
-      const box = document.getElementById('logBox');
-      const time = new Date().toLocaleTimeString();
-      box.innerHTML += `<div>[${time}] ${msg}</div>`;
-      box.scrollTop = box.scrollHeight;
-    }
-
-    async function saveMasterDataEdit() {
-      const productKey = document.getElementById('editMasterProductKey').value;
-      const barcode = document.getElementById('editMasterBarcode').value;
-      const name = document.getElementById('editMasterName').value;
-      const desc = document.getElementById('editMasterDesc').value;
-      
-      const btn = document.getElementById('btnSaveMasterEdit');
-      btn.innerText = "處理中..."; btn.disabled = true;
-      document.getElementById('logBox').style.display = 'block';
-
-      let updatePayload = { name: name, description: desc };
-
-      try {
-        // 如果有重新上傳圖片，執行 Storage 上傳
-        if (processedFiles.thumb && processedFiles.large) {
-          logMsg('============== 開始上傳圖片 ==============');
-          const thumbFileName = `${barcode}_thumb.webp`;
-          const largeFileName = `${barcode}.webp`;
-          const bucketName = 'product-images';
-
-          logMsg(`[1/3] 正在上傳小圖...`);
-          const { error: thumbErr } = await supabaseClient.storage.from(bucketName).upload(thumbFileName, processedFiles.thumb, { upsert: true, contentType: 'image/webp' });
-          if (thumbErr) throw thumbErr;
-
-          logMsg(`[2/3] 正在上傳大圖...`);
-          const { error: largeErr } = await supabaseClient.storage.from(bucketName).upload(largeFileName, processedFiles.large, { upsert: true, contentType: 'image/webp' });
-          if (largeErr) throw largeErr;
-
-          logMsg(`[3/3] 取得公開網址...`);
-          const thumbUrl = supabaseClient.storage.from(bucketName).getPublicUrl(thumbFileName).data.publicUrl;
-          const largeUrl = supabaseClient.storage.from(bucketName).getPublicUrl(largeFileName).data.publicUrl;
-
-          updatePayload.thumb_url = thumbUrl;
-          updatePayload.image_url = largeUrl;
-          updatePayload.img_url = largeUrl; // 相容舊有寫法
-        }
-
-        logMsg(`開始更新主檔資料庫...`);
-        const { error: upErr } = await supabaseClient.from('products_master').update(updatePayload).eq('product_key', productKey);
-        
-        if (upErr) throw upErr;
-        
-        await logSystemAction(myAccount, `修改商品主檔資訊 (名稱:${name})`);
-        
-        logMsg(`🎉 任務完成！主檔已更新。`);
-        
-        setTimeout(() => {
-            alert('主檔修改成功！');
-            closeEditMasterModal();
-            const item = globalMasterData.find(p => String(p.product_key) === String(productKey));
-            if (item) {
-              item.name = name; item.desc = desc;
-              if (updatePayload.img_url) { item.img = updatePayload.img_url; item.thumb = updatePayload.thumb_url; }
-              filterMasterProducts(); 
-            }
-        }, 600);
-        
-      } catch (err) {
-        logMsg(`❌ 發生錯誤: ${err.message}`);
-        alert('儲存失敗：' + err.message);
-      } finally {
-        btn.innerText = "💾 確認儲存修改"; btn.disabled = false;
-      }
-    }
-
-
-    /* ====== ★ A 級專屬：現場庫存 ======= */
     let globalExtraStockData = [];
     async function loadExtraStock() {
       document.getElementById('extraStockLoading').style.display = 'block';
+      document.getElementById('extraStockLoading').innerText = "資料撈取中...";
       document.getElementById('extraStockContainer').style.display = 'none';
       if(document.getElementById('extraStockSearch')) document.getElementById('extraStockSearch').value = '';
       
@@ -1553,10 +1526,11 @@
         }));
         results.sort((a,b) => a.productName.localeCompare(b.productName) || a.branchName.localeCompare(b.branchName));
         globalExtraStockData = results;
+        
         document.getElementById('extraStockLoading').style.display = 'none';
         renderExtraStock(globalExtraStockData);
       } catch (err) {
-        alert('載入失敗：' + err.message);
+        document.getElementById('extraStockLoading').innerHTML = `<div style="color:#ef4444; font-weight:bold; padding: 20px; text-align:center;">載入失敗：${err.message}</div>`;
       }
     }
 
@@ -1598,7 +1572,205 @@
       renderExtraStock(filtered);
     }
 
-    /* ====== 圖片預覽與共用邏輯 ====== */
+    async function loadBranchData() {
+      try {
+        const allowlistData = await fetchAllData('global_allowlist', 'product_key');
+        const allowedKeys = allowlistData.map(r => r.product_key);
+
+        const masterData = await fetchAllData('products_master', '*');
+        const mainMap = {};
+        masterData.forEach(row => mainMap[row.product_key] = row);
+
+        const invData = await fetchAllData('inventory', '*', [{op: 'eq', col: 'branch_id', val: myBranchId}]);
+
+        const listingsData = await fetchAllData('branch_listings', '*', [{op: 'eq', col: 'branch_id', val: myBranchId}, {op: 'eq', col: 'is_listed', val: true}]);
+        const selectedItemsMap = {};
+        listingsData.forEach(row => {
+          if (allowedKeys.includes(row.product_key)) {
+            selectedItemsMap[row.product_key] = row.extra_qty || 0;
+          }
+        });
+
+        const myProducts = invData.map(row => {
+          const info = mainMap[row.product_key];
+          return {
+            key: row.product_key,
+            barcode: info ? (info.barcode || row.product_key) : row.product_key,
+            name: info ? (info.original_name || info.name || "未命名商品") : "未命名商品",
+            originalName: info ? (info.original_name || "") : "",
+            price: info ? (info.price || 0) : 0,
+            date: (info && info.publish_date && info.publish_date !== 'null') ? info.publish_date : "未提供",
+            img: info ? (info.img_url || "") : "",
+            qty: row.qty || 0
+          };
+        }).filter(p => allowedKeys.includes(p.key));
+
+        renderBranch({ allProducts: myProducts, selectedItemsMap: selectedItemsMap });
+      } catch (err) {
+        document.getElementById('loadingStatus').innerHTML = `<div style="color:#ef4444; font-weight:bold; padding: 20px;">載入出錯：${err.message}</div>`;
+      }
+    }
+
+    function renderBranch(data) {
+      const list = document.getElementById('branchProductList');
+      list.innerHTML = '';
+      let checkedCount = 0;
+
+      data.allProducts.forEach(p => {
+        const isChecked = data.selectedItemsMap.hasOwnProperty(p.key);
+        const extraQty = isChecked ? (data.selectedItemsMap[p.key] || 0) : 0;
+        if (isChecked) checkedCount++;
+        
+        const li = document.createElement('li');
+        li.className = isChecked ? 'item-card branch-item selected' : 'item-card branch-item';
+        li.setAttribute('data-key', p.key);
+        li.setAttribute('data-barcode', p.barcode);
+        li.setAttribute('data-name', p.name);
+        li.setAttribute('data-originalname', p.originalName);
+        li.setAttribute('data-price', p.price);
+        
+        const qtyBadgeClass = p.qty <= 5 ? 'qty-badge low' : 'qty-badge';
+
+        li.innerHTML = `
+          <div class="card-header">
+            <div class="barcode">條碼: ${p.barcode}</div>
+            <div class="${qtyBadgeClass}">A庫: ${p.qty}</div>
+          </div>
+          <div class="desc">${p.name}</div>
+          <div class="card-footer">
+            <div class="info-group">
+              <div class="price">$${p.price}</div>
+              <div class="date-label">發行日期：${p.date}</div>
+            </div>
+            ${p.img ? `<button class="btn-img" onclick="openImg('${p.name}', '${p.img}')">圖片預覽</button>` : ''}
+          </div>
+          <label class="branch-action">
+            <input type="checkbox" class="branch-cb" value="${p.key}" ${isChecked ? 'checked' : ''} onchange="updateBranchCardStyle(this)">
+            <span>${isChecked ? '已上架' : '尚未上架'}</span>
+          </label>
+          <div class="extra-qty-container" style="display: ${isChecked ? 'flex' : 'none'};">
+            <span style="font-size:13px; color:var(--text-light); font-weight:bold;">現場額外數量:</span>
+            <button class="btn-qty" type="button" onclick="changeExtraQty(this, -1)">-</button>
+            <input type="number" class="extra-qty-input" value="${extraQty}" min="0" onchange="validateExtraQty(this)">
+            <button class="btn-qty" type="button" onclick="changeExtraQty(this, 1)">+</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+
+      document.getElementById('branchSelectionCount').innerText = `已上架: ${checkedCount} 筆`;
+      document.getElementById('loadingStatus').style.display = 'none';
+      document.getElementById('branchTabsContainer').style.display = 'flex';
+      document.getElementById('managerContent').style.display = 'flex';
+    }
+
+    function changeExtraQty(btn, amount) {
+      const input = btn.parentElement.querySelector('.extra-qty-input');
+      let val = parseInt(input.value) || 0;
+      val += amount;
+      if (val < 0) val = 0; 
+      input.value = val;
+    }
+
+    function validateExtraQty(input) {
+      let val = parseInt(input.value) || 0;
+      if (val < 0) val = 0;
+      input.value = val;
+    }
+
+    function updateBranchCardStyle(checkbox) {
+      const card = checkbox.closest('.item-card');
+      const span = checkbox.nextElementSibling;
+      const extraContainer = card.querySelector('.extra-qty-container');
+      
+      if (checkbox.checked) {
+        card.classList.add('selected');
+        span.innerText = '已上架';
+        extraContainer.style.display = 'flex'; 
+      } else {
+        card.classList.remove('selected');
+        span.innerText = '尚未上架';
+        extraContainer.style.display = 'none'; 
+        extraContainer.querySelector('.extra-qty-input').value = 0;
+      }
+      const totalChecked = document.querySelectorAll('.branch-cb:checked').length;
+      document.getElementById('branchSelectionCount').innerText = `已上架: ${totalChecked} 筆`;
+    }
+
+    function filterBranchProducts() {
+      const searchText = document.getElementById('branchSearchInput').value.toLowerCase();
+      const statusFilter = document.getElementById('branchStatusFilter').value;
+      const items = document.querySelectorAll('.branch-item');
+
+      items.forEach(item => {
+        const key = (item.dataset.key || '').toLowerCase();
+        const barcode = (item.dataset.barcode || '').toLowerCase();
+        const name = (item.dataset.name || '').toLowerCase();
+        const originalName = (item.dataset.originalname || '').toLowerCase();
+        const price = (item.dataset.price || '').toLowerCase();
+        const isChecked = item.querySelector('.branch-cb').checked;
+        const matchesSearch = key.includes(searchText) || barcode.includes(searchText) || name.includes(searchText) || originalName.includes(searchText) || price.includes(searchText);
+        let matchesStatus = true;
+        if (statusFilter === 'checked' && !isChecked) matchesStatus = false;
+        if (statusFilter === 'unchecked' && isChecked) matchesStatus = false;
+
+        if (matchesSearch && matchesStatus) item.style.display = 'flex';
+        else item.style.display = 'none';
+      });
+    }
+
+    function toggleAllBranchCheckbox(checkState) {
+      const items = document.querySelectorAll('.branch-item');
+      items.forEach(item => {
+        if (item.style.display !== 'none') {
+          const cb = item.querySelector('.branch-cb');
+          if (cb) { cb.checked = checkState; updateBranchCardStyle(cb); }
+        }
+      });
+    }
+
+    async function saveBranchSettings() {
+      const checkedBoxes = document.querySelectorAll('.branch-cb:checked');
+      const itemsData = {}; 
+      checkedBoxes.forEach(cb => {
+        const card = cb.closest('.item-card');
+        const qtyInput = card.querySelector('.extra-qty-input');
+        itemsData[cb.value] = parseInt(qtyInput.value) || 0; 
+      });
+      
+      const btnDesk = document.getElementById('btnSaveBranch');
+      const btnMob = document.getElementById('btnSaveBranchMobile');
+      btnDesk.innerText = "儲存中..."; btnDesk.disabled = true;
+      btnMob.innerText = "儲存中..."; btnMob.disabled = true;
+
+      try {
+        const { error: delErr } = await supabaseClient.from('branch_listings').delete().eq('branch_id', myBranchId);
+        if (delErr) throw delErr;
+        
+        const nowISO = new Date().toISOString();
+        const inserts = Object.keys(itemsData).map(key => ({
+            branch_id: myBranchId,
+            product_key: key,
+            is_listed: true,
+            extra_qty: itemsData[key],
+            updated_at: nowISO
+        }));
+        
+        if (inserts.length > 0) {
+            const { error: insErr } = await supabaseClient.from('branch_listings').insert(inserts);
+            if (insErr) throw insErr;
+        }
+        
+        await logSystemAction(myAccount, '更新了上架清單與現場數量');
+        alert("儲存成功！");
+      } catch (err) {
+        alert("儲存失敗：" + err.message);
+      }
+      
+      btnDesk.innerText = "💾 儲存上架清單"; btnDesk.disabled = false;
+      btnMob.innerText = "💾 確認儲存上架清單"; btnMob.disabled = false;
+    }
+
     function openImg(title, url) { document.getElementById('modalTitle').innerText = title; document.getElementById('modalImg').src = url; document.getElementById('imgModal').style.display = 'flex'; }
     function closeImgModal() { document.getElementById('imgModal').style.display = 'none'; }
     
