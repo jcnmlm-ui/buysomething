@@ -200,21 +200,28 @@
     .btn-delete-extra { position: absolute; top: 4px; right: 4px; background: rgba(239, 68, 68, 0.9); color: white; border: none; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;}
     .btn-delete-extra:hover { background: #dc2626; transform: scale(1.1); }
 
-    /* === ★ Editor.js 專欄樣式微調 (解決無法點擊空白處的問題) === */
+    /* === ★ Editor.js 專欄樣式微調 (徹底解決死角問題) === */
+    /* 1. 讓外框只負責邊框跟背景，不插手 padding */
     #editorjs { 
       background: #fff; 
       border: 1px solid #cbd5e0; 
       border-radius: 6px; 
-      padding: 10px 20px; 
       margin-bottom: 15px; 
       text-align: left; 
-      cursor: text; /* 讓滑鼠移過去變成打字游標，提示可點擊 */
+      cursor: text; 
+      overflow: hidden; /* 防止子元素超出版界 */
+    }
+    /* 2. 把 Padding 轉移給 Editor.js 原生的一級容器，確保所有點擊都能被原廠捕捉 */
+    .codex-editor {
+      padding: 20px !important;
     }
     .ce-block__content, .ce-toolbar__content { 
-      max-width: 100%; /* 取消預設的寬度限制，讓排版更靈活 */ 
+      max-width: 100%; 
     }
+    /* 3. 確保最底部永遠有寬廣的輸入留白區，點擊這裡即可開始新段落 */
     .codex-editor__redactor {
-      padding-bottom: 80px !important; /* 確保內部底部永遠有留白可以點擊 */
+      min-height: 300px !important;
+      padding-bottom: 150px !important; 
     }
 
     /* === 回到最上方按鈕 === */
@@ -277,7 +284,6 @@
         <button class="tab-btn" onclick="switchAdminTab('tab-leaderboard', this)">🏆 排行榜</button>
         <button class="tab-btn" onclick="switchAdminTab('tab-master', this)">📝 主檔維護</button>
         <button class="tab-btn" onclick="switchAdminTab('tab-admin-extrastock', this)">📦 現場庫存</button>
-        <!-- ★ 新增專欄管理頁籤 -->
         <button class="tab-btn" onclick="switchAdminTab('tab-blog', this)">📰 專欄管理</button>
       </div>
 
@@ -390,7 +396,7 @@
         </div>
       </div>
 
-      <!-- ★ 專欄管理頁面 (整合 Editor.js) -->
+      <!-- ★ 專欄管理頁面 -->
       <div id="tab-blog" class="tab-content">
         <div style="display: flex; gap: 20px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto;">
           <!-- 左側：文章列表 -->
@@ -436,8 +442,8 @@
             <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">文章內容 (Editor.js 智慧編輯器)</label>
             <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">提示：點擊下方空白處即可開始打字。反白文字可設定粗體或超連結。點擊左側 <code>+</code> 號可插入圖片或清單。</div>
             
-            <!-- ★ 這裡加上了 onclick 事件，確保點擊外框也能直接對焦到編輯器 -->
-            <div id="editorjs" onclick="if(editor){editor.focus(true);}"></div>
+            <!-- ★ 移除了會引發報錯的 onclick 事件，改由全 CSS 解決點擊死角 -->
+            <div id="editorjs"></div>
             
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
               <label style="font-weight: bold; display: flex; align-items: center; cursor: pointer; color: #333; font-size: 16px;">
@@ -678,8 +684,7 @@
       editor = new EditorJS({
         holder: 'editorjs',
         placeholder: '在這裡開始撰寫您的小編專欄（點擊空白處即可開始）...',
-        // ★ 核心修復：設定這個高度，讓整個白框區域都成為可點擊的輸入區
-        minHeight: 350, 
+        minHeight: 300, 
         tools: {
           header: {
             class: Header,
