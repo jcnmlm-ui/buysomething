@@ -186,7 +186,9 @@
           .single();
 
         if (error) throw error;
-        if (!data || !data.is_published) throw new Error('文章不存在或尚未公開');
+        // ★ 未發布、或排程時間還沒到的文章，直接視為「尚未公開」
+        const notYet = data && data.publish_at && new Date(data.publish_at) > new Date();
+        if (!data || !data.is_published || notYet) throw new Error('文章不存在或尚未公開');
 
         document.getElementById('loading').style.display = 'none';
         document.getElementById('articleBox').style.display = 'block';
