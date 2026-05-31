@@ -48,8 +48,8 @@ const breadcrumbLd = {
 ---
 <Base title={`${article.title}｜郵風快訊`} description={desc} canonical={canonical} ogType="article" ogImage={ogImage} jsonLd={[jsonLd, breadcrumbLd]}>
   <header class="header">
-    <a href={`${base}blog/`} class="btn-back">← 回列表</a>
-    <h2 class="header-title">郵風小編專欄</h2>
+    <a href={`${base}blog/`} class="btn-back"><i class="fa-solid fa-arrow-left"></i> 郵風快訊</a>
+    <h2 class="header-title"><i class="fa-solid fa-pen-nib"></i> 郵風小編專欄</h2>
     <div style="width:80px;"></div>
   </header>
 
@@ -64,14 +64,14 @@ const breadcrumbLd = {
       {ogImage && <img class="cover-img" src={ogImage} alt={article.title} decoding="async" />}
       <div class="content-area">
         <h1 class="post-title">{article.title}</h1>
-        <div class="post-meta">🕒 發布日期：{dateStr}　|　✍️ 作者：郵局企劃科小編</div>
+        <div class="post-meta"><i class="fa-regular fa-clock"></i> 發布日期：{dateStr}　|　<i class="fa-solid fa-pen-nib"></i> 作者：郵局企劃科小編</div>
         <div class="a-body" set:html={bodyHtml}></div>
       </div>
     </article>
 
     {related.length > 0 && (
       <section class="related">
-        <h2 class="related-title">📚 你可能也想看</h2>
+        <h2 class="related-title"><i class="fa-solid fa-book-open"></i> 你可能也想看</h2>
         <div class="related-grid">
           {related.map((r) => (
             <a href={`${base}article/${r.id}/`} class="related-card">
