@@ -3,9 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>文章載入中...｜郵風快訊</title>
-  
-  <meta name="description" content="閱讀高雄郵局小編最新專欄文章">
+  <title>郵風小編專欄｜高雄郵局 郵風快訊</title>
+  <meta name="description" content="高雄郵局郵風快訊小編專欄：郵政文創商品開箱、節慶送禮推薦與在地特色明信片介紹。">
+
+  <!-- ★ SEO / 社群分享 meta：靜態預設值，載入文章後由 JS 更新為該篇專屬內容 -->
+  <link rel="canonical" href="">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="郵風快訊">
+  <meta property="og:title" content="郵風小編專欄｜高雄郵局 郵風快訊">
+  <meta property="og:description" content="高雄郵局郵風快訊小編專欄：商品開箱、送禮推薦與郵政小故事。">
+  <meta property="og:url" content="">
+  <meta property="og:image" content="">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="郵風小編專欄｜高雄郵局 郵風快訊">
+  <meta name="twitter:description" content="高雄郵局郵風快訊小編專欄：商品開箱、送禮推薦與郵政小故事。">
+  <meta name="twitter:image" content="">
   
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -169,6 +181,28 @@
       return html || '<p style="color:#94a3b8;">（這篇文章還沒有內容）</p>';
     }
 
+    // ★ SEO 設定（可自行填寫）
+    const SITE_NAME = '高雄郵局 郵風快訊';
+    const SITE_LOGO = '';      // ← 有官方 LOGO 圖片網址可填這（用於結構化資料 publisher.logo）
+    const SITE_OG_IMAGE = '';  // ← 文章無封面時的預設分享圖網址（建議 1200x630）
+
+    // 找不到就新建，統一更新 <meta>/<link>
+    function setMetaName(name, content) {
+      let el = document.head.querySelector(`meta[name="${name}"]`);
+      if (!el) { el = document.createElement('meta'); el.setAttribute('name', name); document.head.appendChild(el); }
+      el.setAttribute('content', content || '');
+    }
+    function setMetaProp(prop, content) {
+      let el = document.head.querySelector(`meta[property="${prop}"]`);
+      if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
+      el.setAttribute('content', content || '');
+    }
+    function setLinkRel(rel, href) {
+      let el = document.head.querySelector(`link[rel="${rel}"]`);
+      if (!el) { el = document.createElement('link'); el.setAttribute('rel', rel); document.head.appendChild(el); }
+      el.setAttribute('href', href || '');
+    }
+
     window.onload = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const articleId = urlParams.get('id');
@@ -194,31 +228,48 @@
         document.getElementById('articleBox').style.display = 'block';
 
         articleTitle = data.title;
+
+        // 先把內文轉成 HTML 放入頁面，並取純文字作為描述
+        document.getElementById('body').innerHTML = editorjsToHtml(data.content);
+        const plain = (document.getElementById('body').textContent || '').replace(/\s+/g, ' ').trim();
+        const desc = plain ? plain.slice(0, 150) : '高雄郵局郵風快訊小編專欄文章。';
+        const pageUrl = location.href;
+        const ogImage = data.cover_url || SITE_OG_IMAGE;
+
         document.title = `${data.title}｜郵風快訊`;
-        
         document.getElementById('title').innerText = data.title;
         document.getElementById('meta').innerHTML = `<i class="fa-regular fa-clock"></i> 發布日期：${new Date(data.created_at).toLocaleDateString('zh-TW')} &nbsp;&nbsp;|&nbsp;&nbsp; ✍️ 作者：郵局企劃科小編`;
-        
-        // ★ 將 Editor.js 的 JSON 轉成 HTML 後再放入頁面（不再直接印出原始 JSON）
-        document.getElementById('body').innerHTML = editorjsToHtml(data.content);
 
-        if(data.cover_url) {
-            document.getElementById('cover').src = data.cover_url;
-            document.getElementById('cover').style.display = 'block';
+        if (data.cover_url) {
+          document.getElementById('cover').src = data.cover_url;
+          document.getElementById('cover').alt = data.title || '文章封面';
+          document.getElementById('cover').style.display = 'block';
         }
 
-        // ★ 動態注入 JSON-LD 結構化資料 (SEO 核武器)
+        // ★ 更新 SEO / 社群分享 meta（會執行 JS 的搜尋引擎可讀到；社群預覽完整支援需階段二 SSG/SSR）
+        setMetaName('description', desc);
+        setLinkRel('canonical', pageUrl);
+        setMetaProp('og:title', data.title);
+        setMetaProp('og:description', desc);
+        setMetaProp('og:url', pageUrl);
+        if (ogImage) setMetaProp('og:image', ogImage);
+        setMetaName('twitter:title', data.title);
+        setMetaName('twitter:description', desc);
+        if (ogImage) setMetaName('twitter:image', ogImage);
+
+        // ★ 強化版 JSON-LD 結構化資料（BlogPosting）
         const schemaData = {
           "@context": "https://schema.org",
-          "@type": "NewsArticle",
+          "@type": "BlogPosting",
           "headline": data.title,
-          "image": [ data.cover_url || '' ],
+          "description": desc,
           "datePublished": data.created_at,
-          "author": [{
-              "@type": "Organization",
-              "name": "高雄郵局企劃行銷科"
-          }]
+          "dateModified": data.updated_at || data.created_at,
+          "author": { "@type": "Organization", "name": SITE_NAME },
+          "publisher": Object.assign({ "@type": "Organization", "name": SITE_NAME }, SITE_LOGO ? { "logo": { "@type": "ImageObject", "url": SITE_LOGO } } : {}),
+          "mainEntityOfPage": { "@type": "WebPage", "@id": pageUrl }
         };
+        if (ogImage) schemaData.image = [ogImage];
         const script = document.createElement('script');
         script.type = 'application/ld+json';
         script.text = JSON.stringify(schemaData);
