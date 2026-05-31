@@ -59,7 +59,10 @@
     .a-body blockquote { margin: 1.2em 0; padding: 12px 18px; background: var(--sd-parchment); border-left: 5px solid var(--sd-wood); border-radius: 6px; color: var(--sd-text); font-style: italic; }
     .a-body blockquote cite { display: block; margin-top: 8px; font-size: 14px; color: #734e2c; font-style: normal; }
     .a-body figure { margin: 1.2em 0; text-align: center; }
-    .a-body figure img { margin: 0 auto 8px; }
+    /* ★ 關鍵：限制圖片最大高度，直式圖片不再超巨大；橫式圖維持原比例置中 */
+    .a-body figure img { max-width: 100%; max-height: 520px; width: auto; height: auto; margin: 0 auto 8px; display: block; }
+    /* 作者在編輯器按了「Stretch image」→ 圖片填滿欄寬、解除高度上限 */
+    .a-body figure.is-stretched img { width: 100%; max-height: none; }
     .a-body figcaption { font-size: 14px; color: #64748b; }
     .a-body hr { border: none; border-top: 3px dotted #cbd5e0; margin: 2em 0; }
     
@@ -151,8 +154,10 @@
           case 'image': {
             const url = (d.file && d.file.url) || d.url || '';
             if (!url) return '';
+            // 沿用 Editor.js 圖片外掛的「Stretch image」開關：拉伸時填滿欄寬
+            const cls = d.stretched ? 'ej-image is-stretched' : 'ej-image';
             const cap = d.caption ? `<figcaption>${d.caption}</figcaption>` : '';
-            return `<figure><img src="${esc(url)}" alt="${esc((d.caption || '').replace(/<[^>]+>/g, ''))}">${cap}</figure>`;
+            return `<figure class="${cls}"><img src="${esc(url)}" alt="${esc((d.caption || '').replace(/<[^>]+>/g, ''))}">${cap}</figure>`;
           }
           case 'delimiter':
             return '<hr>';
