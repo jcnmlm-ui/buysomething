@@ -1,0 +1,50 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPublishedArticles } from '../../lib/articles.js';
+import { editorjsToHtml, editorjsToPlainText } from '../../lib/editorjs.js';
+
+// 建置時為每篇已發布文章產生一個靜態頁
+export async function getStaticPaths() {
+  const articles = await getPublishedArticles();
+  return articles.map((a) => ({ params: { id: String(a.id) }, props: { article: a } }));
+}
+
+const { article } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const bodyHtml = editorjsToHtml(article.content);
+const desc = (editorjsToPlainText(article.content) || '高雄郵局郵風快訊小編專欄文章。').slice(0, 150);
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImage = article.cover_url || '';
+const dateStr = new Date(article.created_at).toLocaleDateString('zh-TW');
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: article.title,
+  description: desc,
+  datePublished: article.created_at,
+  dateModified: article.updated_at || article.created_at,
+  author: { '@type': 'Organization', name: '高雄郵局 郵風快訊' },
+  publisher: { '@type': 'Organization', name: '高雄郵局 郵風快訊' },
+  mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+  ...(ogImage ? { image: [ogImage] } : {}),
+};
+---
+<Base title={`${article.title}｜郵風快訊`} description={desc} canonical={canonical} ogType="article" ogImage={ogImage} jsonLd={jsonLd}>
+  <header class="header">
+    <a href={`${base}blog`} class="btn-back">← 回列表</a>
+    <h2 class="header-title">郵風小編專欄</h2>
+    <div style="width:80px;"></div>
+  </header>
+
+  <main class="container">
+    <article class="article-box">
+      {ogImage && <img class="cover-img" src={ogImage} alt={article.title} />}
+      <div class="content-area">
+        <h1 class="post-title">{article.title}</h1>
+        <div class="post-meta">🕒 發布日期：{dateStr}　|　✍️ 作者：郵局企劃科小編</div>
+        <div class="a-body" set:html={bodyHtml}></div>
+      </div>
+    </article>
+  </main>
+</Base>

@@ -1,0 +1,16 @@
+{
+  "name": "khpost-blog",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.3",
+    "@supabase/supabase-js": "^2.106.2",
+    "astro": "^6.4.2"
+  }
+}

@@ -1,0 +1,66 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPublishedArticles } from '../../lib/articles.js';
+import { editorjsToPlainText } from '../../lib/editorjs.js';
+
+const FALLBACK_COVER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='300'%3E%3Crect width='600' height='300' fill='%23fdeca6'/%3E%3Ctext x='50%25' y='50%25' font-size='30' fill='%2382380d' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif'%3E%F0%9F%93%AE 郵風快訊%3C/text%3E%3C/svg%3E";
+
+const base = import.meta.env.BASE_URL;
+const articles = await getPublishedArticles();
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+
+const cards = articles.map((a) => {
+  const plain = editorjsToPlainText(a.content);
+  return {
+    id: a.id,
+    title: a.title || '無標題',
+    excerpt: plain ? plain.slice(0, 80) + '...' : '點擊閱讀全文 →',
+    cover: a.cover_url || FALLBACK_COVER,
+    date: new Date(a.created_at).toLocaleDateString('zh-TW'),
+    iso: a.created_at,
+  };
+});
+
+const itemList = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  itemListElement: cards.slice(0, 20).map((c, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    url: new URL(`${base}article/${c.id}`, Astro.site).href,
+    name: c.title,
+  })),
+};
+const desc = '高雄郵局最新郵政文創商品開箱、節慶送禮推薦與在地特色明信片介紹，盡在郵風快訊小編嘮叨專欄！';
+---
+<Base title="郵風快訊｜小編嘮叨專欄" description={desc} canonical={canonical} ogType="website" jsonLd={itemList}>
+  <header class="header">
+    <a href={base} class="btn-back">🏪 商品櫥窗</a>
+    <h2 class="header-title">📰 郵風快訊小編嘮叨</h2>
+    <div style="width:100px;"></div>
+  </header>
+
+  <main class="container">
+    <div class="sd-ui-box">
+      <h2>📬 歡迎來到小編的嘮叨專區</h2>
+      <p style="font-weight:bold; color:var(--sd-text-muted);">在這裡，我們會不定期分享最新的商品開箱、送禮推薦，以及郵政小故事喔！</p>
+    </div>
+
+    {cards.length === 0 ? (
+      <div style="text-align:center; font-weight:bold; padding:40px;">目前還沒有任何文章喔！</div>
+    ) : (
+      <div class="blog-grid">
+        {cards.map((c) => (
+          <a href={`${base}article/${c.id}`} class="article-card">
+            <img src={c.cover} class="a-cover" alt={`${c.title} 封面`} />
+            <div class="a-info">
+              <h3 class="a-title">{c.title}</h3>
+              <div class="a-excerpt">{c.excerpt}</div>
+              <div class="a-meta"><time datetime={c.iso}>🕒 發布於 {c.date}</time></div>
+            </div>
+          </a>
+        ))}
+      </div>
+    )}
+  </main>
+</Base>

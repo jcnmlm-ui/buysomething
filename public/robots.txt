@@ -1,0 +1,10 @@
+# ↓↓↓ 若你的網域不是 kspost08.tw，請改成你的實際網域 ↓↓↓
+User-agent: *
+Allow: /
+
+# 後台頁面不要被索引
+Disallow: /admin.html
+Disallow: /admin2
+Disallow: /admin2.html
+
+Sitemap: https://kspost08.tw/sitemap-index.xml
