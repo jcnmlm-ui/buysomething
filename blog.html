@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>郵風快訊｜小編嘮叨專欄</title>
+  
+  <meta name="description" content="高雄郵局最新郵政文創商品開箱、節慶送禮推薦與在地特色明信片介紹，盡在郵風快訊小編嘮叨專欄！">
+  <meta name="keywords" content="中華郵政, 高雄郵局, 郵政商品開箱, 送禮推薦, 紀念品, 郵票介紹, 郵風快訊">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* 星露谷物語風格變數 */
+    :root {
+      --sd-grass: #88c24c;          
+      --sd-grass-dark: #6fa03d;     
+      --sd-wood: #c06c28;           
+      --sd-wood-dark: #82380d;      
+      --sd-parchment: #fdeca6;      
+      --sd-parchment-dark: #dcb360; 
+      --sd-border: #4a2100;         
+      --sd-text: #41220b;           
+      --sd-text-muted: #734e2c;     
+    }
+
+    * { box-sizing: border-box; }
+    
+    body { 
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif; 
+      background-color: var(--sd-grass); 
+      background-image: 
+        linear-gradient(var(--sd-grass-dark) 1px, transparent 1px),
+        linear-gradient(90deg, var(--sd-grass-dark) 1px, transparent 1px);
+      background-size: 40px 40px;
+      color: var(--sd-text); 
+      margin: 0; 
+      padding: 0; 
+    }
+    
+    .header { 
+      background: linear-gradient(to bottom, #d6833b 0%, var(--sd-wood) 100%); 
+      color: #fff; 
+      padding: 18px 20px; 
+      text-align: center; 
+      border-bottom: 5px solid var(--sd-border);
+      position: sticky; 
+      top: 0; 
+      z-index: 100;
+      text-shadow: 2px 2px 0px var(--sd-border);
+      box-shadow: 0 6px 0px rgba(0,0,0,0.15);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header::before, .header::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      background: #a3aeb1;
+      border: 2px solid var(--sd-border);
+      border-radius: 50%;
+      box-shadow: inset -1px -1px 2px rgba(0,0,0,0.5);
+    }
+    .header::before { left: 20px; }
+    .header::after { right: 20px; }
+
+    .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 2px; flex-grow: 1;}
+    
+    .btn-back {
+      background: var(--sd-parchment);
+      color: var(--sd-wood-dark);
+      border: 3px solid var(--sd-border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      text-decoration: none;
+      font-size: 14px;
+      box-shadow: inset -2px -2px 0px rgba(0,0,0,0.1);
+      transition: 0.1s;
+      position: relative;
+      z-index: 101;
+      text-shadow: none;
+    }
+    .btn-back:hover { background: #fff; }
+    .btn-back:active { transform: translateY(2px); box-shadow: inset 2px 2px 0px rgba(0,0,0,0.2); }
+
+    .container { max-width: 1000px; margin: 0 auto; padding: 30px 20px; }
+
+    .sd-ui-box {
+      background: var(--sd-parchment);
+      border: 4px solid var(--sd-border);
+      border-radius: 8px;
+      box-shadow: inset 0 0 0 3px var(--sd-parchment-dark), 0 8px 0 rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .sd-ui-box h2 { margin-top:0; color: var(--sd-wood-dark); }
+
+    /* 文章網格 */
+    .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+    
+    .article-card {
+      background: #fff;
+      border: 4px solid var(--sd-border);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+    }
+    .article-card:hover { 
+      transform: translateY(-5px); 
+      box-shadow: 0 12px 15px rgba(0,0,0,0.2);
+    }
+    .article-card:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+    }
+
+    .a-cover {
+      width: 100%;
+      height: 180px;
+      background: #e2e8f0;
+      border-bottom: 4px solid var(--sd-border);
+      object-fit: cover;
+    }
+
+    .a-info { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
+    .a-title { font-size: 18px; font-weight: bold; color: var(--sd-text); margin: 0 0 10px 0; line-height: 1.4; }
+    .a-excerpt { font-size: 14px; color: var(--sd-text-muted); line-height: 1.6; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .a-meta { margin-top: auto; font-size: 13px; font-weight: bold; color: #a3aeb1; border-top: 2px dashed #cbd5e0; padding-top: 10px; }
+
+    .footer { text-align: center; padding: 30px 20px; color: var(--sd-text); font-weight: bold; font-size: 15px; text-shadow: 1px 1px 0px rgba(255,255,255,0.5); }
+
+    @media (max-width: 600px) {
+      .header { flex-direction: column; gap: 10px; padding: 15px;}
+      .btn-back { width: 100%; text-align: center; }
+      .blog-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <a href="index.html" class="btn-back"><i class="fa-solid fa-store"></i> 商品櫥窗</a>
+    <h1><i class="fa-solid fa-newspaper" style="color: #fdeca6; margin-right:8px;"></i>郵風快訊小編嘮叨</h1>
+    <div style="width: 100px; display: none;"></div>
+  </header>
+
+  <main class="container">
+    <div class="sd-ui-box">
+      <h2>📬 歡迎來到小編的嘮叨專區</h2>
+      <p style="font-weight:bold; color: var(--sd-text-muted);">在這裡，我們會不定期分享最新的商品開箱、送禮推薦，以及郵政小故事喔！</p>
+    </div>
+
+    <div id="loading" style="text-align:center; padding: 40px; font-size:18px; font-weight:bold;">
+      <i class="fa-solid fa-spinner fa-spin"></i> 文章載入中...
+    </div>
+
+    <div id="blogGrid" class="blog-grid"></div>
+  </main>
+
+  <footer class="footer">© Design by Chiahsien</footer>
+
+  <script>
+    const _supabaseUrl = 'https://tukzmdtkhdxdpbnvkjzz.supabase.co';
+    const _supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA';
+    const supabaseClient = window.supabase.createClient(_supabaseUrl, _supabaseKey);
+
+    window.onload = async () => {
+      try {
+        const { data, error } = await supabaseClient
+          .from('articles')
+          .select('id, title, content, cover_url, created_at')
+          .eq('is_published', true)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        
+        document.getElementById('loading').style.display = 'none';
+        const grid = document.getElementById('blogGrid');
+        
+        if(data.length === 0) {
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; font-weight:bold; padding:40px;">目前還沒有任何文章喔！</div>';
+            return;
+        }
+
+        data.forEach(art => {
+          // 產生純文字摘要 (去除 HTML 標籤)
+          let excerpt = art.content.replace(/<[^>]+>/g, '').substring(0, 80) + '...';
+          let cover = art.cover_url || 'https://via.placeholder.com/600x300?text=Post+News';
+          let date = new Date(art.created_at).toLocaleDateString('zh-TW');
+
+          grid.innerHTML += `
+            <a href="article.html?id=${art.id}" class="article-card">
+              <img src="${cover}" class="a-cover" alt="封面圖">
+              <div class="a-info">
+                <h3 class="a-title">${art.title}</h3>
+                <div class="a-excerpt">${excerpt}</div>
+                <div class="a-meta"><i class="fa-regular fa-clock"></i> 發布於 ${date}</div>
+              </div>
+            </a>
+          `;
+        });
+      } catch (err) {
+        document.getElementById('loading').innerHTML = `<span style="color:red;">讀取失敗：${err.message}</span>`;
+      }
+    };
+  </script>
+</body>
+</html>
