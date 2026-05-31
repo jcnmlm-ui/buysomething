@@ -8,6 +8,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- ★ 引入 Editor.js 核心與必備套件 -->
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/header@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@latest"></script>
 
   <style>
     /* === 基礎設定與變數 === */
@@ -193,6 +200,10 @@
     .btn-delete-extra { position: absolute; top: 4px; right: 4px; background: rgba(239, 68, 68, 0.9); color: white; border: none; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;}
     .btn-delete-extra:hover { background: #dc2626; transform: scale(1.1); }
 
+    /* === Editor.js 專欄樣式微調 === */
+    #editorjs { background: #fff; border: 1px solid #cbd5e0; border-radius: 6px; padding: 20px; min-height: 400px; margin-bottom: 15px; text-align: left; }
+    .ce-block__content, .ce-toolbar__content { max-width: 100%; /* 取消預設的 650px 限制，讓排版更靈活 */ }
+
     /* === 回到最上方按鈕 === */
     #scrollToTopBtn { position: fixed; bottom: 30px; right: 30px; width: 45px; height: 45px; background-color: var(--primary); color: white; border: none; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 9999; }
     #scrollToTopBtn:hover { background-color: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.3); }
@@ -257,7 +268,6 @@
         <button class="tab-btn" onclick="switchAdminTab('tab-blog', this)">📰 專欄管理</button>
       </div>
 
-      <!-- 舊有的分頁保留... -->
       <div id="tab-upload" class="tab-content active">
         <div style="display: flex; flex-wrap: wrap; gap: 20px; max-width: 1200px; margin: 0 auto;">
           <div class="box-container" style="flex: 1; min-width: 300px; border: 2px dashed #cbd5e0; background: #fafbfc; text-align: center; padding: 40px 20px;">
@@ -367,7 +377,7 @@
         </div>
       </div>
 
-      <!-- ★ 新增：專欄管理頁面 -->
+      <!-- ★ 專欄管理頁面 (整合 Editor.js) -->
       <div id="tab-blog" class="tab-content">
         <div style="display: flex; gap: 20px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto;">
           <!-- 左側：文章列表 -->
@@ -410,9 +420,11 @@
               <button onclick="clearBlogCover()" style="background:#fecaca; color:#991b1b; border:1px solid #f87171; padding:4px 8px; border-radius:4px; margin-top:5px; cursor:pointer;">取消上傳</button>
             </div>
 
-            <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">文章內容 (支援 HTML 語法)</label>
-            <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">提示：可以使用 <code>&lt;b&gt;粗體&lt;/b&gt;</code>, <code>&lt;br&gt;</code> 換行。</div>
-            <textarea id="blogContent" rows="12" placeholder="開始撰寫您的小編嘮叨..." style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical; outline: none; font-size: 15px; font-family: inherit; line-height: 1.6;"></textarea>
+            <!-- ★ 改用 Editor.js 的容器取代原本的 Textarea -->
+            <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">文章內容 (Editor.js 智慧編輯器)</label>
+            <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">提示：點選空白處開始打字。反白文字可設定粗體或超連結。輸入 `/` 或點擊左側 <code>+</code> 號可插入圖片或清單。</div>
+            
+            <div id="editorjs"></div>
             
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
               <label style="font-weight: bold; display: flex; align-items: center; cursor: pointer; color: #333; font-size: 16px;">
@@ -597,7 +609,10 @@
     let currentRole = '';
 
     let processedFiles = { thumb: null, large: null };
-    let pendingBlogCover = null; // ★ 專欄封面變數
+    let pendingBlogCover = null; 
+    
+    // ★ 宣告全域 Editor.js 變數
+    let editor;
 
     window.onload = () => {
       const savedAcc = localStorage.getItem('kp_acc');
@@ -640,7 +655,72 @@
         e.preventDefault(); blogDropZone.classList.remove('dragover');
         if (e.dataTransfer.files.length > 0) processBlogCover(e.dataTransfer.files[0]);
       });
+
+      // ★ 初始化 Editor.js 實例
+      initEditorJS();
     };
+
+    // ★ 初始化 Editor.js 配置
+    function initEditorJS() {
+      editor = new EditorJS({
+        holder: 'editorjs',
+        placeholder: '在這裡開始撰寫您的小編專欄...',
+        tools: {
+          header: {
+            class: Header,
+            config: {
+              placeholder: '輸入標題...',
+              levels: [2, 3, 4],
+              defaultLevel: 2
+            }
+          },
+          list: {
+            class: List,
+            inlineToolbar: true
+          },
+          quote: {
+            class: Quote,
+            inlineToolbar: true,
+            config: {
+              quotePlaceholder: '輸入引言...',
+              captionPlaceholder: '引言來源 (可選)',
+            }
+          },
+          // ★ 強大的圖片外掛：讓您能直接拖曳上傳圖片到 Supabase
+          image: {
+            class: ImageTool,
+            config: {
+              uploader: {
+                async uploadByFile(file) {
+                  try {
+                    // 自動為文章內嵌圖片轉檔名並上傳到 product-images 儲存桶
+                    const ext = file.name.split('.').pop() || 'jpg';
+                    const fileName = `blog_inline_${Date.now()}.${ext}`;
+                    const bucketName = 'product-images';
+                    
+                    const { error } = await supabaseClient.storage.from(bucketName).upload(fileName, file, { upsert: true });
+                    if (error) throw error;
+                    
+                    const url = supabaseClient.storage.from(bucketName).getPublicUrl(fileName).data.publicUrl;
+                    
+                    // 回傳 Editor.js 需要的 JSON 格式
+                    return {
+                      success: 1,
+                      file: { url: url }
+                    };
+                  } catch(e) {
+                    console.error("圖片上傳失敗", e);
+                    alert("文章圖片上傳失敗: " + e.message);
+                    return { success: 0 };
+                  }
+                }
+              }
+            }
+          }
+        },
+        data: {} // 初始資料為空
+      });
+    }
 
     async function fetchAllData(table, select = '*', conditions = []) {
       let allData = [];
@@ -796,9 +876,14 @@
       document.getElementById('blogEditorTitle').innerText = '✨ 撰寫新文章';
       document.getElementById('blogId').value = '';
       document.getElementById('blogTitle').value = '';
-      document.getElementById('blogContent').value = '';
       document.getElementById('blogIsPublished').checked = false;
       document.getElementById('currentBlogCoverContainer').innerHTML = '<span style="color: #94a3b8; font-size: 14px;">目前無封面圖</span>';
+      
+      // ★ 清空 Editor.js 內容
+      editor.isReady.then(() => {
+        editor.clear();
+      });
+
       clearBlogCover();
     }
 
@@ -809,8 +894,24 @@
       document.getElementById('blogEditorTitle').innerText = '✏️ 編輯文章';
       document.getElementById('blogId').value = art.id;
       document.getElementById('blogTitle').value = art.title || '';
-      document.getElementById('blogContent').value = art.content || '';
       document.getElementById('blogIsPublished').checked = art.is_published;
+      
+      // ★ 讀取資料庫中的 JSON 並渲染到 Editor.js
+      editor.isReady.then(() => {
+        try {
+          if (art.content) {
+             const parsedData = JSON.parse(art.content);
+             editor.render(parsedData);
+          } else {
+             editor.clear();
+          }
+        } catch(e) {
+          // 如果解析 JSON 失敗 (代表那是以前手打的純文字舊格式)，我們用防呆機制幫它包裝成 Paragraph
+          editor.render({
+            blocks: [{ type: "paragraph", data: { text: art.content || "" } }]
+          });
+        }
+      });
       
       if(art.cover_url) {
         document.getElementById('currentBlogCoverContainer').innerHTML = `
@@ -835,7 +936,6 @@
       reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
-          // 專欄圖通常需要寬幅 (例如 1200x630)，這裡我們直接等比例壓縮，限制最大寬度 1200
           let targetWidth = 1200;
           let targetHeight = (img.height / img.width) * targetWidth;
           if(img.width < targetWidth) {
@@ -872,15 +972,20 @@
     async function saveBlogArticle() {
       const id = document.getElementById('blogId').value;
       const title = document.getElementById('blogTitle').value.trim();
-      const content = document.getElementById('blogContent').value.trim();
       const isPub = document.getElementById('blogIsPublished').checked;
       const btn = document.getElementById('btnSaveBlog');
       
-      if(!title || !content) return alert('標題與內容不能為空！');
+      if(!title) return alert('標題不能為空！');
       
       btn.innerText = "儲存中..."; btn.disabled = true;
 
       try {
+        // ★ 要求 Editor.js 吐出 JSON 格式的內容
+        const editorData = await editor.save();
+        
+        // 將 JSON 物件轉為文字字串，存入 DB 的 content 欄位
+        const contentStr = JSON.stringify(editorData);
+
         let finalCoverUrl = null;
         
         // 如果有上傳新封面
@@ -894,7 +999,7 @@
 
         let payload = {
           title: title,
-          content: content,
+          content: contentStr,
           is_published: isPub,
           updated_at: new Date().toISOString()
         };
@@ -913,7 +1018,7 @@
         
         alert('文章儲存成功！');
         resetBlogEditor();
-        loadBlogArticles(); // 重新整理列表
+        loadBlogArticles(); 
         
       } catch(err) {
         alert('儲存失敗: ' + err.message);
