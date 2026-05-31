@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文章載入中...｜郵風快訊</title>
+  
+  <meta name="description" content="閱讀高雄郵局小編最新專欄文章">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* 星露谷物語風格變數 */
+    :root {
+      --sd-grass: #88c24c;          
+      --sd-wood: #c06c28;           
+      --sd-wood-dark: #82380d;      
+      --sd-parchment: #fdeca6;      
+      --sd-border: #4a2100;         
+      --sd-text: #41220b;           
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--sd-grass); color: var(--sd-text); margin: 0; padding: 0; line-height: 1.8; }
+    
+    .header { background: linear-gradient(to bottom, #d6833b 0%, var(--sd-wood) 100%); padding: 15px 20px; text-align: center; border-bottom: 5px solid var(--sd-border); position: sticky; top: 0; z-index: 100; box-shadow: 0 6px 0px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center; }
+    .btn-back { background: var(--sd-parchment); color: var(--sd-wood-dark); border: 3px solid var(--sd-border); padding: 6px 12px; border-radius: 6px; font-weight: bold; text-decoration: none; font-size: 14px; box-shadow: inset -2px -2px 0px rgba(0,0,0,0.1); }
+    .btn-back:hover { background: #fff; }
+
+    .container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
+    
+    .article-box {
+      background: #fff;
+      border: 4px solid var(--sd-border);
+      border-radius: 12px;
+      box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    .cover-img { width: 100%; max-height: 400px; object-fit: cover; border-bottom: 4px solid var(--sd-border); display: block; }
+    
+    .content-area { padding: 30px; }
+    .a-title { font-size: 28px; font-weight: bold; margin: 0 0 15px 0; color: var(--sd-wood-dark); line-height: 1.4; border-bottom: 2px dashed #cbd5e0; padding-bottom: 15px; }
+    .a-meta { font-size: 14px; color: #64748b; font-weight: bold; margin-bottom: 25px; }
+    
+    .a-body { font-size: 17px; color: #334155; }
+    .a-body img { max-width: 100%; border-radius: 8px; border: 2px solid #cbd5e0; margin: 15px 0; }
+    .a-body p { margin-bottom: 1em; }
+    
+    .share-box { margin-top: 40px; padding-top: 20px; border-top: 2px dashed var(--sd-border); text-align: center; }
+    .share-btn { background: var(--sd-wood); color: white; border: 3px solid var(--sd-border); padding: 10px 20px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2); transition: 0.1s;}
+    .share-btn:active { transform: translateY(2px); box-shadow: none; }
+
+    @media (max-width: 600px) {
+      .content-area { padding: 20px; }
+      .a-title { font-size: 22px; }
+      .a-body { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <a href="blog.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> 回列表</a>
+    <h2 style="margin:0; color:white; font-size:18px; text-shadow:2px 2px 0 var(--sd-border);">郵風小編專欄</h2>
+    <div style="width: 80px;"></div>
+  </header>
+
+  <main class="container">
+    <div id="loading" style="text-align:center; padding: 40px; font-size:18px; font-weight:bold;">
+      <i class="fa-solid fa-spinner fa-spin"></i> 載入中...
+    </div>
+
+    <article id="articleBox" class="article-box" style="display:none;">
+      <img id="cover" class="cover-img" src="" style="display:none;">
+      <div class="content-area">
+        <h1 id="title" class="a-title"></h1>
+        <div id="meta" class="a-meta"></div>
+        <div id="body" class="a-body"></div>
+        
+        <div class="share-box">
+          <p style="font-weight:bold; margin-bottom:10px;">喜歡這篇文章嗎？分享給朋友吧！</p>
+          <button class="share-btn" onclick="shareArticle()"><i class="fa-solid fa-share-nodes"></i> 複製文章連結</button>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <script>
+    const _supabaseUrl = 'https://tukzmdtkhdxdpbnvkjzz.supabase.co';
+    const _supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA';
+    const supabaseClient = window.supabase.createClient(_supabaseUrl, _supabaseKey);
+
+    let articleTitle = "郵風專欄";
+
+    window.onload = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const articleId = urlParams.get('id');
+      
+      if(!articleId) {
+          document.getElementById('loading').innerHTML = '找不到文章代碼';
+          return;
+      }
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('articles')
+          .select('*')
+          .eq('id', articleId)
+          .single();
+
+        if (error) throw error;
+        if (!data || !data.is_published) throw new Error('文章不存在或尚未公開');
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('articleBox').style.display = 'block';
+
+        articleTitle = data.title;
+        document.title = `${data.title}｜郵風快訊`;
+        
+        document.getElementById('title').innerText = data.title;
+        document.getElementById('meta').innerHTML = `<i class="fa-regular fa-clock"></i> 發布日期：${new Date(data.created_at).toLocaleDateString('zh-TW')} &nbsp;&nbsp;|&nbsp;&nbsp; ✍️ 作者：郵局企劃科小編`;
+        
+        // 內容支援 HTML (因為是在後台管理員寫入的)
+        document.getElementById('body').innerHTML = data.content.replace(/\n/g, '<br>');
+
+        if(data.cover_url) {
+            document.getElementById('cover').src = data.cover_url;
+            document.getElementById('cover').style.display = 'block';
+        }
+
+        // ★ 動態注入 JSON-LD 結構化資料 (SEO 核武器)
+        const schemaData = {
+          "@context": "https://schema.org",
+          "@type": "NewsArticle",
+          "headline": data.title,
+          "image": [ data.cover_url || '' ],
+          "datePublished": data.created_at,
+          "author": [{
+              "@type": "Organization",
+              "name": "高雄郵局企劃行銷科"
+          }]
+        };
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.text = JSON.stringify(schemaData);
+        document.head.appendChild(script);
+
+      } catch(err) {
+         document.getElementById('loading').innerHTML = `<span style="color:red;">錯誤：${err.message}</span>`;
+      }
+    };
+
+    function shareArticle() {
+        const url = window.location.href;
+        if (navigator.share) {
+            navigator.share({ title: articleTitle, url: url }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(url).then(() => alert('✅ 文章連結已複製！'));
+        }
+    }
+  </script>
+</body>
+</html>
