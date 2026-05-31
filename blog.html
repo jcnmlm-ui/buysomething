@@ -215,21 +215,26 @@
       try {
         const { data, error } = await supabaseClient
           .from('articles')
-          .select('id, title, content, cover_url, created_at')
+          .select('*')
           .eq('is_published', true)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        
+
         document.getElementById('loading').style.display = 'none';
         const grid = document.getElementById('blogGrid');
-        
-        if(data.length === 0) {
+
+        // ★ 排程過濾：若有 publish_at 且尚未到時間，前台先不顯示
+        //   （用 select('*') + 前端過濾，即使資料庫還沒新增 publish_at 欄位也不會出錯）
+        const now = Date.now();
+        const visible = (data || []).filter(a => !a.publish_at || new Date(a.publish_at).getTime() <= now);
+
+        if (visible.length === 0) {
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; font-weight:bold; padding:40px;">目前還沒有任何文章喔！</div>';
             return;
         }
 
-        data.forEach(art => {
+        visible.forEach(art => {
           // ★ 將 Editor.js 的 JSON 轉成純文字，產生乾淨摘要（不再印出原始 JSON）
           let plain = editorjsToPlainText(art.content);
           let excerpt = plain ? plain.substring(0, 80) + '...' : '點擊閱讀全文 →';
