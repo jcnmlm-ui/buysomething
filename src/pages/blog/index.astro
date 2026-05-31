@@ -35,14 +35,14 @@ const desc = '高雄郵局最新郵政文創商品開箱、節慶送禮推薦與
 ---
 <Base title="郵風快訊｜小編嘮叨專欄" description={desc} canonical={canonical} ogType="website" jsonLd={itemList}>
   <header class="header">
-    <a href={base} class="btn-back">🏪 商品櫥窗</a>
-    <h2 class="header-title">📰 郵風快訊小編嘮叨</h2>
+    <a href={base} class="btn-back"><i class="fa-solid fa-store"></i> 商品櫥窗</a>
+    <h2 class="header-title"><i class="fa-solid fa-newspaper"></i> 郵風快訊小編嘮叨</h2>
     <div style="width:100px;"></div>
   </header>
 
   <main class="container">
     <div class="sd-ui-box">
-      <h2>📬 歡迎來到小編的嘮叨專區</h2>
+      <h2><i class="fa-solid fa-comment-dots"></i> 歡迎來到小編的嘮叨專區</h2>
       <p style="font-weight:bold; color:var(--sd-text-muted);">在這裡，我們會不定期分享最新的商品開箱、送禮推薦，以及郵政小故事喔！</p>
     </div>
 
@@ -56,7 +56,7 @@ const desc = '高雄郵局最新郵政文創商品開箱、節慶送禮推薦與
             <div class="a-info">
               <h3 class="a-title">{c.title}</h3>
               <div class="a-excerpt">{c.excerpt}</div>
-              <div class="a-meta"><time datetime={c.iso}>🕒 發布於 {c.date}</time></div>
+              <div class="a-meta"><time datetime={c.iso}><i class="fa-regular fa-clock"></i> 發布於 {c.date}</time></div>
             </div>
           </a>
         ))}
