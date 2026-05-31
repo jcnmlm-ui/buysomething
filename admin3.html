@@ -264,6 +264,48 @@
       width: 100%;
     }
 
+    /* === ★ 專欄管理：列表(表格) 與 編輯(雙欄) 版面 === */
+    .blog-toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .blog-toolbar .field { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #475569; font-weight: bold; }
+    .blog-toolbar input[type="date"], .blog-toolbar input[type="search"] {
+      padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; outline: none; background: #f8fafc;
+    }
+    .blog-toolbar input[type="search"] { min-width: 180px; }
+    .blog-toolbar input:focus { border-color: var(--primary); background: #fff; }
+
+    .blog-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .blog-table th { text-align: left; padding: 12px 14px; color: var(--text-light); font-size: 13px; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+    .blog-table td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+    .blog-table tbody tr { cursor: pointer; transition: 0.15s; }
+    .blog-table tbody tr:hover { background: #f8fafc; }
+    .blog-table .col-title { font-weight: bold; color: var(--text-main); }
+    .blog-table .row-edit-btn { padding: 7px 14px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+    .blog-table .row-edit-btn:hover { background: var(--primary-dark); }
+
+    .blog-status { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; white-space: nowrap; }
+    .blog-status.live { background: #dcfce7; color: #166534; }
+    .blog-status.draft { background: #f1f5f9; color: #475569; }
+    .blog-status.scheduled { background: #fef3c7; color: #b45309; }
+
+    .btn-back-list { background: #e2e8f0; color: #475569; border: none; padding: 9px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
+    .btn-back-list:hover { background: #cbd5e0; }
+
+    .blog-edit-layout { display: flex; gap: 20px; align-items: flex-start; }
+    .blog-edit-main { flex: 1 1 auto; min-width: 0; } /* min-width:0 讓編輯區可以縮小，避免寬內容撐爆版面 */
+    .blog-edit-side { flex: 0 0 340px; max-width: 340px; max-height: calc(100vh - 170px); overflow-y: auto; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; }
+    .blog-edit-side label { font-weight: bold; display: block; margin-bottom: 5px; color: #475569; }
+    .blog-edit-side .side-input { width: 100%; padding: 11px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none; font-size: 15px; background: #fff; }
+    .blog-edit-side hr { border: none; border-top: 1px dashed #cbd5e0; margin: 18px 0; }
+    /* 編輯檢視中，編輯區是主角，給它更大的高度 */
+    .blog-edit-main #editorScroll { max-height: calc(100vh - 230px); min-height: 420px; }
+
+    @media (max-width: 900px) {
+      .blog-edit-layout { flex-direction: column; }
+      .blog-edit-side { flex-basis: auto; max-width: none; width: 100%; order: -1; max-height: none; } /* 手機：設定欄放上方 */
+      .blog-edit-main #editorScroll { max-height: calc(100vh - 330px); min-height: 300px; }
+      .blog-table th:nth-child(3), .blog-table td:nth-child(3) { display: none; } /* 手機隱藏建立日期欄省空間 */
+    }
+
     /* === 回到最上方按鈕 === */
     #scrollToTopBtn { 
       position: fixed; bottom: 30px; right: 30px; width: 45px; height: 45px; 
@@ -445,72 +487,110 @@
 
       <!-- ★ 專欄管理頁面 -->
       <div id="tab-blog" class="tab-content">
-        <div style="display: flex; gap: 20px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto;">
-          <!-- 左側：文章列表 -->
-          <div class="box-container" style="flex: 1; min-width: 320px; max-height: calc(100vh - 150px); overflow-y: auto;">
+
+        <!-- ========== 檢視 1：文章管理列表 ========== -->
+        <div id="blogListView">
+          <div class="box-container" style="max-width: 1200px; margin: 0 auto;">
             <div class="section-header">
               <div class="header-left">
-                <h3>📰 文章列表</h3>
+                <h3>📰 文章管理</h3>
+                <span class="selection-count" id="blogCountLabel"></span>
               </div>
-              <button class="btn-primary" style="padding: 8px 15px; border:none; border-radius: 6px; cursor:pointer;" onclick="resetBlogEditor()">+ 新增文章</button>
+              <div class="blog-toolbar">
+                <span class="field">建立日期
+                  <input type="date" id="blogDateFrom" onchange="renderBlogList()">
+                  ~
+                  <input type="date" id="blogDateTo" onchange="renderBlogList()">
+                </span>
+                <input type="search" id="blogSearchInput" placeholder="🔍 搜尋標題..." oninput="renderBlogList()">
+                <button class="btn-primary" style="padding: 9px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;" onclick="openBlogEditor()">＋ 新增文章</button>
+              </div>
             </div>
-            <div id="blogListLoading" style="text-align: center; padding: 20px; color: var(--text-light);">讀取中...</div>
-            <div id="blogListContainer" style="display: flex; flex-direction: column; gap: 10px;"></div>
+
+            <div id="blogListLoading" style="text-align: center; padding: 30px; color: var(--text-light);">讀取中...</div>
+
+            <div id="blogTableWrap" style="overflow-x: auto; display: none;">
+              <table class="blog-table">
+                <thead>
+                  <tr>
+                    <th>標題</th>
+                    <th>狀態</th>
+                    <th>建立日期</th>
+                    <th>發布 / 排程時間</th>
+                    <th style="text-align: right;">操作</th>
+                  </tr>
+                </thead>
+                <tbody id="blogTableBody"></tbody>
+              </table>
+            </div>
           </div>
+        </div>
 
-          <!-- 右側：文章編輯器 -->
-          <!-- ★ 這裡加上了 relative 定位，為按鈕置底做準備 -->
-          <div class="box-container" style="flex: 2; min-width: 320px; max-height: calc(100vh - 150px); overflow-y: auto; position: relative;">
-            <h3 id="blogEditorTitle" style="color: var(--primary-dark); margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">✨ 撰寫新文章</h3>
-            
-            <input type="hidden" id="blogId">
-            
-            <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">文章標題</label>
-            <input type="text" id="blogTitle" placeholder="請輸入吸引人的標題..." style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none; font-size: 16px;">
-            
-            <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">目前封面圖</label>
-            <div id="currentBlogCoverContainer" style="margin-bottom: 15px; padding: 10px; background: #f8fafc; border: 1px dashed #cbd5e0; border-radius: 8px; text-align: center; min-height: 80px; display: flex; justify-content: center; align-items: center;">
-              <span style="color: #94a3b8; font-size: 14px;">目前無封面圖</span>
+        <!-- ========== 檢視 2：文章編輯（大編輯區 + 設定側欄） ========== -->
+        <div id="blogEditView" style="display: none;">
+          <div class="box-container" style="max-width: 1320px; margin: 0 auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 12px; margin-bottom: 18px; gap: 12px; flex-wrap: wrap;">
+              <button class="btn-back-list" onclick="backToBlogList()">← 返回文章列表</button>
+              <h3 id="blogEditorTitle" style="color: var(--primary-dark); margin: 0;">✨ 撰寫新文章</h3>
+              <div style="width: 120px;"></div>
             </div>
 
-            <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">上傳新封面圖 (建議長寬比 16:9)</label>
-            <div class="upload-area" id="blogDropZone" onclick="document.getElementById('blogCoverInput').click()">
-              <i class="fa-solid fa-image"></i>
-              <p>點擊或拖曳上傳文章封面</p>
-              <span>自動轉 WebP 格式</span>
-              <input type="file" id="blogCoverInput" accept="image/*" onchange="handleBlogCoverSelect(event)">
-            </div>
-            
-            <div id="blogCoverPreview" style="display:none; text-align:center; margin-bottom: 15px; position:relative;">
-              <span style="font-weight: bold; color: #166534; display:block; margin-bottom:5px;">新封面準備就緒</span>
-              <img id="blogCoverImg" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
-              <button onclick="clearBlogCover()" style="background:#fecaca; color:#991b1b; border:1px solid #f87171; padding:4px 8px; border-radius:4px; margin-top:5px; cursor:pointer;">取消上傳</button>
-            </div>
-
-            <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">文章內容 (Editor.js 智慧編輯器)</label>
-            <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">提示：點擊下方大片空白處即可開始打字。反白文字可設定粗體或超連結。點擊左側 <code>+</code> 號可插入圖片或清單。</div>
-            
-            <!-- ★ 修復：文章內容放進可捲動容器，超出邊框時於區域「內部」捲動，不再溢出 -->
-            <div id="editorScroll">
-              <div id="editorjs"></div>
-            </div>
-            
-            <!-- ★ 新增：永遠釘在視窗底部的操作面板 (再也不用辛苦滑到底部找按鈕) -->
-            <div style="position: sticky; bottom: 0; background: #ffffff; padding: 15px 0; border-top: 1px dashed #cbd5e0; margin-top: 20px; z-index: 20;">
-              <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
-                <label style="font-weight: bold; display: flex; align-items: center; cursor: pointer; color: #333; font-size: 16px;">
-                  <input type="checkbox" id="blogIsPublished" style="width: 20px; height: 20px; margin-right: 10px; accent-color: var(--primary);">
-                  ✅ 公開發布至前台
-                </label>
-                <span style="font-size: 13px; color: #64748b;">(若不勾選則儲存為草稿)</span>
+            <div class="blog-edit-layout">
+              <!-- 主編輯區（放大的編輯與顯示空間） -->
+              <div class="blog-edit-main">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">文章內容 (Editor.js 智慧編輯器)</label>
+                <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">提示：點擊空白處即可開始打字。反白文字可設定粗體或超連結；點擊左側 <code>+</code> 號可插入圖片或清單。</div>
+                <div id="editorScroll">
+                  <div id="editorjs"></div>
+                </div>
               </div>
 
-              <div style="display: flex; gap: 15px;">
-                <button id="btnDeleteBlog" type="button" style="display: none; padding: 14px 20px; background: #fef2f2; color: #dc2626; border: 1px solid #f87171; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="document.getElementById('blogConfirmModal').style.display='flex'">🗑️ 刪除文章</button>
-                <button id="btnSaveBlog" type="button" class="btn-primary" style="flex: 1; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;" onclick="saveBlogArticle()">💾 儲存文章</button>
-              </div>
+              <!-- 設定側欄（標題、封面、發布、儲存、刪除集中在這） -->
+              <aside class="blog-edit-side">
+                <input type="hidden" id="blogId">
+
+                <label>文章標題</label>
+                <input type="text" id="blogTitle" class="side-input" placeholder="請輸入吸引人的標題...">
+
+                <label>目前封面圖</label>
+                <div id="currentBlogCoverContainer" style="margin-bottom: 15px; padding: 10px; background: #fff; border: 1px dashed #cbd5e0; border-radius: 8px; text-align: center; min-height: 70px; display: flex; justify-content: center; align-items: center;">
+                  <span style="color: #94a3b8; font-size: 14px;">目前無封面圖</span>
+                </div>
+
+                <label>上傳新封面圖 (建議 16:9)</label>
+                <div class="upload-area" id="blogDropZone" onclick="document.getElementById('blogCoverInput').click()">
+                  <i class="fa-solid fa-image"></i>
+                  <p>點擊或拖曳上傳封面</p>
+                  <span>自動轉 WebP 格式</span>
+                  <input type="file" id="blogCoverInput" accept="image/*" onchange="handleBlogCoverSelect(event)">
+                </div>
+                <div id="blogCoverPreview" style="display: none; text-align: center; margin-bottom: 15px;">
+                  <span style="font-weight: bold; color: #166534; display: block; margin-bottom: 5px;">新封面準備就緒</span>
+                  <img id="blogCoverImg" style="max-width: 100%; max-height: 160px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+                  <button onclick="clearBlogCover()" style="background: #fecaca; color: #991b1b; border: 1px solid #f87171; padding: 4px 8px; border-radius: 4px; margin-top: 5px; cursor: pointer;">取消上傳</button>
+                </div>
+
+                <hr>
+
+                <label>發布設定</label>
+                <select id="blogPublishMode" class="side-input" onchange="onPublishModeChange()">
+                  <option value="draft">📝 草稿（不公開）</option>
+                  <option value="now">✅ 立即公開發布</option>
+                  <option value="schedule">⏰ 排程發布</option>
+                </select>
+
+                <div id="blogScheduleWrap" style="display: none; margin-top: -6px;">
+                  <label>排程發布時間</label>
+                  <input type="datetime-local" id="blogPublishAt" class="side-input">
+                  <div style="font-size: 12px; color: #64748b; margin-top: -10px; margin-bottom: 12px;">時間到之前，文章不會出現在前台。</div>
+                </div>
+
+                <hr>
+
+                <button id="btnSaveBlog" type="button" class="btn-primary" style="width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px;" onclick="saveBlogArticle()">💾 儲存文章</button>
+                <button id="btnDeleteBlog" type="button" style="display: none; width: 100%; padding: 12px; background: #fef2f2; color: #dc2626; border: 1px solid #f87171; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer;" onclick="document.getElementById('blogConfirmModal').style.display='flex'">🗑️ 刪除文章</button>
+              </aside>
             </div>
-            
           </div>
         </div>
       </div>
@@ -910,57 +990,135 @@
 
     let globalBlogArticles = [];
 
+    // --- 小工具 ---
+    // 依 is_published 與 publish_at 判斷文章「實際上架狀態」
+    function getBlogStatus(art) {
+      if (!art.is_published) return 'draft';
+      if (art.publish_at && new Date(art.publish_at) > new Date()) return 'scheduled';
+      return 'live';
+    }
+    function fmtBlogDate(d) {
+      if (!d) return '—';
+      const dt = new Date(d);
+      return isNaN(dt) ? '—' : dt.toLocaleDateString('zh-TW');
+    }
+    function fmtBlogDateTime(d) {
+      if (!d) return '—';
+      const dt = new Date(d);
+      return isNaN(dt) ? '—' : dt.toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+    // 把 ISO 時間轉成 <input type=datetime-local> 需要的本地字串 (YYYY-MM-DDTHH:mm)
+    function toLocalInputValue(iso) {
+      const dt = new Date(iso);
+      if (isNaN(dt)) return '';
+      const pad = n => String(n).padStart(2, '0');
+      return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+    }
+
+    // --- 載入 + 渲染列表 ---
     async function loadBlogArticles() {
-      document.getElementById('blogListLoading').style.display = 'block';
-      const container = document.getElementById('blogListContainer');
-      container.innerHTML = '';
-      
+      const loading = document.getElementById('blogListLoading');
+      loading.style.display = 'block';
+      loading.innerHTML = '讀取中...';
+      document.getElementById('blogTableWrap').style.display = 'none';
       try {
         const { data, error } = await supabaseClient.from('articles').select('*').order('created_at', { ascending: false });
         if (error) throw error;
-        globalBlogArticles = data;
-        
-        if(data.length === 0) {
-           container.innerHTML = '<div style="color:var(--text-light); text-align:center;">目前還沒有任何文章</div>';
-        } else {
-           data.forEach(art => {
-             const div = document.createElement('div');
-             div.className = 'admin-item';
-             div.style.flexDirection = 'column';
-             div.style.alignItems = 'flex-start';
-             div.style.cursor = 'pointer';
-             div.onclick = () => editBlogArticle(art.id);
-             
-             const statusHtml = art.is_published 
-                ? '<span style="background:#dcfce7; color:#166534; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:bold;">已發布</span>'
-                : '<span style="background:#f1f5f9; color:#475569; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:bold;">草稿</span>';
-             const dateStr = new Date(art.created_at).toLocaleDateString();
-                
-             div.innerHTML = `
-               <div style="display:flex; justify-content:space-between; width:100%; margin-bottom:5px;">
-                 <div style="font-weight:bold; color:var(--text-main); font-size:16px;">${art.title || '無標題'}</div>
-                 ${statusHtml}
-               </div>
-               <div style="font-size:12px; color:var(--text-light);">建立時間: ${dateStr}</div>
-             `;
-             container.appendChild(div);
-           });
-        }
-      } catch(err) {
-         container.innerHTML = `<div style="color:red;">讀取失敗: ${err.message}</div>`;
+        globalBlogArticles = data || [];
+        renderBlogList();
+      } catch (err) {
+        loading.innerHTML = `<span style="color:red;">讀取失敗: ${err.message}</span>`;
       }
-      document.getElementById('blogListLoading').style.display = 'none';
     }
 
+    function renderBlogList() {
+      const loading = document.getElementById('blogListLoading');
+      const wrap = document.getElementById('blogTableWrap');
+      const body = document.getElementById('blogTableBody');
+      const countLabel = document.getElementById('blogCountLabel');
+
+      loading.style.display = 'none';
+      wrap.style.display = 'block';
+      body.innerHTML = '';
+
+      const kw = (document.getElementById('blogSearchInput').value || '').trim().toLowerCase();
+      const fromVal = document.getElementById('blogDateFrom').value;
+      const toVal = document.getElementById('blogDateTo').value;
+      const fromTime = fromVal ? new Date(fromVal + 'T00:00:00').getTime() : null;
+      const toTime = toVal ? new Date(toVal + 'T23:59:59').getTime() : null;
+
+      const list = globalBlogArticles.filter(art => {
+        if (kw && !((art.title || '').toLowerCase().includes(kw))) return false;
+        const c = new Date(art.created_at).getTime();
+        if (fromTime !== null && c < fromTime) return false;
+        if (toTime !== null && c > toTime) return false;
+        return true;
+      });
+
+      countLabel.innerText = `共 ${list.length} 篇`;
+
+      if (list.length === 0) {
+        body.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text-light);">沒有符合條件的文章</td></tr>`;
+        return;
+      }
+
+      const statusMap = {
+        live: '<span class="blog-status live">已發布</span>',
+        draft: '<span class="blog-status draft">草稿</span>',
+        scheduled: '<span class="blog-status scheduled">排程中</span>'
+      };
+
+      list.forEach(art => {
+        const status = getBlogStatus(art);
+        let publishCell;
+        if (status === 'scheduled') publishCell = `⏰ ${fmtBlogDateTime(art.publish_at)}`;
+        else if (status === 'live') publishCell = fmtBlogDateTime(art.publish_at || art.created_at);
+        else publishCell = '—';
+
+        const safeTitle = (art.title || '無標題').replace(/</g, '&lt;');
+        const tr = document.createElement('tr');
+        tr.onclick = () => editBlogArticle(art.id); // 點整列即可編輯（型別由閉包帶入，正確）
+        tr.innerHTML = `
+          <td class="col-title">${safeTitle}</td>
+          <td>${statusMap[status]}</td>
+          <td>${fmtBlogDate(art.created_at)}</td>
+          <td style="color:var(--text-light); font-size:13px;">${publishCell}</td>
+          <td style="text-align:right;"><button class="row-edit-btn" type="button">編輯</button></td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    // --- 檢視切換 ---
+    function showBlogEditView() {
+      document.getElementById('blogListView').style.display = 'none';
+      document.getElementById('blogEditView').style.display = 'block';
+    }
+    function openBlogEditor() {
+      resetBlogEditor();
+      showBlogEditView();
+    }
+    function backToBlogList() {
+      document.getElementById('blogEditView').style.display = 'none';
+      document.getElementById('blogListView').style.display = 'block';
+      renderBlogList();
+    }
+    function onPublishModeChange() {
+      const mode = document.getElementById('blogPublishMode').value;
+      document.getElementById('blogScheduleWrap').style.display = (mode === 'schedule') ? 'block' : 'none';
+    }
+
+    // --- 編輯器內容操作 ---
     function resetBlogEditor() {
       document.getElementById('blogEditorTitle').innerText = '✨ 撰寫新文章';
       document.getElementById('blogId').value = '';
       document.getElementById('blogTitle').value = '';
-      document.getElementById('blogIsPublished').checked = false;
+      document.getElementById('blogPublishMode').value = 'draft';
+      document.getElementById('blogPublishAt').value = '';
+      onPublishModeChange();
       document.getElementById('currentBlogCoverContainer').innerHTML = '<span style="color: #94a3b8; font-size: 14px;">目前無封面圖</span>';
-      
       document.getElementById('btnDeleteBlog').style.display = 'none';
-      
+
       if (editor && editor.isReady) {
         editor.isReady.then(() => { editor.clear(); }).catch(e => console.error(e));
       }
@@ -968,39 +1126,52 @@
     }
 
     function editBlogArticle(id) {
-      const art = globalBlogArticles.find(a => a.id === id);
-      if(!art) return;
-      
+      const art = globalBlogArticles.find(a => a.id == id); // 用 == 相容數字/字串 id
+      if (!art) return;
+
+      showBlogEditView(); // 先切到編輯檢視，編輯器才看得到
+
       document.getElementById('blogEditorTitle').innerText = '✏️ 編輯文章';
       document.getElementById('blogId').value = art.id;
       document.getElementById('blogTitle').value = art.title || '';
-      document.getElementById('blogIsPublished').checked = art.is_published;
-      
       document.getElementById('btnDeleteBlog').style.display = 'block';
-      
+
+      // 還原發布設定
+      const status = getBlogStatus(art);
+      const modeSel = document.getElementById('blogPublishMode');
+      if (status === 'scheduled') {
+        modeSel.value = 'schedule';
+        document.getElementById('blogPublishAt').value = toLocalInputValue(art.publish_at);
+      } else if (status === 'live') {
+        modeSel.value = 'now';
+        document.getElementById('blogPublishAt').value = '';
+      } else {
+        modeSel.value = 'draft';
+        document.getElementById('blogPublishAt').value = '';
+      }
+      onPublishModeChange();
+
+      // 還原文章內容
       if (editor && editor.isReady) {
         editor.isReady.then(() => {
           try {
             if (art.content) {
-               const parsedData = JSON.parse(art.content);
-               editor.render(parsedData);
+              const parsed = JSON.parse(art.content);
+              if (parsed && Array.isArray(parsed.blocks)) editor.render(parsed);
+              else editor.clear();
             } else {
-               editor.clear();
+              editor.clear();
             }
-          } catch(e) {
-            editor.render({
-              blocks: [{ type: "paragraph", data: { text: art.content || "" } }]
-            });
+          } catch (e) {
+            editor.render({ blocks: [{ type: 'paragraph', data: { text: art.content || '' } }] });
           }
         }).catch(e => console.error(e));
       }
-      
-      if(art.cover_url) {
-        document.getElementById('currentBlogCoverContainer').innerHTML = `
-          <div style="position:relative; display:inline-block;">
-            <img src="${art.cover_url}" style="max-height:120px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-          </div>
-        `;
+
+      // 還原封面
+      if (art.cover_url) {
+        document.getElementById('currentBlogCoverContainer').innerHTML =
+          `<div style="position:relative; display:inline-block;"><img src="${art.cover_url}" style="max-height:120px; border-radius:6px; box-shadow:0 2px 4px rgba(0,0,0,0.1);"></div>`;
       } else {
         document.getElementById('currentBlogCoverContainer').innerHTML = '<span style="color: #94a3b8; font-size: 14px;">目前無封面圖</span>';
       }
@@ -1013,15 +1184,15 @@
 
     function processBlogCover(file) {
       if (!file.type.startsWith('image/')) return alert('請上傳圖片！');
-      
+
       const reader = new FileReader();
       reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
           let targetWidth = 1200;
           let targetHeight = (img.height / img.width) * targetWidth;
-          if(img.width < targetWidth) { targetWidth = img.width; targetHeight = img.height; }
-          
+          if (img.width < targetWidth) { targetWidth = img.width; targetHeight = img.height; }
+
           const canvas = document.createElement('canvas');
           canvas.width = targetWidth; canvas.height = targetHeight;
           const ctx = canvas.getContext('2d');
@@ -1049,18 +1220,27 @@
     async function saveBlogArticle() {
       const id = document.getElementById('blogId').value;
       const title = document.getElementById('blogTitle').value.trim();
-      const isPub = document.getElementById('blogIsPublished').checked;
+      const mode = document.getElementById('blogPublishMode').value;
       const btn = document.getElementById('btnSaveBlog');
-      
-      if(!title) return alert('標題不能為空！');
-      btn.innerText = "儲存中..."; btn.disabled = true;
 
+      if (!title) return alert('標題不能為空！');
+
+      // 依發布模式計算 is_published 與 publish_at
+      let isPub = false, publishAt = null;
+      if (mode === 'now') {
+        isPub = true; publishAt = null;
+      } else if (mode === 'schedule') {
+        const v = document.getElementById('blogPublishAt').value;
+        if (!v) return alert('請選擇排程發布的時間！');
+        const dt = new Date(v);
+        if (isNaN(dt)) return alert('排程時間格式不正確！');
+        isPub = true; publishAt = dt.toISOString();
+      }
+
+      btn.innerText = '儲存中...'; btn.disabled = true;
       try {
-        let contentStr = "{}";
-        if (editor) {
-           const editorData = await editor.save();
-           contentStr = JSON.stringify(editorData);
-        }
+        let contentStr = '{}';
+        if (editor) contentStr = JSON.stringify(await editor.save());
 
         let finalCoverUrl = null;
         if (pendingBlogCover) {
@@ -1071,24 +1251,30 @@
           finalCoverUrl = supabaseClient.storage.from(bucketName).getPublicUrl(fileName).data.publicUrl;
         }
 
-        let payload = { title: title, content: contentStr, is_published: isPub, updated_at: new Date().toISOString() };
+        let payload = { title: title, content: contentStr, is_published: isPub, publish_at: publishAt, updated_at: new Date().toISOString() };
         if (finalCoverUrl) payload.cover_url = finalCoverUrl;
 
-        if (id) {
-          const { error } = await supabaseClient.from('articles').update(payload).eq('id', id);
-          if (error) throw error;
-        } else {
-          const { error } = await supabaseClient.from('articles').insert([payload]);
-          if (error) throw error;
+        const doSave = (p) => id
+          ? supabaseClient.from('articles').update(p).eq('id', id)
+          : supabaseClient.from('articles').insert([p]);
+
+        let { error } = await doSave(payload);
+        // 若資料表尚未新增 publish_at 欄位，去掉該欄位再存一次（排程功能需此欄位）
+        if (error && /publish_at/i.test(error.message || '')) {
+          const fallback = Object.assign({}, payload);
+          delete fallback.publish_at;
+          ({ error } = await doSave(fallback));
+          if (!error) showCustomToast('已儲存。提醒：「排程發布」需先在 Supabase 新增 publish_at 欄位');
         }
-        
+        if (error) throw error;
+
         showCustomToast('文章儲存成功！');
-        resetBlogEditor();
-        loadBlogArticles(); 
-      } catch(err) {
+        await loadBlogArticles();
+        backToBlogList();
+      } catch (err) {
         alert('儲存失敗: ' + err.message);
       } finally {
-        btn.innerHTML = "💾 儲存文章"; btn.disabled = false;
+        btn.innerHTML = '💾 儲存文章'; btn.disabled = false;
       }
     }
 
@@ -1098,10 +1284,10 @@
       if (!id) return;
 
       const btn = document.getElementById('btnDeleteBlog');
-      btn.innerText = "刪除中..."; btn.disabled = true;
+      btn.innerText = '刪除中...'; btn.disabled = true;
 
       try {
-        const art = globalBlogArticles.find(a => a.id === id);
+        const art = globalBlogArticles.find(a => a.id == id);
         if (art && art.cover_url && art.cover_url.includes('supabase.co')) {
           const fileName = art.cover_url.substring(art.cover_url.lastIndexOf('/') + 1);
           await supabaseClient.storage.from('product-images').remove([fileName]);
@@ -1111,12 +1297,12 @@
         if (error) throw error;
 
         showCustomToast('文章已成功永久刪除！');
-        resetBlogEditor();
-        loadBlogArticles();
+        await loadBlogArticles();
+        backToBlogList();
       } catch (err) {
         showCustomToast('刪除失敗: ' + err.message);
       } finally {
-        btn.innerHTML = "🗑️ 刪除文章"; btn.disabled = false;
+        btn.innerHTML = '🗑️ 刪除文章'; btn.disabled = false;
       }
     }
 
