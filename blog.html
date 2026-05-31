@@ -7,6 +7,31 @@
   
   <meta name="description" content="高雄郵局最新郵政文創商品開箱、節慶送禮推薦與在地特色明信片介紹，盡在郵風快訊小編嘮叨專欄！">
   <meta name="keywords" content="中華郵政, 高雄郵局, 郵政商品開箱, 送禮推薦, 紀念品, 郵票介紹, 郵風快訊">
+
+  <!-- ★ SEO / 社群分享 meta（列表頁為靜態內容，社群爬蟲不需 JS 即可讀取） -->
+  <link rel="canonical" href="">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="郵風快訊">
+  <meta property="og:title" content="郵風快訊｜小編嘮叨專欄">
+  <meta property="og:description" content="高雄郵局郵政文創商品開箱、節慶送禮推薦與在地特色明信片介紹，盡在郵風快訊小編嘮叨專欄！">
+  <meta property="og:url" content="">
+  <meta property="og:image" content="">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="郵風快訊｜小編嘮叨專欄">
+  <meta name="twitter:description" content="高雄郵局郵政文創商品開箱、節慶送禮推薦與在地特色明信片介紹。">
+  <meta name="twitter:image" content="">
+
+  <!-- ★ 結構化資料：部落格 -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "name": "郵風快訊小編嘮叨專欄",
+    "description": "高雄郵局郵政文創商品開箱、節慶送禮推薦與在地特色明信片介紹。",
+    "inLanguage": "zh-TW",
+    "publisher": { "@type": "Organization", "name": "高雄郵局 郵風快訊" }
+  }
+  </script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -211,6 +236,25 @@
       return text.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
     }
 
+    // ★ SEO 設定（可自行填寫）
+    const SITE_OG_IMAGE = ''; // ← 列表頁預設分享圖網址（建議 1200x630）；留空則用最新文章封面
+
+    function setMetaName(name, content) {
+      let el = document.head.querySelector(`meta[name="${name}"]`);
+      if (!el) { el = document.createElement('meta'); el.setAttribute('name', name); document.head.appendChild(el); }
+      el.setAttribute('content', content || '');
+    }
+    function setMetaProp(prop, content) {
+      let el = document.head.querySelector(`meta[property="${prop}"]`);
+      if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
+      el.setAttribute('content', content || '');
+    }
+    function setLinkRel(rel, href) {
+      let el = document.head.querySelector(`link[rel="${rel}"]`);
+      if (!el) { el = document.createElement('link'); el.setAttribute('rel', rel); document.head.appendChild(el); }
+      el.setAttribute('href', href || '');
+    }
+
     window.onload = async () => {
       try {
         const { data, error } = await supabaseClient
@@ -240,18 +284,42 @@
           let excerpt = plain ? plain.substring(0, 80) + '...' : '點擊閱讀全文 →';
           let cover = art.cover_url || FALLBACK_COVER;
           let date = new Date(art.created_at).toLocaleDateString('zh-TW');
+          let altText = (art.title || '文章').replace(/"/g, '');
 
           grid.innerHTML += `
             <a href="article.html?id=${art.id}" class="article-card">
-              <img src="${cover}" class="a-cover" alt="封面圖" onerror="this.onerror=null;this.src=FALLBACK_COVER;">
+              <img src="${cover}" class="a-cover" alt="${altText} 封面" onerror="this.onerror=null;this.src=FALLBACK_COVER;">
               <div class="a-info">
                 <h3 class="a-title">${art.title}</h3>
                 <div class="a-excerpt">${excerpt}</div>
-                <div class="a-meta"><i class="fa-regular fa-clock"></i> 發布於 ${date}</div>
+                <div class="a-meta"><i class="fa-regular fa-clock"></i> <time datetime="${art.created_at}">發布於 ${date}</time></div>
               </div>
             </a>
           `;
         });
+
+        // ★ 更新列表頁 canonical / og:url / og:image，並注入文章清單結構化資料
+        const pageUrl = location.href;
+        setLinkRel('canonical', pageUrl);
+        setMetaProp('og:url', pageUrl);
+        const firstCover = (visible.find(a => a.cover_url) || {}).cover_url || SITE_OG_IMAGE;
+        if (firstCover) { setMetaProp('og:image', firstCover); setMetaName('twitter:image', firstCover); }
+
+        const baseDir = location.origin + location.pathname.replace(/blog\.html$/, '');
+        const itemList = {
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "itemListElement": visible.slice(0, 20).map((a, i) => ({
+            "@type": "ListItem",
+            "position": i + 1,
+            "url": `${baseDir}article.html?id=${a.id}`,
+            "name": a.title || '無標題'
+          }))
+        };
+        const ldScript = document.createElement('script');
+        ldScript.type = 'application/ld+json';
+        ldScript.text = JSON.stringify(itemList);
+        document.head.appendChild(ldScript);
       } catch (err) {
         document.getElementById('loading').innerHTML = `<span style="color:red;">讀取失敗：${err.message}</span>`;
       }
