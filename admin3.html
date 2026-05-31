@@ -244,11 +244,24 @@
       padding-bottom: 160px !important; /* 底部大量留白：讓最後一行的工具選單能往下展開，不被捲軸裁切 */
     }
 
-    /* 避免插入的圖片破壞排版 */
-    .cdx-block img {
+    /* === ★ 編輯器內圖片大小控制 === */
+    /* 說明：Editor.js 官方圖片外掛「不支援」逐張拖曳縮放或自訂像素寬高，
+       但我們用 CSS 統一高度上限，並支援它內建的「Stretch image」開關，
+       讓直式圖不再爆高、橫式圖可選擇填滿欄寬。
+       （注意：要鎖定的是 .image-tool__image-picture，原本的 .cdx-block img 其實沒作用） */
+    #editorScroll .image-tool__image-picture {
       max-width: 100%;
+      max-height: 420px;   /* 關鍵：限制預覽高度，直式圖片不再超巨大 */
       height: auto;
+      width: auto;
+      display: block;
+      margin: 0 auto;      /* 置中 */
       border-radius: 8px;
+    }
+    /* 作者按下工具列的「Stretch image」→ 填滿欄寬並解除高度上限 */
+    #editorScroll .image-tool--stretched .image-tool__image-picture {
+      max-height: none;
+      width: 100%;
     }
 
     /* === 回到最上方按鈕 === */
