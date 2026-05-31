@@ -180,6 +180,37 @@
     const _supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA';
     const supabaseClient = window.supabase.createClient(_supabaseUrl, _supabaseKey);
 
+    // ★ 無封面時的預設圖（內嵌 SVG，避免依賴可能失效的外部服務）
+    const FALLBACK_COVER = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='300'><rect width='600' height='300' fill='%23fdeca6'/><text x='50%25' y='50%25' font-size='30' fill='%2382380d' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif'>%F0%9F%93%AE 郵風快訊</text></svg>";
+
+    // ★ 將 Editor.js 的 JSON 內容轉成純文字，用來產生乾淨的摘要
+    function editorjsToPlainText(raw) {
+      if (!raw) return '';
+      let parsed = null;
+      try { parsed = JSON.parse(raw); } catch (e) { parsed = null; }
+
+      // 解析失敗 → 視為舊版純文字，去除標籤
+      if (parsed === null) {
+        return String(raw).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+      }
+      // 是合法 JSON 但沒有區塊資料 → 無摘要
+      if (!Array.isArray(parsed.blocks)) return '';
+
+      let text = '';
+      parsed.blocks.forEach(b => {
+        const d = b.data || {};
+        if (d.text) text += d.text + ' ';
+        if (Array.isArray(d.items)) {
+          d.items.forEach(it => {
+            text += ((typeof it === 'string') ? it : (it && it.content) || '') + ' ';
+          });
+        }
+        if (d.caption) text += d.caption + ' ';
+      });
+      // 去除內嵌 HTML 標籤（粗體、連結等）並壓縮空白
+      return text.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+    }
+
     window.onload = async () => {
       try {
         const { data, error } = await supabaseClient
@@ -199,14 +230,15 @@
         }
 
         data.forEach(art => {
-          // 產生純文字摘要 (去除 HTML 標籤)
-          let excerpt = art.content.replace(/<[^>]+>/g, '').substring(0, 80) + '...';
-          let cover = art.cover_url || 'https://via.placeholder.com/600x300?text=Post+News';
+          // ★ 將 Editor.js 的 JSON 轉成純文字，產生乾淨摘要（不再印出原始 JSON）
+          let plain = editorjsToPlainText(art.content);
+          let excerpt = plain ? plain.substring(0, 80) + '...' : '點擊閱讀全文 →';
+          let cover = art.cover_url || FALLBACK_COVER;
           let date = new Date(art.created_at).toLocaleDateString('zh-TW');
 
           grid.innerHTML += `
             <a href="article.html?id=${art.id}" class="article-card">
-              <img src="${cover}" class="a-cover" alt="封面圖">
+              <img src="${cover}" class="a-cover" alt="封面圖" onerror="this.onerror=null;this.src=FALLBACK_COVER;">
               <div class="a-info">
                 <h3 class="a-title">${art.title}</h3>
                 <div class="a-excerpt">${excerpt}</div>
