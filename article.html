@@ -47,6 +47,21 @@
     .a-body { font-size: 17px; color: #334155; }
     .a-body img { max-width: 100%; border-radius: 8px; border: 2px solid #cbd5e0; margin: 15px 0; }
     .a-body p { margin-bottom: 1em; }
+
+    /* ★ Editor.js 區塊渲染樣式（沿用星露谷主題） */
+    .a-body h2, .a-body h3, .a-body h4 { color: var(--sd-wood-dark); line-height: 1.4; margin: 1.4em 0 0.6em; font-weight: bold; }
+    .a-body h2 { font-size: 24px; border-bottom: 2px dashed #cbd5e0; padding-bottom: 8px; }
+    .a-body h3 { font-size: 20px; }
+    .a-body h4 { font-size: 18px; }
+    .a-body ul, .a-body ol { padding-left: 1.6em; margin: 0 0 1em; }
+    .a-body li { margin-bottom: 0.5em; }
+    .a-body a { color: var(--sd-wood); font-weight: bold; text-decoration: underline; }
+    .a-body blockquote { margin: 1.2em 0; padding: 12px 18px; background: var(--sd-parchment); border-left: 5px solid var(--sd-wood); border-radius: 6px; color: var(--sd-text); font-style: italic; }
+    .a-body blockquote cite { display: block; margin-top: 8px; font-size: 14px; color: #734e2c; font-style: normal; }
+    .a-body figure { margin: 1.2em 0; text-align: center; }
+    .a-body figure img { margin: 0 auto 8px; }
+    .a-body figcaption { font-size: 14px; color: #64748b; }
+    .a-body hr { border: none; border-top: 3px dotted #cbd5e0; margin: 2em 0; }
     
     .share-box { margin-top: 40px; padding-top: 20px; border-top: 2px dashed var(--sd-border); text-align: center; }
     .share-btn { background: var(--sd-wood); color: white; border: 3px solid var(--sd-border); padding: 10px 20px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2); transition: 0.1s;}
@@ -94,6 +109,61 @@
 
     let articleTitle = "郵風專欄";
 
+    // ★ 將 Editor.js 儲存的 JSON 內容轉換成可顯示的 HTML
+    function editorjsToHtml(raw) {
+      if (!raw) return '<p style="color:#94a3b8;">（這篇文章還沒有內容）</p>';
+
+      let parsed = null;
+      try { parsed = JSON.parse(raw); } catch (e) { parsed = null; }
+
+      // 解析失敗 → 視為舊版純文字／HTML，保留換行
+      if (parsed === null) {
+        return String(raw).replace(/\n/g, '<br>');
+      }
+      // 是合法 JSON 但沒有區塊資料 → 視為空文章
+      if (!Array.isArray(parsed.blocks)) {
+        return '<p style="color:#94a3b8;">（這篇文章還沒有內容）</p>';
+      }
+
+      const esc = (s) => String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+      const html = parsed.blocks.map(block => {
+        const d = block.data || {};
+        switch (block.type) {
+          case 'header': {
+            const lvl = [2, 3, 4, 5, 6].includes(d.level) ? d.level : 2;
+            return `<h${lvl}>${d.text || ''}</h${lvl}>`;
+          }
+          case 'paragraph':
+            return `<p>${d.text || ''}</p>`;
+          case 'list': {
+            const tag = d.style === 'ordered' ? 'ol' : 'ul';
+            const items = (d.items || []).map(it => {
+              // 相容兩種格式：純字串(舊版 list) 或 物件 {content}(新版巢狀 list)
+              const content = (typeof it === 'string') ? it : (it && it.content) || '';
+              return `<li>${content}</li>`;
+            }).join('');
+            return `<${tag}>${items}</${tag}>`;
+          }
+          case 'quote':
+            return `<blockquote>${d.text || ''}${d.caption ? `<cite>— ${d.caption}</cite>` : ''}</blockquote>`;
+          case 'image': {
+            const url = (d.file && d.file.url) || d.url || '';
+            if (!url) return '';
+            const cap = d.caption ? `<figcaption>${d.caption}</figcaption>` : '';
+            return `<figure><img src="${esc(url)}" alt="${esc((d.caption || '').replace(/<[^>]+>/g, ''))}">${cap}</figure>`;
+          }
+          case 'delimiter':
+            return '<hr>';
+          default:
+            return d.text ? `<p>${d.text}</p>` : '';
+        }
+      }).join('\n');
+
+      return html || '<p style="color:#94a3b8;">（這篇文章還沒有內容）</p>';
+    }
+
     window.onload = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const articleId = urlParams.get('id');
@@ -122,8 +192,8 @@
         document.getElementById('title').innerText = data.title;
         document.getElementById('meta').innerHTML = `<i class="fa-regular fa-clock"></i> 發布日期：${new Date(data.created_at).toLocaleDateString('zh-TW')} &nbsp;&nbsp;|&nbsp;&nbsp; ✍️ 作者：郵局企劃科小編`;
         
-        // 內容支援 HTML (因為是在後台管理員寫入的)
-        document.getElementById('body').innerHTML = data.content.replace(/\n/g, '<br>');
+        // ★ 將 Editor.js 的 JSON 轉成 HTML 後再放入頁面（不再直接印出原始 JSON）
+        document.getElementById('body').innerHTML = editorjsToHtml(data.content);
 
         if(data.cover_url) {
             document.getElementById('cover').src = data.cover_url;
