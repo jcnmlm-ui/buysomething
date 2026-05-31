@@ -200,9 +200,22 @@
     .btn-delete-extra { position: absolute; top: 4px; right: 4px; background: rgba(239, 68, 68, 0.9); color: white; border: none; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;}
     .btn-delete-extra:hover { background: #dc2626; transform: scale(1.1); }
 
-    /* === Editor.js 專欄樣式微調 === */
-    #editorjs { background: #fff; border: 1px solid #cbd5e0; border-radius: 6px; padding: 20px; min-height: 400px; margin-bottom: 15px; text-align: left; }
-    .ce-block__content, .ce-toolbar__content { max-width: 100%; /* 取消預設的 650px 限制，讓排版更靈活 */ }
+    /* === ★ Editor.js 專欄樣式微調 (解決無法點擊空白處的問題) === */
+    #editorjs { 
+      background: #fff; 
+      border: 1px solid #cbd5e0; 
+      border-radius: 6px; 
+      padding: 10px 20px; 
+      margin-bottom: 15px; 
+      text-align: left; 
+      cursor: text; /* 讓滑鼠移過去變成打字游標，提示可點擊 */
+    }
+    .ce-block__content, .ce-toolbar__content { 
+      max-width: 100%; /* 取消預設的寬度限制，讓排版更靈活 */ 
+    }
+    .codex-editor__redactor {
+      padding-bottom: 80px !important; /* 確保內部底部永遠有留白可以點擊 */
+    }
 
     /* === 回到最上方按鈕 === */
     #scrollToTopBtn { position: fixed; bottom: 30px; right: 30px; width: 45px; height: 45px; background-color: var(--primary); color: white; border: none; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 9999; }
@@ -420,11 +433,11 @@
               <button onclick="clearBlogCover()" style="background:#fecaca; color:#991b1b; border:1px solid #f87171; padding:4px 8px; border-radius:4px; margin-top:5px; cursor:pointer;">取消上傳</button>
             </div>
 
-            <!-- ★ 改用 Editor.js 的容器取代原本的 Textarea -->
             <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">文章內容 (Editor.js 智慧編輯器)</label>
-            <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">提示：點選空白處開始打字。反白文字可設定粗體或超連結。輸入 `/` 或點擊左側 <code>+</code> 號可插入圖片或清單。</div>
+            <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">提示：點擊下方空白處即可開始打字。反白文字可設定粗體或超連結。點擊左側 <code>+</code> 號可插入圖片或清單。</div>
             
-            <div id="editorjs"></div>
+            <!-- ★ 這裡加上了 onclick 事件，確保點擊外框也能直接對焦到編輯器 -->
+            <div id="editorjs" onclick="if(editor){editor.focus(true);}"></div>
             
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
               <label style="font-weight: bold; display: flex; align-items: center; cursor: pointer; color: #333; font-size: 16px;">
@@ -664,7 +677,9 @@
     function initEditorJS() {
       editor = new EditorJS({
         holder: 'editorjs',
-        placeholder: '在這裡開始撰寫您的小編專欄...',
+        placeholder: '在這裡開始撰寫您的小編專欄（點擊空白處即可開始）...',
+        // ★ 核心修復：設定這個高度，讓整個白框區域都成為可點擊的輸入區
+        minHeight: 350, 
         tools: {
           header: {
             class: Header,
@@ -686,14 +701,12 @@
               captionPlaceholder: '引言來源 (可選)',
             }
           },
-          // ★ 強大的圖片外掛：讓您能直接拖曳上傳圖片到 Supabase
           image: {
             class: ImageTool,
             config: {
               uploader: {
                 async uploadByFile(file) {
                   try {
-                    // 自動為文章內嵌圖片轉檔名並上傳到 product-images 儲存桶
                     const ext = file.name.split('.').pop() || 'jpg';
                     const fileName = `blog_inline_${Date.now()}.${ext}`;
                     const bucketName = 'product-images';
@@ -703,7 +716,6 @@
                     
                     const url = supabaseClient.storage.from(bucketName).getPublicUrl(fileName).data.publicUrl;
                     
-                    // 回傳 Editor.js 需要的 JSON 格式
                     return {
                       success: 1,
                       file: { url: url }
@@ -718,7 +730,7 @@
             }
           }
         },
-        data: {} // 初始資料為空
+        data: {} 
       });
     }
 
@@ -879,7 +891,6 @@
       document.getElementById('blogIsPublished').checked = false;
       document.getElementById('currentBlogCoverContainer').innerHTML = '<span style="color: #94a3b8; font-size: 14px;">目前無封面圖</span>';
       
-      // ★ 清空 Editor.js 內容
       editor.isReady.then(() => {
         editor.clear();
       });
@@ -896,7 +907,6 @@
       document.getElementById('blogTitle').value = art.title || '';
       document.getElementById('blogIsPublished').checked = art.is_published;
       
-      // ★ 讀取資料庫中的 JSON 並渲染到 Editor.js
       editor.isReady.then(() => {
         try {
           if (art.content) {
@@ -906,7 +916,6 @@
              editor.clear();
           }
         } catch(e) {
-          // 如果解析 JSON 失敗 (代表那是以前手打的純文字舊格式)，我們用防呆機制幫它包裝成 Paragraph
           editor.render({
             blocks: [{ type: "paragraph", data: { text: art.content || "" } }]
           });
@@ -980,15 +989,10 @@
       btn.innerText = "儲存中..."; btn.disabled = true;
 
       try {
-        // ★ 要求 Editor.js 吐出 JSON 格式的內容
         const editorData = await editor.save();
-        
-        // 將 JSON 物件轉為文字字串，存入 DB 的 content 欄位
         const contentStr = JSON.stringify(editorData);
-
         let finalCoverUrl = null;
         
-        // 如果有上傳新封面
         if (pendingBlogCover) {
           const fileName = `blog_cover_${Date.now()}.webp`;
           const bucketName = 'product-images';
@@ -1007,11 +1011,9 @@
         if (finalCoverUrl) payload.cover_url = finalCoverUrl;
 
         if (id) {
-          // Update
           const { error } = await supabaseClient.from('articles').update(payload).eq('id', id);
           if (error) throw error;
         } else {
-          // Insert
           const { error } = await supabaseClient.from('articles').insert([payload]);
           if (error) throw error;
         }
