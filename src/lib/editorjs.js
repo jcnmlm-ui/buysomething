@@ -33,7 +33,7 @@ export function editorjsToHtml(raw) {
         if (!url) return '';
         const cls = d.stretched ? 'ej-image is-stretched' : 'ej-image';
         const cap = d.caption ? `<figcaption>${d.caption}</figcaption>` : '';
-        return `<figure class="${cls}"><img src="${esc(url)}" alt="${esc((d.caption || '').replace(/<[^>]+>/g, ''))}">${cap}</figure>`;
+        return `<figure class="${cls}"><img src="${esc(url)}" alt="${esc((d.caption || '').replace(/<[^>]+>/g, ''))}" loading="lazy" decoding="async">${cap}</figure>`;
       }
       case 'delimiter':
         return '<hr>';

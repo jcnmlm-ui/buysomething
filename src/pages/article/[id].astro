@@ -3,19 +3,25 @@ import Base from '../../layouts/Base.astro';
 import { getPublishedArticles } from '../../lib/articles.js';
 import { editorjsToHtml, editorjsToPlainText } from '../../lib/editorjs.js';
 
-// 建置時為每篇已發布文章產生一個靜態頁
+// 建置時為每篇已發布文章產生靜態頁，並附上「相關文章」
 export async function getStaticPaths() {
   const articles = await getPublishedArticles();
-  return articles.map((a) => ({ params: { id: String(a.id) }, props: { article: a } }));
+  return articles.map((a) => {
+    const related = articles.filter((x) => String(x.id) !== String(a.id)).slice(0, 3);
+    return { params: { id: String(a.id) }, props: { article: a, related } };
+  });
 }
 
-const { article } = Astro.props;
+const { article, related } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const bodyHtml = editorjsToHtml(article.content);
 const desc = (editorjsToPlainText(article.content) || '高雄郵局郵風快訊小編專欄文章。').slice(0, 150);
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImage = article.cover_url || '';
 const dateStr = new Date(article.created_at).toLocaleDateString('zh-TW');
+
+const homeUrl = new URL(base, Astro.site).href;
+const blogUrl = new URL(`${base}blog/`, Astro.site).href;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -29,22 +35,52 @@ const jsonLd = {
   mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
   ...(ogImage ? { image: [ogImage] } : {}),
 };
+
+const breadcrumbLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: '首頁', item: homeUrl },
+    { '@type': 'ListItem', position: 2, name: '郵風快訊', item: blogUrl },
+    { '@type': 'ListItem', position: 3, name: article.title, item: canonical },
+  ],
+};
 ---
-<Base title={`${article.title}｜郵風快訊`} description={desc} canonical={canonical} ogType="article" ogImage={ogImage} jsonLd={jsonLd}>
+<Base title={`${article.title}｜郵風快訊`} description={desc} canonical={canonical} ogType="article" ogImage={ogImage} jsonLd={[jsonLd, breadcrumbLd]}>
   <header class="header">
-    <a href={`${base}blog`} class="btn-back">← 回列表</a>
+    <a href={`${base}blog/`} class="btn-back">← 回列表</a>
     <h2 class="header-title">郵風小編專欄</h2>
     <div style="width:80px;"></div>
   </header>
 
   <main class="container">
+    <nav class="breadcrumb" aria-label="breadcrumb">
+      <a href={base}>首頁</a> ›
+      <a href={`${base}blog/`}>郵風快訊</a> ›
+      <span>{article.title}</span>
+    </nav>
+
     <article class="article-box">
-      {ogImage && <img class="cover-img" src={ogImage} alt={article.title} />}
+      {ogImage && <img class="cover-img" src={ogImage} alt={article.title} decoding="async" />}
       <div class="content-area">
         <h1 class="post-title">{article.title}</h1>
         <div class="post-meta">🕒 發布日期：{dateStr}　|　✍️ 作者：郵局企劃科小編</div>
         <div class="a-body" set:html={bodyHtml}></div>
       </div>
     </article>
+
+    {related.length > 0 && (
+      <section class="related">
+        <h2 class="related-title">📚 你可能也想看</h2>
+        <div class="related-grid">
+          {related.map((r) => (
+            <a href={`${base}article/${r.id}/`} class="related-card">
+              {r.cover_url && <img src={r.cover_url} alt={r.title} loading="lazy" decoding="async" />}
+              <span>{r.title}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
   </main>
 </Base>

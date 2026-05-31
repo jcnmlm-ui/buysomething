@@ -103,6 +103,21 @@ const siteName = '郵風快訊';
     .a-body figcaption{ font-size:14px; color:#64748b; }
     .a-body hr{ border:none; border-top:3px dotted #cbd5e0; margin:2em 0; }
 
+    /* 麵包屑 */
+    .breadcrumb{ font-size:14px; color:#fff; margin:0 0 16px; text-shadow:1px 1px 0 var(--sd-border); }
+    .breadcrumb a{ color:#fff; font-weight:bold; text-decoration:none; }
+    .breadcrumb a:hover{ text-decoration:underline; }
+    .breadcrumb span{ color:#fdeca6; }
+
+    /* 相關文章 */
+    .related{ max-width:800px; margin:30px auto 0; }
+    .related-title{ color:var(--sd-wood-dark); background:var(--sd-parchment); border:3px solid var(--sd-border); border-radius:8px; padding:10px 16px; font-size:18px; margin:0; box-shadow:0 4px 0 rgba(0,0,0,.15); }
+    .related-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; margin-top:16px; }
+    .related-card{ background:#fff; border:3px solid var(--sd-border); border-radius:8px; overflow:hidden; text-decoration:none; color:var(--sd-text); display:flex; flex-direction:column; box-shadow:0 4px 0 rgba(0,0,0,.15); transition:transform .15s; }
+    .related-card:hover{ transform:translateY(-3px); }
+    .related-card img{ width:100%; height:120px; object-fit:cover; border-bottom:3px solid var(--sd-border); }
+    .related-card span{ padding:10px 12px; font-weight:bold; font-size:14px; line-height:1.4; }
+
     @media (max-width:600px){
       .header{ flex-direction:column; gap:10px; padding:15px; }
       .btn-back{ width:100%; text-align:center; }

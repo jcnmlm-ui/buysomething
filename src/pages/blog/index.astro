@@ -52,7 +52,7 @@ const desc = '高雄郵局最新郵政文創商品開箱、節慶送禮推薦與
       <div class="blog-grid">
         {cards.map((c) => (
           <a href={`${base}article/${c.id}`} class="article-card">
-            <img src={c.cover} class="a-cover" alt={`${c.title} 封面`} />
+            <img src={c.cover} class="a-cover" alt={`${c.title} 封面`} loading="lazy" decoding="async" />
             <div class="a-info">
               <h3 class="a-title">{c.title}</h3>
               <div class="a-excerpt">{c.excerpt}</div>
