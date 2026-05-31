@@ -143,7 +143,6 @@
     .btn-qty:hover { background: #e2e8f0; }
     .btn-qty:active { transform: translateY(2px); }
     .extra-qty-input { width: 50px; height: 30px; text-align: center; border: 1px solid #cbd5e0; border-radius: 4px; padding: 4px; font-size: 15px; font-weight: bold; color: var(--primary-dark); outline: none; -moz-appearance: textfield; }
-    .extra-qty-input::-webkit-outer-spin-button, .extra-qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
     /* === A級專屬：現場庫存 CSS === */
     .extra-stock-list { display: block; max-height: calc(100vh - 350px); overflow-y: auto; padding-right: 5px; }
@@ -186,54 +185,53 @@
     .upload-area p { margin: 0; font-size: 14px; font-weight: bold; color: var(--text-main); }
     .upload-area span { display: block; font-size: 12px; color: var(--text-light); margin-top: 5px; }
     #fileInput, #extraFileInput, #blogCoverInput { display: none; }
-    
-    .preview-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; display: none; background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; }
-    .preview-box { flex: 1; text-align: center; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+    .preview-container { display: flex; gap: 10px; margin-bottom: 15px; display: none; }
+    .preview-box { flex: 1; text-align: center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
     .preview-box img { max-width: 100%; height: auto; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 5px; }
     .preview-info { font-size: 11px; color: var(--text-light); font-weight: bold; }
-    
     #logBox { margin-bottom: 15px; padding: 10px; background: #1e293b; color: #34d399; font-family: monospace; border-radius: 6px; font-size: 12px; max-height: 150px; overflow-y: auto; display: none; text-align: left; }
-
-    .btn-delete-img { 
-      position: absolute; top: -10px; right: -10px; background: #ef4444; color: white; border: 2px solid white; 
-      width: 28px; height: 28px; border-radius: 50%; font-size: 12px; cursor: pointer; 
-      display: flex; justify-content: center; align-items: center; transition: 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-    }
+    .btn-delete-img { position: absolute; top: -10px; right: -10px; background: #ef4444; color: white; border: 2px solid white; width: 28px; height: 28px; border-radius: 50%; font-size: 12px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
     .btn-delete-img:hover { background: #dc2626; transform: scale(1.15); }
 
     /* === 附圖畫廊專用樣式 === */
-    .extra-gallery { display: flex; gap: 15px; overflow-x: auto; padding: 15px 5px; scrollbar-width: thin; }
-    .extra-img-box { position: relative; width: 80px; height: 80px; flex-shrink: 0; border: 1px solid #cbd5e0; border-radius: 8px; background: #f8fafc; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
-    .extra-img-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 7px;}
+    .extra-gallery { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; scrollbar-width: thin; }
+    .extra-img-box { position: relative; width: 80px; height: 80px; flex-shrink: 0; border: 1px solid #cbd5e0; border-radius: 8px; overflow: hidden; background: #f8fafc; }
+    .extra-img-box img { width: 100%; height: 100%; object-fit: cover; }
+    .btn-delete-extra { position: absolute; top: 4px; right: 4px; background: rgba(239, 68, 68, 0.9); color: white; border: none; width: 22px; height: 22px; border-radius: 50%; font-size: 11px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s;}
+    .btn-delete-extra:hover { background: #dc2626; transform: scale(1.1); }
 
-    /* === ★ Editor.js 專欄樣式微調 (徹底解決死角與塌陷問題) === */
+    /* === ★ Editor.js 專欄樣式微調 (徹底解決超界與捲動問題) === */
     #editorjs { 
       background: #fff; 
       border: 1px solid #cbd5e0; 
       border-radius: 6px; 
-      padding: 20px; /* ★ 將 padding 加在最外層，保證一開始就是個漂亮的大框框 */
-      min-height: 400px; /* ★ 強制最低高度，永遠不塌陷 */
+      padding: 15px 20px; 
+      height: 50vh; /* ★ 固定高度，內部滾動 */
+      min-height: 350px; 
+      overflow-y: auto; /* ★ 解決超界的關鍵：強制內部產生捲軸，不再溢出 */
+      overflow-x: hidden;
       margin-bottom: 15px; 
       text-align: left; 
-      cursor: text; /* 游標變更為打字提示 */
+      cursor: text; 
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
     }
+    
+    /* 自訂 Editor 捲軸樣式，讓它更美觀 */
+    #editorjs::-webkit-scrollbar { width: 8px; }
+    #editorjs::-webkit-scrollbar-track { background: #f8fafc; border-radius: 4px; }
+    #editorjs::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
+    #editorjs::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
     .ce-block__content, .ce-toolbar__content { 
-      max-width: 100%; /* 取消預設的寬度限制，讓排版更靈活 */
+      max-width: 100%; /* 取消寬度限制，完整利用空間 */
     }
     .codex-editor__redactor {
-      padding-bottom: 300px !important; /* ★ 給予超大底部留白，點擊這片留白 EditorJS 就會自動把游標對焦到最後一行 */
+      padding-bottom: 150px !important; /* ★ 保留適當的底部留白，讓最後一行游標容易點擊 */
     }
 
     /* === 回到最上方按鈕 === */
-    #scrollToTopBtn { 
-      position: fixed; bottom: 30px; right: 30px; width: 45px; height: 45px; 
-      background-color: var(--primary); color: white; border: none; border-radius: 50%; 
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; display: flex; 
-      justify-content: center; align-items: center; opacity: 0; visibility: hidden; 
-      transition: all 0.3s ease; z-index: 9999; 
-    }
+    #scrollToTopBtn { position: fixed; bottom: 30px; right: 30px; width: 45px; height: 45px; background-color: var(--primary); color: white; border: none; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 9999; }
     #scrollToTopBtn:hover { background-color: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.3); }
-    #scrollToTopBtn:active { transform: translateY(0); box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
     #scrollToTopBtn.show { opacity: 1; visibility: visible; }
 
     @media (max-width: 768px) {
@@ -242,16 +240,14 @@
       .section-header { flex-direction: column; align-items: stretch; gap: 10px;}
       .filters { flex-direction: column; }
       .controls { display: none; }
-      
       .admin-product-list, .branch-product-list, .leaderboard-list { grid-template-columns: 1fr; max-height: none;}
-      
       .mobile-footer { display: flex; flex-direction: column; position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 12px 15px; border-top: 1px solid #e2e8f0; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); z-index: 50; gap: 10px; }
       .mobile-footer .row { display: flex; gap: 10px; width: 100%; }
       .mobile-footer button { flex: 1; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; border: none; cursor: pointer;}
       .btn-mobile-save { background: var(--primary); color: white; box-shadow: 0 4px 6px rgba(107, 112, 92, 0.2); }
       .btn-mobile-secondary { background: #e2e8f0; color: #475569; }
-
       #scrollToTopBtn { bottom: 135px; right: 20px; width: 40px; height: 40px; }
+      #editorjs { height: 40vh; min-height: 300px; } /* 手機版略為縮小編輯器高度 */
     }
   </style>
 </head>
@@ -452,7 +448,7 @@
             <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">文章內容 (Editor.js 智慧編輯器)</label>
             <div style="font-size: 12px; color: #64748b; margin-bottom: 8px;">提示：點擊下方大片空白處即可開始打字。反白文字可設定粗體或超連結。點擊左側 <code>+</code> 號可插入圖片或清單。</div>
             
-            <!-- ★ 去除了導致崩潰的 onclick 事件，改由純 CSS 完美解決點擊死角 -->
+            <!-- ★ 變更為內部捲動設計，完美修復超界與干擾點擊的 Bug -->
             <div id="editorjs"></div>
             
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #f1f5f9; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
@@ -565,9 +561,6 @@
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">商品條碼 (對照用)</label>
         <input type="text" id="editMasterBarcode" readonly style="width: 100%; padding: 10px; margin-bottom: 15px; background: #f1f5f9; border: 1px solid #cbd5e0; border-radius: 6px; color: #64748b; outline: none;">
         
-        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">原始中文說明 (H欄 - 對照用)</label>
-        <input type="text" id="editMasterOriginalName" readonly style="width: 100%; padding: 10px; margin-bottom: 15px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; color: #b45309; outline: none; font-weight: bold;">
-        
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">商品名稱 (AE欄)</label>
         <input type="text" id="editMasterName" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none;">
         
@@ -617,7 +610,7 @@
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">商品說明 (AG欄 - 限 65 字)</label>
         <textarea id="editMasterDesc" maxlength="65" rows="4" placeholder="請輸入商品說明 (限 65 字內)..." style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical; outline: none;"></textarea>
         
-        <button onclick="saveMasterDataEdit()" id="btnSaveMasterEdit" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;">💾 僅儲存名稱與封面圖修改</button>
+        <button onclick="saveMasterDataEdit()" id="btnSaveMasterEdit" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;">💾 儲存修改</button>
       </div>
     </div>
   </div>
@@ -972,6 +965,7 @@
       reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
+          // 專欄圖通常需要寬幅 (例如 1200x630)，這裡我們直接等比例壓縮，限制最大寬度 1200
           let targetWidth = 1200;
           let targetHeight = (img.height / img.width) * targetWidth;
           if(img.width < targetWidth) {
@@ -1043,16 +1037,18 @@
         if (finalCoverUrl) payload.cover_url = finalCoverUrl;
 
         if (id) {
+          // Update
           const { error } = await supabaseClient.from('articles').update(payload).eq('id', id);
           if (error) throw error;
         } else {
+          // Insert
           const { error } = await supabaseClient.from('articles').insert([payload]);
           if (error) throw error;
         }
         
         alert('文章儲存成功！');
         resetBlogEditor();
-        loadBlogArticles(); 
+        loadBlogArticles(); // 重新整理列表
         
       } catch(err) {
         alert('儲存失敗: ' + err.message);
@@ -1948,7 +1944,7 @@
               <div class="price">$${p.price}</div>
               <div class="date-label">發行日期：${p.date}</div>
             </div>
-            ${p.img ? `<button class="btn-img" onclick="openImg('${p.name}', '${p.img}')">圖片預覽</button>` : ''}
+            ${p.img ? `<button class=\"btn-img\" onclick=\"openImg('${p.name}', '${p.img}')\">圖片預覽</button>` : ''}
           </div>
           <label class="branch-action">
             <input type="checkbox" class="branch-cb" value="${p.key}" ${isChecked ? 'checked' : ''} onchange="updateBranchCardStyle(this)">
