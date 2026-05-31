@@ -1,4 +1,11 @@
+# 高雄郵局 郵風櫥窗 / 郵風快訊 robots.txt
+# ↓↓↓ 若你的網域不是 kspost08.tw，請把下方網址改成你的實際網域 ↓↓↓
 User-agent: *
 Allow: /
 
-Sitemap: https://jcnmlm-ui.github.io/khpostgoods/sitemap.xml
+# 後台頁面不要被搜尋引擎索引
+Disallow: /admin.html
+Disallow: /admin2
+Disallow: /admin2.html
+
+Sitemap: https://kspost08.tw/sitemap.xml
