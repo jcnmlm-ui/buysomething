@@ -33,11 +33,15 @@ const siteName = '郵風快訊';
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=VT323&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body>
   <slot />
-  <footer class="footer">© Design by Chiahsien</footer>
+  <footer class="footer">
+    <p class="footer-note">本站由 高雄郵局企劃行銷科 維護管理，提供郵局商品在高雄地區郵局販售的庫存查詢，方便消費者可以前往購買。</p>
+    © Design by Chiahsien
+  </footer>
 
   <style is:global>
     :root{
@@ -64,7 +68,8 @@ const siteName = '郵風快訊';
     }
     .btn-back:hover{ background:#fff; }
     .container{ max-width:1000px; margin:30px auto; padding:0 15px; }
-    .footer{ text-align:center; padding:30px 20px; color:var(--sd-text); font-weight:bold; font-size:15px; text-shadow:1px 1px 0 rgba(255,255,255,.5); }
+    .footer{ text-align:center; padding:30px 20px; color:var(--sd-text); font-weight:bold; font-size:15px; text-shadow:1px 1px 0 rgba(255,255,255,.5); letter-spacing:1px; }
+    .footer-note{ max-width:760px; margin:0 auto 10px; font-size:13px; color:var(--sd-text-muted); font-weight:normal; letter-spacing:0; border-top:1px solid rgba(0,0,0,.1); padding-top:15px; }
 
     /* 列表頁 */
     .sd-ui-box{ background:var(--sd-parchment); border:4px solid var(--sd-border); border-radius:8px;
