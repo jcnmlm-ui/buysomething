@@ -15,7 +15,7 @@ export async function getStaticPaths() {
 const { article, related } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const bodyHtml = editorjsToHtml(article.content);
-const desc = (editorjsToPlainText(article.content) || '高雄郵局郵風快訊小編專欄文章。').slice(0, 150);
+const desc = (article.meta_description || editorjsToPlainText(article.content) || '高雄郵局郵風快訊小編專欄文章。').slice(0, 150);
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImage = article.cover_url || '';
 const dateStr = new Date(article.created_at).toLocaleDateString('zh-TW');

@@ -77,6 +77,10 @@
     .a-body figure.is-stretched img { width: 100%; max-height: none; }
     .a-body figcaption { font-size: 14px; color: #64748b; }
     .a-body hr { border: none; border-top: 3px dotted #cbd5e0; margin: 2em 0; }
+    .a-body table { width: 100%; border-collapse: collapse; margin: 1.2em 0; font-size: 15px; }
+    .a-body table th, .a-body table td { border: 2px solid #cbd5e0; padding: 10px 14px; text-align: left; }
+    .a-body table thead th { background: var(--sd-parchment); color: var(--sd-wood-dark); font-weight: bold; }
+    .a-body table tbody tr:nth-child(even) { background: #faf8f0; }
     
     .share-box { margin-top: 40px; padding-top: 20px; border-top: 2px dashed var(--sd-border); text-align: center; }
     .share-btn { background: var(--sd-wood); color: white; border: 3px solid var(--sd-border); padding: 10px 20px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2); transition: 0.1s;}
@@ -173,6 +177,14 @@
           }
           case 'delimiter':
             return '<hr>';
+          case 'table': {
+            const rows = (d.content || []).map((row) => {
+              const cells = (row || []).map((cell) => `<td>${cell || ''}</td>`).join('');
+              return `<tr>${cells}</tr>`;
+            });
+            const thead = rows.length > 0 && d.withHeadings ? `<thead>${rows.shift()}</thead>` : '';
+            return `<table>${thead}<tbody>${rows.join('')}</tbody></table>`;
+          }
           default:
             return d.text ? `<p>${d.text}</p>` : '';
         }

@@ -37,6 +37,14 @@ export function editorjsToHtml(raw) {
       }
       case 'delimiter':
         return '<hr>';
+      case 'table': {
+        const rows = (d.content || []).map((row) => {
+          const cells = (row || []).map((cell) => `<td>${cell || ''}</td>`).join('');
+          return `<tr>${cells}</tr>`;
+        });
+        const thead = rows.length > 0 && d.withHeadings ? `<thead>${rows.shift()}</thead>` : '';
+        return `<table>${thead}<tbody>${rows.join('')}</tbody></table>`;
+      }
       default:
         return d.text ? `<p>${d.text}</p>` : '';
     }
