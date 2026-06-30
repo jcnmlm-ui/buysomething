@@ -16,6 +16,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@editorjs/list@1.9.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/@editorjs/image@2.9.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.6.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@editorjs/table@2.3.0"></script>
 
   <style>
     /* === 基礎設定與變數 === */
@@ -553,6 +555,10 @@
                 <label>文章標題</label>
                 <input type="text" id="blogTitle" class="side-input" placeholder="請輸入吸引人的標題...">
 
+                <label>SEO 摘要 <span style="font-weight:normal;color:#94a3b8;font-size:12px;">（Meta Description，建議 50–150 字）</span></label>
+                <textarea id="blogMetaDesc" class="side-input" placeholder="留空則自動擷取內文前 150 字" rows="3" style="resize:vertical;font-size:14px;line-height:1.6;"></textarea>
+                <div style="font-size:11px;color:#94a3b8;margin-top:-10px;margin-bottom:12px;text-align:right;"><span id="metaDescCount">0</span> / 150 字</div>
+
                 <label>目前封面圖</label>
                 <div id="currentBlogCoverContainer" style="margin-bottom: 15px; padding: 10px; background: #fff; border: 1px dashed #cbd5e0; border-radius: 8px; text-align: center; min-height: 70px; display: flex; justify-content: center; align-items: center;">
                   <span style="color: #94a3b8; font-size: 14px;">目前無封面圖</span>
@@ -877,7 +883,9 @@
                   }
                 }
               }
-            }
+            },
+            delimiter: { class: Delimiter },
+            table: { class: Table, inlineToolbar: true, config: { rows: 2, cols: 3 } }
           },
           data: {} 
         });
@@ -1108,12 +1116,20 @@
       const mode = document.getElementById('blogPublishMode').value;
       document.getElementById('blogScheduleWrap').style.display = (mode === 'schedule') ? 'block' : 'none';
     }
+    // ★ SEO 摘要字數計數器
+    document.addEventListener('DOMContentLoaded', () => {
+      const ta = document.getElementById('blogMetaDesc');
+      const ct = document.getElementById('metaDescCount');
+      if (ta && ct) ta.addEventListener('input', () => { ct.textContent = ta.value.length; ct.style.color = ta.value.length > 150 ? '#ef4444' : '#94a3b8'; });
+    });
 
     // --- 編輯器內容操作 ---
     function resetBlogEditor() {
       document.getElementById('blogEditorTitle').innerText = '✨ 撰寫新文章';
       document.getElementById('blogId').value = '';
       document.getElementById('blogTitle').value = '';
+      document.getElementById('blogMetaDesc').value = '';
+      document.getElementById('metaDescCount').textContent = '0';
       document.getElementById('blogPublishMode').value = 'draft';
       document.getElementById('blogPublishAt').value = '';
       onPublishModeChange();
@@ -1135,6 +1151,8 @@
       document.getElementById('blogEditorTitle').innerText = '✏️ 編輯文章';
       document.getElementById('blogId').value = art.id;
       document.getElementById('blogTitle').value = art.title || '';
+      document.getElementById('blogMetaDesc').value = art.meta_description || '';
+      document.getElementById('metaDescCount').textContent = (art.meta_description || '').length;
       document.getElementById('btnDeleteBlog').style.display = 'block';
 
       // 還原發布設定
@@ -1252,7 +1270,8 @@
           finalCoverUrl = supabaseClient.storage.from(bucketName).getPublicUrl(fileName).data.publicUrl;
         }
 
-        let payload = { title: title, content: contentStr, is_published: isPub, publish_at: publishAt, updated_at: new Date().toISOString() };
+        const metaDesc = document.getElementById('blogMetaDesc').value.trim();
+        let payload = { title: title, content: contentStr, meta_description: metaDesc || null, is_published: isPub, publish_at: publishAt, updated_at: new Date().toISOString() };
         if (finalCoverUrl) payload.cover_url = finalCoverUrl;
 
         const doSave = (p) => id
@@ -1266,6 +1285,13 @@
           delete fallback.publish_at;
           ({ error } = await doSave(fallback));
           if (!error) showCustomToast('已儲存。提醒：「排程發布」需先在 Supabase 新增 publish_at 欄位');
+        }
+        // 若資料表尚未新增 meta_description 欄位，去掉該欄位再存一次
+        if (error && /meta_description/i.test(error.message || '')) {
+          const fallback = Object.assign({}, payload);
+          delete fallback.meta_description;
+          ({ error } = await doSave(fallback));
+          if (!error) showCustomToast('已儲存。提醒：「SEO 摘要」需先在 Supabase 新增 meta_description 欄位');
         }
         if (error) throw error;
 

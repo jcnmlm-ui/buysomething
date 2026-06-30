@@ -1,10 +1,305 @@
 <!DOCTYPE html>
-<html lang="zh-TW"><head><meta charset="UTF-8">
-<title>前往文章…</title>
-<script>
-  var id = new URLSearchParams(location.search).get('id');
-  location.replace(id ? '/article/' + encodeURIComponent(id) + '/' : '/blog/');
-</script>
-<meta http-equiv="refresh" content="0; url=/blog/">
-</head><body style="font-family:sans-serif;text-align:center;padding:40px;">
-正在前往文章… <a href="/blog/">回文章列表</a></body></html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>郵風小編專欄｜高雄郵局 郵風快訊</title>
+  <meta name="description" content="高雄郵局郵風快訊小編專欄：郵政文創商品開箱、節慶送禮推薦與在地特色明信片介紹。">
+
+  <!-- ★ SEO / 社群分享 meta：靜態預設值，載入文章後由 JS 更新為該篇專屬內容 -->
+  <link rel="canonical" href="">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="郵風快訊">
+  <meta property="og:title" content="郵風小編專欄｜高雄郵局 郵風快訊">
+  <meta property="og:description" content="高雄郵局郵風快訊小編專欄：商品開箱、送禮推薦與郵政小故事。">
+  <meta property="og:url" content="">
+  <meta property="og:image" content="">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="郵風小編專欄｜高雄郵局 郵風快訊">
+  <meta name="twitter:description" content="高雄郵局郵風快訊小編專欄：商品開箱、送禮推薦與郵政小故事。">
+  <meta name="twitter:image" content="">
+  
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    /* 星露谷物語風格變數 */
+    :root {
+      --sd-grass: #88c24c;          
+      --sd-wood: #c06c28;           
+      --sd-wood-dark: #82380d;      
+      --sd-parchment: #fdeca6;      
+      --sd-border: #4a2100;         
+      --sd-text: #41220b;           
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'Noto Sans TC', sans-serif; background-color: var(--sd-grass); color: var(--sd-text); margin: 0; padding: 0; line-height: 1.8; }
+    
+    .header { background: linear-gradient(to bottom, #d6833b 0%, var(--sd-wood) 100%); padding: 15px 20px; text-align: center; border-bottom: 5px solid var(--sd-border); position: sticky; top: 0; z-index: 100; box-shadow: 0 6px 0px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center; }
+    .btn-back { background: var(--sd-parchment); color: var(--sd-wood-dark); border: 3px solid var(--sd-border); padding: 6px 12px; border-radius: 6px; font-weight: bold; text-decoration: none; font-size: 14px; box-shadow: inset -2px -2px 0px rgba(0,0,0,0.1); }
+    .btn-back:hover { background: #fff; }
+
+    .container { max-width: 800px; margin: 30px auto; padding: 0 15px; }
+    
+    .article-box {
+      background: #fff;
+      border: 4px solid var(--sd-border);
+      border-radius: 12px;
+      box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+      overflow: hidden;
+    }
+
+    .cover-img { width: 100%; max-height: 400px; object-fit: cover; border-bottom: 4px solid var(--sd-border); display: block; }
+    
+    .content-area { padding: 30px; }
+    .a-title { font-size: 28px; font-weight: bold; margin: 0 0 15px 0; color: var(--sd-wood-dark); line-height: 1.4; border-bottom: 2px dashed #cbd5e0; padding-bottom: 15px; }
+    .a-meta { font-size: 14px; color: #64748b; font-weight: bold; margin-bottom: 25px; }
+    
+    .a-body { font-size: 17px; color: #334155; }
+    .a-body img { max-width: 100%; border-radius: 8px; border: 2px solid #cbd5e0; margin: 15px 0; }
+    .a-body p { margin-bottom: 1em; }
+
+    /* ★ Editor.js 區塊渲染樣式（沿用星露谷主題） */
+    .a-body h2, .a-body h3, .a-body h4 { color: var(--sd-wood-dark); line-height: 1.4; margin: 1.4em 0 0.6em; font-weight: bold; }
+    .a-body h2 { font-size: 24px; border-bottom: 2px dashed #cbd5e0; padding-bottom: 8px; }
+    .a-body h3 { font-size: 20px; }
+    .a-body h4 { font-size: 18px; }
+    .a-body ul, .a-body ol { padding-left: 1.6em; margin: 0 0 1em; }
+    .a-body li { margin-bottom: 0.5em; }
+    .a-body a { color: var(--sd-wood); font-weight: bold; text-decoration: underline; }
+    .a-body blockquote { margin: 1.2em 0; padding: 12px 18px; background: var(--sd-parchment); border-left: 5px solid var(--sd-wood); border-radius: 6px; color: var(--sd-text); font-style: italic; }
+    .a-body blockquote cite { display: block; margin-top: 8px; font-size: 14px; color: #734e2c; font-style: normal; }
+    .a-body figure { margin: 1.2em 0; text-align: center; }
+    /* ★ 關鍵：限制圖片最大高度，直式圖片不再超巨大；橫式圖維持原比例置中 */
+    .a-body figure img { max-width: 100%; max-height: 520px; width: auto; height: auto; margin: 0 auto 8px; display: block; }
+    /* 作者在編輯器按了「Stretch image」→ 圖片填滿欄寬、解除高度上限 */
+    .a-body figure.is-stretched img { width: 100%; max-height: none; }
+    .a-body figcaption { font-size: 14px; color: #64748b; }
+    .a-body hr { border: none; border-top: 3px dotted #cbd5e0; margin: 2em 0; }
+    .a-body table { width: 100%; border-collapse: collapse; margin: 1.2em 0; font-size: 15px; }
+    .a-body table th, .a-body table td { border: 2px solid #cbd5e0; padding: 10px 14px; text-align: left; }
+    .a-body table thead th { background: var(--sd-parchment); color: var(--sd-wood-dark); font-weight: bold; }
+    .a-body table tbody tr:nth-child(even) { background: #faf8f0; }
+    
+    .share-box { margin-top: 40px; padding-top: 20px; border-top: 2px dashed var(--sd-border); text-align: center; }
+    .share-btn { background: var(--sd-wood); color: white; border: 3px solid var(--sd-border); padding: 10px 20px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: inset -2px -4px 0px rgba(0,0,0,0.2); transition: 0.1s;}
+    .share-btn:active { transform: translateY(2px); box-shadow: none; }
+
+    @media (max-width: 600px) {
+      .content-area { padding: 20px; }
+      .a-title { font-size: 22px; }
+      .a-body { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <a href="blog.html" class="btn-back"><i class="fa-solid fa-arrow-left"></i> 回列表</a>
+    <h2 style="margin:0; color:white; font-size:18px; text-shadow:2px 2px 0 var(--sd-border);">郵風小編專欄</h2>
+    <div style="width: 80px;"></div>
+  </header>
+
+  <main class="container">
+    <div id="loading" style="text-align:center; padding: 40px; font-size:18px; font-weight:bold;">
+      <i class="fa-solid fa-spinner fa-spin"></i> 載入中...
+    </div>
+
+    <article id="articleBox" class="article-box" style="display:none;">
+      <img id="cover" class="cover-img" src="" style="display:none;">
+      <div class="content-area">
+        <h1 id="title" class="a-title"></h1>
+        <div id="meta" class="a-meta"></div>
+        <div id="body" class="a-body"></div>
+        
+        <div class="share-box">
+          <p style="font-weight:bold; margin-bottom:10px;">喜歡這篇文章嗎？分享給朋友吧！</p>
+          <button class="share-btn" onclick="shareArticle()"><i class="fa-solid fa-share-nodes"></i> 複製文章連結</button>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <script>
+    const _supabaseUrl = 'https://tukzmdtkhdxdpbnvkjzz.supabase.co';
+    const _supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA';
+    const supabaseClient = window.supabase.createClient(_supabaseUrl, _supabaseKey);
+
+    let articleTitle = "郵風專欄";
+
+    // ★ 將 Editor.js 儲存的 JSON 內容轉換成可顯示的 HTML
+    function editorjsToHtml(raw) {
+      if (!raw) return '<p style="color:#94a3b8;">（這篇文章還沒有內容）</p>';
+
+      let parsed = null;
+      try { parsed = JSON.parse(raw); } catch (e) { parsed = null; }
+
+      // 解析失敗 → 視為舊版純文字／HTML，保留換行
+      if (parsed === null) {
+        return String(raw).replace(/\n/g, '<br>');
+      }
+      // 是合法 JSON 但沒有區塊資料 → 視為空文章
+      if (!Array.isArray(parsed.blocks)) {
+        return '<p style="color:#94a3b8;">（這篇文章還沒有內容）</p>';
+      }
+
+      const esc = (s) => String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+      const html = parsed.blocks.map(block => {
+        const d = block.data || {};
+        switch (block.type) {
+          case 'header': {
+            const lvl = [2, 3, 4, 5, 6].includes(d.level) ? d.level : 2;
+            return `<h${lvl}>${d.text || ''}</h${lvl}>`;
+          }
+          case 'paragraph':
+            return `<p>${d.text || ''}</p>`;
+          case 'list': {
+            const tag = d.style === 'ordered' ? 'ol' : 'ul';
+            const items = (d.items || []).map(it => {
+              // 相容兩種格式：純字串(舊版 list) 或 物件 {content}(新版巢狀 list)
+              const content = (typeof it === 'string') ? it : (it && it.content) || '';
+              return `<li>${content}</li>`;
+            }).join('');
+            return `<${tag}>${items}</${tag}>`;
+          }
+          case 'quote':
+            return `<blockquote>${d.text || ''}${d.caption ? `<cite>— ${d.caption}</cite>` : ''}</blockquote>`;
+          case 'image': {
+            const url = (d.file && d.file.url) || d.url || '';
+            if (!url) return '';
+            // 沿用 Editor.js 圖片外掛的「Stretch image」開關：拉伸時填滿欄寬
+            const cls = d.stretched ? 'ej-image is-stretched' : 'ej-image';
+            const cap = d.caption ? `<figcaption>${d.caption}</figcaption>` : '';
+            return `<figure class="${cls}"><img src="${esc(url)}" alt="${esc((d.caption || '').replace(/<[^>]+>/g, ''))}">${cap}</figure>`;
+          }
+          case 'delimiter':
+            return '<hr>';
+          case 'table': {
+            const rows = (d.content || []).map((row) => {
+              const cells = (row || []).map((cell) => `<td>${cell || ''}</td>`).join('');
+              return `<tr>${cells}</tr>`;
+            });
+            const thead = rows.length > 0 && d.withHeadings ? `<thead>${rows.shift()}</thead>` : '';
+            return `<table>${thead}<tbody>${rows.join('')}</tbody></table>`;
+          }
+          default:
+            return d.text ? `<p>${d.text}</p>` : '';
+        }
+      }).join('\n');
+
+      return html || '<p style="color:#94a3b8;">（這篇文章還沒有內容）</p>';
+    }
+
+    // ★ SEO 設定（可自行填寫）
+    const SITE_NAME = '高雄郵局 郵風快訊';
+    const SITE_LOGO = '';      // ← 有官方 LOGO 圖片網址可填這（用於結構化資料 publisher.logo）
+    const SITE_OG_IMAGE = '';  // ← 文章無封面時的預設分享圖網址（建議 1200x630）
+
+    // 找不到就新建，統一更新 <meta>/<link>
+    function setMetaName(name, content) {
+      let el = document.head.querySelector(`meta[name="${name}"]`);
+      if (!el) { el = document.createElement('meta'); el.setAttribute('name', name); document.head.appendChild(el); }
+      el.setAttribute('content', content || '');
+    }
+    function setMetaProp(prop, content) {
+      let el = document.head.querySelector(`meta[property="${prop}"]`);
+      if (!el) { el = document.createElement('meta'); el.setAttribute('property', prop); document.head.appendChild(el); }
+      el.setAttribute('content', content || '');
+    }
+    function setLinkRel(rel, href) {
+      let el = document.head.querySelector(`link[rel="${rel}"]`);
+      if (!el) { el = document.createElement('link'); el.setAttribute('rel', rel); document.head.appendChild(el); }
+      el.setAttribute('href', href || '');
+    }
+
+    window.onload = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const articleId = urlParams.get('id');
+      
+      if(!articleId) {
+          document.getElementById('loading').innerHTML = '找不到文章代碼';
+          return;
+      }
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('articles')
+          .select('*')
+          .eq('id', articleId)
+          .single();
+
+        if (error) throw error;
+        // ★ 未發布、或排程時間還沒到的文章，直接視為「尚未公開」
+        const notYet = data && data.publish_at && new Date(data.publish_at) > new Date();
+        if (!data || !data.is_published || notYet) throw new Error('文章不存在或尚未公開');
+
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('articleBox').style.display = 'block';
+
+        articleTitle = data.title;
+
+        // 先把內文轉成 HTML 放入頁面，並取純文字作為描述
+        document.getElementById('body').innerHTML = editorjsToHtml(data.content);
+        const plain = (document.getElementById('body').textContent || '').replace(/\s+/g, ' ').trim();
+        const desc = plain ? plain.slice(0, 150) : '高雄郵局郵風快訊小編專欄文章。';
+        const pageUrl = location.href;
+        const ogImage = data.cover_url || SITE_OG_IMAGE;
+
+        document.title = `${data.title}｜郵風快訊`;
+        document.getElementById('title').innerText = data.title;
+        document.getElementById('meta').innerHTML = `<i class="fa-regular fa-clock"></i> 發布日期：${new Date(data.created_at).toLocaleDateString('zh-TW')} &nbsp;&nbsp;|&nbsp;&nbsp; ✍️ 作者：郵局企劃科小編`;
+
+        if (data.cover_url) {
+          document.getElementById('cover').src = data.cover_url;
+          document.getElementById('cover').alt = data.title || '文章封面';
+          document.getElementById('cover').style.display = 'block';
+        }
+
+        // ★ 更新 SEO / 社群分享 meta（會執行 JS 的搜尋引擎可讀到；社群預覽完整支援需階段二 SSG/SSR）
+        setMetaName('description', desc);
+        setLinkRel('canonical', pageUrl);
+        setMetaProp('og:title', data.title);
+        setMetaProp('og:description', desc);
+        setMetaProp('og:url', pageUrl);
+        if (ogImage) setMetaProp('og:image', ogImage);
+        setMetaName('twitter:title', data.title);
+        setMetaName('twitter:description', desc);
+        if (ogImage) setMetaName('twitter:image', ogImage);
+
+        // ★ 強化版 JSON-LD 結構化資料（BlogPosting）
+        const schemaData = {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": data.title,
+          "description": desc,
+          "datePublished": data.created_at,
+          "dateModified": data.updated_at || data.created_at,
+          "author": { "@type": "Organization", "name": SITE_NAME },
+          "publisher": Object.assign({ "@type": "Organization", "name": SITE_NAME }, SITE_LOGO ? { "logo": { "@type": "ImageObject", "url": SITE_LOGO } } : {}),
+          "mainEntityOfPage": { "@type": "WebPage", "@id": pageUrl }
+        };
+        if (ogImage) schemaData.image = [ogImage];
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.text = JSON.stringify(schemaData);
+        document.head.appendChild(script);
+
+      } catch(err) {
+         document.getElementById('loading').innerHTML = `<span style="color:red;">錯誤：${err.message}</span>`;
+      }
+    };
+
+    function shareArticle() {
+        const url = window.location.href;
+        if (navigator.share) {
+            navigator.share({ title: articleTitle, url: url }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(url).then(() => alert('✅ 文章連結已複製！'));
+        }
+    }
+  </script>
+</body>
+</html>
