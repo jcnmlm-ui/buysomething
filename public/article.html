@@ -75,6 +75,12 @@
     .a-body figure img { max-width: 100%; max-height: 520px; width: auto; height: auto; margin: 0 auto 8px; display: block; }
     /* 作者在編輯器按了「Stretch image」→ 圖片填滿欄寬、解除高度上限 */
     .a-body figure.is-stretched img { width: 100%; max-height: none; }
+    .a-body figure.has-pct img { width: 100%; max-width: 100%; height: auto; max-height: none; }
+    .a-body figure.is-float { float: left; margin: 0 16px 16px 0; }
+    .a-body .ej-clear { clear: both; display: block; }
+    @media (max-width: 600px) {
+      .a-body figure.is-float { float: none; width: 100% !important; margin: 1.2em 0; }
+    }
     .a-body figcaption { font-size: 14px; color: #64748b; }
     .a-body hr { border: none; border-top: 3px dotted #cbd5e0; margin: 2em 0; }
     .a-body table { width: 100%; border-collapse: collapse; margin: 1.2em 0; font-size: 15px; }
@@ -147,48 +153,75 @@
       const esc = (s) => String(s == null ? '' : s)
         .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-      const html = parsed.blocks.map(block => {
-        const d = block.data || {};
-        switch (block.type) {
-          case 'header': {
-            const lvl = [2, 3, 4, 5, 6].includes(d.level) ? d.level : 2;
-            return `<h${lvl}>${d.text || ''}</h${lvl}>`;
+      const html = (() => {
+        const parts = [];
+        let prevFloated = false;
+        parsed.blocks.forEach(block => {
+          const d = block.data || {};
+          let out = '';
+          let floated = false;
+          switch (block.type) {
+            case 'header': {
+              const lvl = [2, 3, 4, 5, 6].includes(d.level) ? d.level : 2;
+              out = `<h${lvl}>${d.text || ''}</h${lvl}>`;
+              break;
+            }
+            case 'paragraph':
+              out = `<p>${d.text || ''}</p>`;
+              break;
+            case 'list': {
+              const tag = d.style === 'ordered' ? 'ol' : 'ul';
+              const items = (d.items || []).map(it => {
+                // 相容兩種格式：純字串(舊版 list) 或 物件 {content}(新版巢狀 list)
+                const content = (typeof it === 'string') ? it : (it && it.content) || '';
+                return `<li>${content}</li>`;
+              }).join('');
+              out = `<${tag}>${items}</${tag}>`;
+              break;
+            }
+            case 'quote':
+              out = `<blockquote>${d.text || ''}${d.caption ? `<cite>— ${d.caption}</cite>` : ''}</blockquote>`;
+              break;
+            case 'image': {
+              const url = (d.file && d.file.url) || d.url || '';
+              if (!url) { out = ''; break; }
+              const layout = (block.tunes && block.tunes.imageLayout) || {};
+              let width = parseInt(layout.width, 10);
+              if (isNaN(width)) width = 100;
+              width = Math.max(10, Math.min(100, width));
+              floated = layout.float === 'left' && width < 100;
+              // 沿用 Editor.js 圖片外掛的「Stretch image」開關：拉伸時填滿欄寬
+              const classes = ['ej-image'];
+              if (d.stretched) classes.push('is-stretched');
+              if (width !== 100) classes.push('has-pct');
+              if (floated) classes.push('is-float');
+              const styleAttr = (width !== 100) ? ` style="width:${width}%;"` : '';
+              const cap = d.caption ? `<figcaption>${d.caption}</figcaption>` : '';
+              out = `<figure class="${classes.join(' ')}"${styleAttr}><img src="${esc(url)}" alt="${esc((d.caption || '').replace(/<[^>]+>/g, ''))}">${cap}</figure>`;
+              break;
+            }
+            case 'delimiter':
+              out = '<hr>';
+              break;
+            case 'table': {
+              const rows = (d.content || []).map((row) => {
+                const cells = (row || []).map((cell) => `<td>${cell || ''}</td>`).join('');
+                return `<tr>${cells}</tr>`;
+              });
+              const thead = rows.length > 0 && d.withHeadings ? `<thead>${rows.shift()}</thead>` : '';
+              out = `<table>${thead}<tbody>${rows.join('')}</tbody></table>`;
+              break;
+            }
+            default:
+              out = d.text ? `<p>${d.text}</p>` : '';
           }
-          case 'paragraph':
-            return `<p>${d.text || ''}</p>`;
-          case 'list': {
-            const tag = d.style === 'ordered' ? 'ol' : 'ul';
-            const items = (d.items || []).map(it => {
-              // 相容兩種格式：純字串(舊版 list) 或 物件 {content}(新版巢狀 list)
-              const content = (typeof it === 'string') ? it : (it && it.content) || '';
-              return `<li>${content}</li>`;
-            }).join('');
-            return `<${tag}>${items}</${tag}>`;
-          }
-          case 'quote':
-            return `<blockquote>${d.text || ''}${d.caption ? `<cite>— ${d.caption}</cite>` : ''}</blockquote>`;
-          case 'image': {
-            const url = (d.file && d.file.url) || d.url || '';
-            if (!url) return '';
-            // 沿用 Editor.js 圖片外掛的「Stretch image」開關：拉伸時填滿欄寬
-            const cls = d.stretched ? 'ej-image is-stretched' : 'ej-image';
-            const cap = d.caption ? `<figcaption>${d.caption}</figcaption>` : '';
-            return `<figure class="${cls}"><img src="${esc(url)}" alt="${esc((d.caption || '').replace(/<[^>]+>/g, ''))}">${cap}</figure>`;
-          }
-          case 'delimiter':
-            return '<hr>';
-          case 'table': {
-            const rows = (d.content || []).map((row) => {
-              const cells = (row || []).map((cell) => `<td>${cell || ''}</td>`).join('');
-              return `<tr>${cells}</tr>`;
-            });
-            const thead = rows.length > 0 && d.withHeadings ? `<thead>${rows.shift()}</thead>` : '';
-            return `<table>${thead}<tbody>${rows.join('')}</tbody></table>`;
-          }
-          default:
-            return d.text ? `<p>${d.text}</p>` : '';
-        }
-      }).join('\n');
+          if (prevFloated && !floated) parts.push('<div class="ej-clear"></div>');
+          if (out) parts.push(out);
+          prevFloated = floated;
+        });
+        if (prevFloated) parts.push('<div class="ej-clear"></div>');
+        return parts.join('\n');
+      })();
 
       return html || '<p style="color:#94a3b8;">（這篇文章還沒有內容）</p>';
     }

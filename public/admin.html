@@ -847,6 +847,91 @@
       setTimeout(() => { toast.classList.remove('show'); }, 3000);
     }
 
+    // ★ 圖片版面 Tune：控制圖片寬度百分比 + 是否並排（靠左浮動）
+    class ImageLayoutTune {
+      static get isTune() { return true; }
+      constructor({ data }) {
+        this.data = Object.assign({ width: 100, float: 'none' }, data || {});
+      }
+      render() {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'padding:10px 14px;display:flex;flex-direction:column;gap:10px;min-width:220px;';
+
+        const label1 = document.createElement('div');
+        label1.textContent = '圖片寬度（%）';
+        label1.style.cssText = 'font-size:12px;color:#64748b;font-weight:bold;';
+
+        const inputRow = document.createElement('div');
+        inputRow.style.cssText = 'display:flex;align-items:center;gap:8px;';
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = '10'; input.max = '100'; input.step = '5';
+        input.value = this.data.width;
+        input.style.cssText = 'width:70px;padding:6px 8px;border:1px solid #cbd5e0;border-radius:6px;font-size:14px;';
+
+        const pctSpan = document.createElement('span');
+        pctSpan.textContent = '%';
+        pctSpan.style.cssText = 'font-size:13px;color:#64748b;';
+
+        const applyWidth = () => {
+          let v = parseInt(input.value, 10);
+          if (isNaN(v)) v = 100;
+          v = Math.max(10, Math.min(100, v));
+          input.value = v;
+          this.data.width = v;
+        };
+        input.addEventListener('change', applyWidth);
+        input.addEventListener('blur', applyWidth);
+
+        inputRow.appendChild(input);
+        inputRow.appendChild(pctSpan);
+
+        // 快速預設按鈕
+        const presetRow = document.createElement('div');
+        presetRow.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;';
+        [50, 33, 66, 100].forEach((pct) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.textContent = pct + '%';
+          btn.style.cssText = 'font-size:12px;padding:4px 10px;border:1px solid #cbd5e0;border-radius:20px;background:#f8fafc;cursor:pointer;color:#475569;';
+          btn.addEventListener('click', () => { input.value = pct; applyWidth(); });
+          presetRow.appendChild(btn);
+        });
+
+        const label2 = document.createElement('label');
+        label2.style.cssText = 'display:flex;align-items:center;gap:8px;font-size:13px;color:#334155;cursor:pointer;margin-top:4px;';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = this.data.float === 'left';
+        checkbox.addEventListener('change', () => {
+          this.data.float = checkbox.checked ? 'left' : 'none';
+        });
+
+        const span2 = document.createElement('span');
+        span2.textContent = '與下一張圖片並排（靠左浮動）';
+
+        label2.appendChild(checkbox);
+        label2.appendChild(span2);
+
+        const hint = document.createElement('div');
+        hint.textContent = '提示：把兩張圖片的寬度都設 50% 並勾選「並排」，就會排成左右兩張圖';
+        hint.style.cssText = 'font-size:11px;color:#94a3b8;line-height:1.5;';
+
+        wrap.appendChild(label1);
+        wrap.appendChild(inputRow);
+        wrap.appendChild(presetRow);
+        wrap.appendChild(label2);
+        wrap.appendChild(hint);
+
+        return wrap;
+      }
+      save() {
+        return this.data;
+      }
+    }
+
     function initEditorJS() {
       try {
         editor = new EditorJS({
@@ -865,6 +950,7 @@
             },
             image: {
               class: ImageTool,
+              tunes: ['imageLayout'],
               config: {
                 uploader: {
                   async uploadByFile(file) {
@@ -884,6 +970,7 @@
                 }
               }
             },
+            imageLayout: { class: ImageLayoutTune },
             delimiter: { class: Delimiter },
             table: { class: Table, inlineToolbar: true, config: { rows: 2, cols: 3 } }
           },
