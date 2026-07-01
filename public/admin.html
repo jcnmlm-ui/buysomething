@@ -855,24 +855,24 @@
       }
       render() {
         const wrap = document.createElement('div');
-        wrap.style.cssText = 'padding:10px 14px;display:flex;flex-direction:column;gap:10px;min-width:220px;';
+        wrap.style.cssText = 'padding:6px 10px;display:flex;flex-direction:column;gap:6px;min-width:200px;';
 
-        const label1 = document.createElement('div');
-        label1.textContent = '圖片寬度（%）';
-        label1.style.cssText = 'font-size:12px;color:#64748b;font-weight:bold;';
+        const row1 = document.createElement('div');
+        row1.style.cssText = 'display:flex;align-items:center;gap:6px;flex-wrap:wrap;';
 
-        const inputRow = document.createElement('div');
-        inputRow.style.cssText = 'display:flex;align-items:center;gap:8px;';
+        const label1 = document.createElement('span');
+        label1.textContent = '寬度';
+        label1.style.cssText = 'font-size:12px;color:#64748b;white-space:nowrap;';
 
         const input = document.createElement('input');
         input.type = 'number';
         input.min = '10'; input.max = '100'; input.step = '5';
         input.value = this.data.width;
-        input.style.cssText = 'width:70px;padding:6px 8px;border:1px solid #cbd5e0;border-radius:6px;font-size:14px;';
+        input.style.cssText = 'width:52px;padding:3px 6px;border:1px solid #cbd5e0;border-radius:5px;font-size:13px;';
 
         const pctSpan = document.createElement('span');
         pctSpan.textContent = '%';
-        pctSpan.style.cssText = 'font-size:13px;color:#64748b;';
+        pctSpan.style.cssText = 'font-size:12px;color:#64748b;';
 
         const applyWidth = () => {
           let v = parseInt(input.value, 10);
@@ -884,23 +884,22 @@
         input.addEventListener('change', applyWidth);
         input.addEventListener('blur', applyWidth);
 
-        inputRow.appendChild(input);
-        inputRow.appendChild(pctSpan);
+        row1.appendChild(label1);
+        row1.appendChild(input);
+        row1.appendChild(pctSpan);
 
-        // 快速預設按鈕
-        const presetRow = document.createElement('div');
-        presetRow.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap;';
+        // 快速預設按鈕（同一行，空間不足會自動換行）
         [50, 33, 66, 100].forEach((pct) => {
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.textContent = pct + '%';
-          btn.style.cssText = 'font-size:12px;padding:4px 10px;border:1px solid #cbd5e0;border-radius:20px;background:#f8fafc;cursor:pointer;color:#475569;';
+          btn.style.cssText = 'font-size:11px;padding:2px 8px;border:1px solid #cbd5e0;border-radius:16px;background:#f8fafc;cursor:pointer;color:#475569;';
           btn.addEventListener('click', () => { input.value = pct; applyWidth(); });
-          presetRow.appendChild(btn);
+          row1.appendChild(btn);
         });
 
         const label2 = document.createElement('label');
-        label2.style.cssText = 'display:flex;align-items:center;gap:8px;font-size:13px;color:#334155;cursor:pointer;margin-top:4px;';
+        label2.style.cssText = 'display:flex;align-items:center;gap:6px;font-size:12px;color:#334155;cursor:pointer;';
 
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
@@ -910,20 +909,13 @@
         });
 
         const span2 = document.createElement('span');
-        span2.textContent = '與下一張圖片並排（靠左浮動）';
+        span2.textContent = '與下一張並排';
 
         label2.appendChild(checkbox);
         label2.appendChild(span2);
 
-        const hint = document.createElement('div');
-        hint.textContent = '提示：把兩張圖片的寬度都設 50% 並勾選「並排」，就會排成左右兩張圖';
-        hint.style.cssText = 'font-size:11px;color:#94a3b8;line-height:1.5;';
-
-        wrap.appendChild(label1);
-        wrap.appendChild(inputRow);
-        wrap.appendChild(presetRow);
+        wrap.appendChild(row1);
         wrap.appendChild(label2);
-        wrap.appendChild(hint);
 
         return wrap;
       }
