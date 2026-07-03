@@ -777,6 +777,11 @@
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">限定小物牆介紹文字 (2-5句話，非必填)</label>
         <textarea id="editMasterKhIntro" maxlength="300" rows="3" placeholder="給這個小物寫幾句有故事感的介紹，留空的話會自動用上面的商品說明代替..." style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical; outline: none;"></textarea>
 
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">連結相關文章（非必填，用來放完整開箱介紹）</label>
+        <select id="editMasterKhArticle" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none;">
+          <option value="">（不連結文章）</option>
+        </select>
+
         <button onclick="saveMasterDataEdit()" id="btnSaveMasterEdit" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;">💾 儲存修改</button>
       </div>
     </div>
@@ -1441,7 +1446,8 @@
           extra_images: row.extra_images || [],
           is_kh_limited: !!row.is_kh_limited,
           kh_intro: row.kh_intro || '',
-          kh_added_at: row.kh_added_at || null
+          kh_added_at: row.kh_added_at || null,
+          kh_article_id: row.kh_article_id || null
         }));
         globalMasterData = results;
         renderMasterProducts(globalMasterData);
@@ -1489,7 +1495,31 @@
       renderMasterProducts(filtered);
     }
 
-    function openEditMasterModalByKey(encKey) {
+    // ★ 商品編輯視窗要用到文章清單（連結相關文章下拉選單），若還沒載入過就先抓一次
+    async function ensureArticlesLoaded() {
+      if (globalBlogArticles.length > 0) return;
+      try {
+        const { data, error } = await supabaseClient.from('articles').select('id, title, is_published').order('created_at', { ascending: false });
+        if (error) throw error;
+        globalBlogArticles = data || [];
+      } catch (e) {
+        console.warn('讀取文章清單失敗：', e.message);
+      }
+    }
+
+    function populateKhArticleSelect(selectedId) {
+      const sel = document.getElementById('editMasterKhArticle');
+      sel.innerHTML = '<option value="">（不連結文章）</option>';
+      globalBlogArticles.filter(a => a.is_published).forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.id;
+        opt.textContent = a.title || `（無標題文章 #${a.id}）`;
+        if (String(a.id) === String(selectedId)) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    }
+
+    async function openEditMasterModalByKey(encKey) {
       const realKey = decodeURIComponent(encKey);
       const p = globalMasterData.find(item => String(item.product_key) === realKey);
       if(!p) return alert('載入商品資料錯誤，請重新整理頁面。');
@@ -1501,6 +1531,8 @@
       document.getElementById('editMasterDesc').value = p.desc || '';
       document.getElementById('editMasterKhLimited').checked = !!p.is_kh_limited;
       document.getElementById('editMasterKhIntro').value = p.kh_intro || '';
+      await ensureArticlesLoaded();
+      populateKhArticleSelect(p.kh_article_id);
       
       renderCurrentMainImage(p);
 
@@ -1743,12 +1775,13 @@
       const desc = document.getElementById('editMasterDesc').value;
       const khLimited = document.getElementById('editMasterKhLimited').checked;
       const khIntro = document.getElementById('editMasterKhIntro').value.trim();
+      const khArticleVal = document.getElementById('editMasterKhArticle').value;
 
       const btn = document.getElementById('btnSaveMasterEdit');
       btn.innerText = "處理中..."; btn.disabled = true;
       document.getElementById('logBox').style.display = 'block';
 
-      let updatePayload = { name: name, description: desc, is_kh_limited: khLimited, kh_intro: khIntro || null };
+      let updatePayload = { name: name, description: desc, is_kh_limited: khLimited, kh_intro: khIntro || null, kh_article_id: khArticleVal ? Number(khArticleVal) : null };
 
       // ★ 第一次被勾選加入限定小物牆時，才寫入加入時間（用來排序，新加入的排最上面）
       const existingItem = globalMasterData.find(p => String(p.product_key) === String(productKey));
@@ -1789,6 +1822,7 @@
             if (item) {
               item.name = name; item.desc = desc;
               item.is_kh_limited = khLimited; item.kh_intro = khIntro;
+              item.kh_article_id = updatePayload.kh_article_id;
               if (updatePayload.kh_added_at) item.kh_added_at = updatePayload.kh_added_at;
               if (updatePayload.img_url) { item.img = updatePayload.img_url; item.thumb = updatePayload.thumb_url; }
               filterMasterProducts(); 
