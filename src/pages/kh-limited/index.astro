@@ -15,6 +15,7 @@ const cards = products.map((p) => ({
   img: p.thumb_url || p.img_url || FALLBACK_IMG,
   intro: p.kh_intro || p.description || '',
   keywordUrl: `${base}?keyword=${encodeURIComponent(p.name || '')}`,
+  articleUrl: p.kh_article_id ? `${base}article/${p.kh_article_id}/` : '',
   addedDate: p.kh_added_at ? new Date(p.kh_added_at).toLocaleDateString('zh-TW') : '',
 }));
 
@@ -45,7 +46,7 @@ const itemListLd = {
     </nav>
 
     <div class="sd-ui-box">
-      <h2><i class="fa-solid fa-gift"></i> 只有高雄郵局才買得到的小物，通通收在這裡</h2>
+      <h1><i class="fa-solid fa-gift"></i> 只有高雄郵局才買得到的小物，通通收在這裡</h1>
       <p style="font-weight:bold; color:var(--sd-text-muted);">
         這裡收錄高雄郵局限定發行、獨家販售的商品，會不定期持續新增，記得三不五時回來逛逛！
         每樣商品點擊「查詢附近庫存」就能直接搜尋離你最近、還有現貨的郵局。
@@ -63,7 +64,10 @@ const itemListLd = {
               <h3 class="a-title">{c.name}</h3>
               {c.price > 0 && <div class="kh-price">${c.price}</div>}
               {c.intro && <div class="a-excerpt">{c.intro}</div>}
-              <a href={c.keywordUrl} class="kh-cta"><i class="fa-solid fa-magnifying-glass-location"></i> 查詢附近庫存</a>
+              <div class="kh-cta-row">
+                <a href={c.keywordUrl} class="kh-cta"><i class="fa-solid fa-magnifying-glass-location"></i> 查詢附近庫存</a>
+                {c.articleUrl && <a href={c.articleUrl} class="kh-cta kh-cta-secondary"><i class="fa-solid fa-book-open"></i> 看完整開箱</a>}
+              </div>
               {c.addedDate && <div class="a-meta"><i class="fa-regular fa-clock"></i> 收錄於 {c.addedDate}</div>}
             </div>
           </div>
@@ -75,12 +79,18 @@ const itemListLd = {
   <style>
     .kh-card{ cursor:default; }
     .kh-price{ font-size:18px; font-weight:bold; color:var(--sd-wood); margin-bottom:8px; }
+    .kh-cta-row{ display:flex; flex-direction:column; gap:8px; margin-top:auto; margin-bottom:10px; }
     .kh-cta{
       display:inline-flex; align-items:center; gap:6px; justify-content:center;
       background:var(--sd-wood); color:#fff; font-weight:bold; text-decoration:none;
-      padding:8px 14px; border-radius:6px; font-size:14px; margin-top:auto; margin-bottom:10px;
+      padding:8px 14px; border-radius:6px; font-size:14px;
       box-shadow:0 3px 0 rgba(0,0,0,.15); transition:transform .15s;
     }
     .kh-cta:hover{ transform:translateY(-2px); background:var(--sd-wood-dark); }
+    .kh-cta-secondary{
+      background:#fff; color:var(--sd-wood-dark); border:2px solid var(--sd-wood);
+      box-shadow:0 3px 0 rgba(0,0,0,.08);
+    }
+    .kh-cta-secondary:hover{ background:var(--sd-parchment); }
   </style>
 </Base>
