@@ -42,7 +42,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=VT323&display=swap" rel="stylesheet">
   
   <!-- 引入 Font Awesome 6 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <!-- 引入 Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -405,6 +405,13 @@
 
     /* 版權宣告 */
     .footer { text-align: center; padding: 30px 20px; color: var(--sd-text); font-weight: bold; font-size: 15px; text-shadow: 1px 1px 0px rgba(255,255,255,0.5); letter-spacing: 1px; }
+    .footer-social { display: flex; justify-content: center; gap: 16px; margin-bottom: 18px; }
+    .footer-social-icon {
+      width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+      background: var(--sd-wood); color: #fff; border-radius: 50%; font-size: 20px;
+      text-decoration: none; box-shadow: 0 3px 0 rgba(0,0,0,.15); transition: transform .15s, background .15s;
+    }
+    .footer-social-icon:hover { background: var(--sd-wood-dark); transform: translateY(-3px); }
 
     #scrollToTopBtn { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; background-color: #fdeca6; color: var(--sd-text); font-size: 24px; border: 3px solid var(--sd-border); border-radius: 50%; box-shadow: 0 4px 0px rgba(0,0,0,0.2), inset -2px -2px 0px #dcb360; cursor: pointer; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 999; }
     #scrollToTopBtn:active { transform: translateY(4px); box-shadow: 0 0px 0px rgba(0,0,0,0.2), inset 2px 2px 0px #dcb360; }
@@ -485,8 +492,11 @@
     <h1><i class="fa-solid fa-sign-hanging" style="margin-right: 8px; color: #fdeca6;"></i>高雄郵局｜郵風商品櫥窗</h1>
     <!-- ★ 將所有分頁導覽按鈕都移至頂部，解決手機版要滑很久的問題 -->
     <nav class="nav-group">
-      <a href="/blog" class="nav-btn">
+      <a href="/blog/" class="nav-btn">
         <i class="fa-solid fa-newspaper" style="color: var(--sd-hot);"></i> 郵風快訊
+      </a>
+      <a href="/kh-limited/" class="nav-btn">
+        <i class="fa-solid fa-star" style="color: var(--sd-hot);"></i> 高雄限定
       </a>
       <a href="faq.html" class="nav-btn">
         <i class="fa-solid fa-circle-question" style="color: var(--sd-hot);"></i> 常見問題
@@ -534,6 +544,12 @@
 
   <footer class="footer">
     <!-- ★ Footer 導覽連結已經移除，讓底層更乾淨 -->
+    <div class="footer-social">
+      <a href="https://www.facebook.com/KaohsiungPost" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="footer-social-icon"><i class="fa-brands fa-facebook"></i></a>
+      <a href="https://www.threads.com/@kspost08?hl=zh-tw" target="_blank" rel="noopener noreferrer" aria-label="Threads" class="footer-social-icon"><i class="fa-brands fa-threads"></i></a>
+      <a href="https://www.instagram.com/kspost08/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="footer-social-icon"><i class="fa-brands fa-instagram"></i></a>
+      <a href="https://lin.ee/Uzyii0z" target="_blank" rel="noopener noreferrer" aria-label="LINE 官方帳號" class="footer-social-icon"><i class="fa-brands fa-line"></i></a>
+    </div>
     <p style="font-size: 13px; color: var(--sd-text-muted); margin-bottom: 10px; font-weight: normal; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 15px;">
       本站由 高雄郵局企劃行銷科 維護管理，提供郵局商品在高雄地區郵局販售的庫存查詢，方便消費者可以前往購買。
     </p>
