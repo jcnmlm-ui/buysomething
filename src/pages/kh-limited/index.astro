@@ -1,0 +1,86 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getKhLimitedProducts } from '../../lib/products.js';
+
+const FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect width='400' height='400' fill='%23fdeca6'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='%2382380d' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif'%3E%F0%9F%93%AE 高雄郵局限定%3C/text%3E%3C/svg%3E";
+
+const base = import.meta.env.BASE_URL;
+const products = await getKhLimitedProducts();
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+
+const cards = products.map((p) => ({
+  key: p.product_key,
+  name: p.name || '未命名商品',
+  price: Number(p.price) || 0,
+  img: p.thumb_url || p.img_url || FALLBACK_IMG,
+  intro: p.kh_intro || p.description || '',
+  keywordUrl: `${base}?keyword=${encodeURIComponent(p.name || '')}`,
+  addedDate: p.kh_added_at ? new Date(p.kh_added_at).toLocaleDateString('zh-TW') : '',
+}));
+
+const desc = '高雄郵局限定小物持續更新中！搖搖樂吊飾、著色貼紙簿、造型磁鐵⋯每一樣都是高雄郵局獨家販售，點擊即可查詢附近有現貨的郵局。';
+
+const itemListLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  itemListElement: cards.slice(0, 30).map((c, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name: c.name,
+    url: new URL(c.keywordUrl, Astro.site).href,
+  })),
+};
+---
+<Base title="高雄郵局限定小物牆｜獨家商品持續更新" description={desc} canonical={canonical} ogType="website" jsonLd={itemListLd}>
+  <header class="header">
+    <a href={base} class="btn-back"><i class="fa-solid fa-store"></i> 商品櫥窗</a>
+    <h2 class="header-title"><i class="fa-solid fa-star"></i> 高雄郵局限定小物牆</h2>
+    <div style="width:100px;"></div>
+  </header>
+
+  <main class="container">
+    <nav class="breadcrumb" aria-label="breadcrumb">
+      <a href={base}>首頁</a> ›
+      <span>高雄郵局限定小物牆</span>
+    </nav>
+
+    <div class="sd-ui-box">
+      <h2><i class="fa-solid fa-gift"></i> 只有高雄郵局才買得到的小物，通通收在這裡</h2>
+      <p style="font-weight:bold; color:var(--sd-text-muted);">
+        這裡收錄高雄郵局限定發行、獨家販售的商品，會不定期持續新增，記得三不五時回來逛逛！
+        每樣商品點擊「查詢附近庫存」就能直接搜尋離你最近、還有現貨的郵局。
+      </p>
+    </div>
+
+    {cards.length === 0 ? (
+      <div style="text-align:center; font-weight:bold; padding:40px;">目前還沒有收錄任何限定商品，敬請期待！</div>
+    ) : (
+      <div class="blog-grid">
+        {cards.map((c) => (
+          <div class="article-card kh-card">
+            <img src={c.img} class="a-cover" alt={c.name} loading="lazy" decoding="async" />
+            <div class="a-info">
+              <h3 class="a-title">{c.name}</h3>
+              {c.price > 0 && <div class="kh-price">${c.price}</div>}
+              {c.intro && <div class="a-excerpt">{c.intro}</div>}
+              <a href={c.keywordUrl} class="kh-cta"><i class="fa-solid fa-magnifying-glass-location"></i> 查詢附近庫存</a>
+              {c.addedDate && <div class="a-meta"><i class="fa-regular fa-clock"></i> 收錄於 {c.addedDate}</div>}
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+  </main>
+
+  <style>
+    .kh-card{ cursor:default; }
+    .kh-price{ font-size:18px; font-weight:bold; color:var(--sd-wood); margin-bottom:8px; }
+    .kh-cta{
+      display:inline-flex; align-items:center; gap:6px; justify-content:center;
+      background:var(--sd-wood); color:#fff; font-weight:bold; text-decoration:none;
+      padding:8px 14px; border-radius:6px; font-size:14px; margin-top:auto; margin-bottom:10px;
+      box-shadow:0 3px 0 rgba(0,0,0,.15); transition:transform .15s;
+    }
+    .kh-cta:hover{ transform:translateY(-2px); background:var(--sd-wood-dark); }
+  </style>
+</Base>
