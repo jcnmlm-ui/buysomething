@@ -768,7 +768,15 @@
         <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #cbd5e0;">
         <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">商品說明 (AG欄 - 限 65 字)</label>
         <textarea id="editMasterDesc" maxlength="65" rows="4" placeholder="請輸入商品說明 (限 65 字內)..." style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical; outline: none;"></textarea>
-        
+
+        <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #cbd5e0;">
+        <label style="display: flex; align-items: center; gap: 8px; font-weight: bold; color: #475569; cursor: pointer; margin-bottom: 10px;">
+          <input type="checkbox" id="editMasterKhLimited" style="width: 18px; height: 18px; cursor: pointer;">
+          <i class="fa-solid fa-star" style="color: #e58715;"></i> 加入「高雄郵局限定小物牆」
+        </label>
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">限定小物牆介紹文字 (2-5句話，非必填)</label>
+        <textarea id="editMasterKhIntro" maxlength="300" rows="3" placeholder="給這個小物寫幾句有故事感的介紹，留空的話會自動用上面的商品說明代替..." style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; resize: vertical; outline: none;"></textarea>
+
         <button onclick="saveMasterDataEdit()" id="btnSaveMasterEdit" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;">💾 儲存修改</button>
       </div>
     </div>
@@ -1430,7 +1438,10 @@
           img: row.img_url,
           thumb: row.thumb_url,
           desc: row.description,
-          extra_images: row.extra_images || [] 
+          extra_images: row.extra_images || [],
+          is_kh_limited: !!row.is_kh_limited,
+          kh_intro: row.kh_intro || '',
+          kh_added_at: row.kh_added_at || null
         }));
         globalMasterData = results;
         renderMasterProducts(globalMasterData);
@@ -1453,9 +1464,10 @@
         div.className = 'admin-item';
         div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center';
         const safeKey = encodeURIComponent(p.product_key || "");
+        const khBadge = p.is_kh_limited ? '<span title="已加入限定小物牆" style="color:#e58715; margin-left:6px;">⭐</span>' : '';
         div.innerHTML = `
           <div class="admin-item-info">
-            <span class="admin-item-title" style="color: var(--primary-dark);">${p.name || '(未命名商品)'}</span>
+            <span class="admin-item-title" style="color: var(--primary-dark);">${p.name || '(未命名商品)'}${khBadge}</span>
             <span class="admin-item-code">條碼: ${p.barcode}</span>
             <span class="admin-item-code" style="margin-top: 4px;">原始說明: <span style="color:#b45309; font-weight:bold;">${p.originalName || '無'}</span></span>
           </div>
@@ -1487,6 +1499,8 @@
       document.getElementById('editMasterOriginalName').value = p.originalName || '';
       document.getElementById('editMasterName').value = p.name || '';
       document.getElementById('editMasterDesc').value = p.desc || '';
+      document.getElementById('editMasterKhLimited').checked = !!p.is_kh_limited;
+      document.getElementById('editMasterKhIntro').value = p.kh_intro || '';
       
       renderCurrentMainImage(p);
 
@@ -1727,12 +1741,20 @@
       const barcode = document.getElementById('editMasterBarcode').value;
       const name = document.getElementById('editMasterName').value;
       const desc = document.getElementById('editMasterDesc').value;
-      
+      const khLimited = document.getElementById('editMasterKhLimited').checked;
+      const khIntro = document.getElementById('editMasterKhIntro').value.trim();
+
       const btn = document.getElementById('btnSaveMasterEdit');
       btn.innerText = "處理中..."; btn.disabled = true;
       document.getElementById('logBox').style.display = 'block';
 
-      let updatePayload = { name: name, description: desc };
+      let updatePayload = { name: name, description: desc, is_kh_limited: khLimited, kh_intro: khIntro || null };
+
+      // ★ 第一次被勾選加入限定小物牆時，才寫入加入時間（用來排序，新加入的排最上面）
+      const existingItem = globalMasterData.find(p => String(p.product_key) === String(productKey));
+      if (khLimited && existingItem && !existingItem.kh_added_at) {
+        updatePayload.kh_added_at = new Date().toISOString();
+      }
 
       try {
         if (processedFiles.thumb && processedFiles.large) {
@@ -1766,6 +1788,8 @@
             const item = globalMasterData.find(p => String(p.product_key) === String(productKey));
             if (item) {
               item.name = name; item.desc = desc;
+              item.is_kh_limited = khLimited; item.kh_intro = khIntro;
+              if (updatePayload.kh_added_at) item.kh_added_at = updatePayload.kh_added_at;
               if (updatePayload.img_url) { item.img = updatePayload.img_url; item.thumb = updatePayload.thumb_url; }
               filterMasterProducts(); 
             }
