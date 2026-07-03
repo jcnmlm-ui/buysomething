@@ -1546,15 +1546,19 @@
         div.className = 'admin-item';
         div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center'; div.style.gap = '10px';
         const safeKey = encodeURIComponent(p.product_key || "");
+        const introRaw = (p.kh_intro || '').replace(/\s+/g, ' ').trim();
+        const introDisplay = introRaw
+          ? (introRaw.length > 40 ? introRaw.slice(0, 40) + '…' : introRaw)
+          : '（未填，會用商品說明代替）';
         div.innerHTML = `
           <div style="display:flex; flex-direction:column; gap:2px;">
             <button type="button" title="往上移" onclick="moveKhItem('${safeKey}', -1)" ${i === 0 ? 'disabled style="opacity:.3;"' : ''} style="cursor:pointer; border:1px solid #cbd5e0; border-radius:4px; background:#fff; width:26px; height:22px;">▲</button>
             <button type="button" title="往下移" onclick="moveKhItem('${safeKey}', 1)" ${i === list.length - 1 ? 'disabled style="opacity:.3;"' : ''} style="cursor:pointer; border:1px solid #cbd5e0; border-radius:4px; background:#fff; width:26px; height:22px;">▼</button>
           </div>
-          <div class="admin-item-info" style="flex:1;">
+          <div class="admin-item-info" style="flex:1; min-width:0;">
             <span class="admin-item-title" style="color: var(--primary-dark);">#${i + 1}　${p.name || '(未命名商品)'}</span>
             <span class="admin-item-code">條碼: ${p.barcode}</span>
-            <span class="admin-item-code" style="margin-top: 4px;">牆上介紹: <span style="color:#b45309; font-weight:bold;">${p.kh_intro || '（未填，會用商品說明代替）'}</span></span>
+            <span class="admin-item-code" style="margin-top: 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block;" title="${introRaw.replace(/"/g, '&quot;')}">牆上介紹: <span style="color:#b45309; font-weight:bold;">${introDisplay}</span></span>
           </div>
           <button type="button" class="btn-edit-master" onclick="openEditMasterModalByKey('${safeKey}')">✏️ 編輯內容</button>
           <button type="button" onclick="removeFromKhWall('${safeKey}')" style="cursor:pointer; border:1px solid #ef4444; color:#ef4444; background:#fff; border-radius:6px; padding:6px 10px; font-weight:bold; white-space:nowrap;">✖ 移出</button>
