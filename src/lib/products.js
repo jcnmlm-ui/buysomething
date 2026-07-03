@@ -16,8 +16,9 @@ export async function getKhLimitedProducts() {
   try {
     const query = supabase
       .from('products_master')
-      .select('product_key, name, price, img_url, thumb_url, description, kh_intro, kh_added_at, kh_article_id')
+      .select('product_key, name, price, img_url, thumb_url, description, kh_intro, kh_added_at, kh_article_id, kh_sort_order')
       .eq('is_kh_limited', true)
+      .order('kh_sort_order', { ascending: true, nullsFirst: false })
       .order('kh_added_at', { ascending: false, nullsFirst: false });
     const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('連線逾時')), 8000));
     const { data, error } = await Promise.race([query, timeout]);
