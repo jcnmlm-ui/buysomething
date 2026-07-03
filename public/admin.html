@@ -459,6 +459,7 @@
             </div>
             <div class="filters">
               <input type="search" id="masterSearchInput" placeholder="🔍 輸入條碼或名稱搜尋..." oninput="filterMasterProducts()">
+              <button type="button" class="btn-primary" id="btnToggleKhManage" onclick="toggleKhManageMode()" style="margin-left:8px; white-space:nowrap;">⭐ 限定小物牆管理</button>
             </div>
             <div class="controls">
               <button class="btn-primary" onclick="loadMasterData()" id="btnLoadMaster">🔄 載入最新主檔</button>
@@ -1447,10 +1448,11 @@
           is_kh_limited: !!row.is_kh_limited,
           kh_intro: row.kh_intro || '',
           kh_added_at: row.kh_added_at || null,
-          kh_article_id: row.kh_article_id || null
+          kh_article_id: row.kh_article_id || null,
+          kh_sort_order: (row.kh_sort_order === null || row.kh_sort_order === undefined) ? null : Number(row.kh_sort_order)
         }));
         globalMasterData = results;
-        renderMasterProducts(globalMasterData);
+        if (khManageMode) { renderKhManageList(); } else { renderMasterProducts(globalMasterData); }
       } catch (err) {
         alert('讀取失敗：' + err.message);
       }
@@ -1494,6 +1496,113 @@
       );
       renderMasterProducts(filtered);
     }
+
+    // ★ 高雄郵局限定小物牆管理模式 -----------------------------------------
+    let khManageMode = false;
+
+    function getKhOrderedList() {
+      // 排序邏輯要跟 src/lib/products.js 給前台的排序一致：
+      // 有手動排序值(kh_sort_order)的排前面(小的在前)，沒有的按加入時間新到舊排在後面
+      return globalMasterData
+        .filter(p => p.is_kh_limited)
+        .sort((a, b) => {
+          const aHas = a.kh_sort_order !== null && a.kh_sort_order !== undefined;
+          const bHas = b.kh_sort_order !== null && b.kh_sort_order !== undefined;
+          if (aHas && bHas) return a.kh_sort_order - b.kh_sort_order;
+          if (aHas && !bHas) return -1;
+          if (!aHas && bHas) return 1;
+          return new Date(b.kh_added_at || 0) - new Date(a.kh_added_at || 0);
+        });
+    }
+
+    function toggleKhManageMode() {
+      khManageMode = !khManageMode;
+      const btn = document.getElementById('btnToggleKhManage');
+      const searchInput = document.getElementById('masterSearchInput');
+      if (khManageMode) {
+        btn.innerText = '↩️ 返回一般清單';
+        btn.style.background = 'var(--sd-hot, #e58715)';
+        searchInput.style.display = 'none';
+        renderKhManageList();
+      } else {
+        btn.innerText = '⭐ 限定小物牆管理';
+        btn.style.background = '';
+        searchInput.style.display = '';
+        filterMasterProducts();
+      }
+    }
+
+    function renderKhManageList() {
+      const container = document.getElementById('masterProductContainer');
+      const list = getKhOrderedList();
+      container.innerHTML = '';
+      container.style.display = 'grid';
+      if (list.length === 0) {
+        container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 20px;">目前還沒有商品加入限定小物牆，去一般清單裡編輯商品、勾選「加入高雄郵局限定小物牆」即可加入。</div>';
+        return;
+      }
+      list.forEach((p, i) => {
+        const div = document.createElement('div');
+        div.className = 'admin-item';
+        div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center'; div.style.gap = '10px';
+        const safeKey = encodeURIComponent(p.product_key || "");
+        div.innerHTML = `
+          <div style="display:flex; flex-direction:column; gap:2px;">
+            <button type="button" title="往上移" onclick="moveKhItem('${safeKey}', -1)" ${i === 0 ? 'disabled style="opacity:.3;"' : ''} style="cursor:pointer; border:1px solid #cbd5e0; border-radius:4px; background:#fff; width:26px; height:22px;">▲</button>
+            <button type="button" title="往下移" onclick="moveKhItem('${safeKey}', 1)" ${i === list.length - 1 ? 'disabled style="opacity:.3;"' : ''} style="cursor:pointer; border:1px solid #cbd5e0; border-radius:4px; background:#fff; width:26px; height:22px;">▼</button>
+          </div>
+          <div class="admin-item-info" style="flex:1;">
+            <span class="admin-item-title" style="color: var(--primary-dark);">#${i + 1}　${p.name || '(未命名商品)'}</span>
+            <span class="admin-item-code">條碼: ${p.barcode}</span>
+            <span class="admin-item-code" style="margin-top: 4px;">牆上介紹: <span style="color:#b45309; font-weight:bold;">${p.kh_intro || '（未填，會用商品說明代替）'}</span></span>
+          </div>
+          <button type="button" class="btn-edit-master" onclick="openEditMasterModalByKey('${safeKey}')">✏️ 編輯內容</button>
+          <button type="button" onclick="removeFromKhWall('${safeKey}')" style="cursor:pointer; border:1px solid #ef4444; color:#ef4444; background:#fff; border-radius:6px; padding:6px 10px; font-weight:bold; white-space:nowrap;">✖ 移出</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function moveKhItem(encKey, direction) {
+      const key = decodeURIComponent(encKey);
+      const list = getKhOrderedList();
+      const idx = list.findIndex(p => String(p.product_key) === String(key));
+      const targetIdx = idx + direction;
+      if (idx === -1 || targetIdx < 0 || targetIdx >= list.length) return;
+
+      // 交換位置後，重新賦予整份清單連續的排序值（1,2,3...），避免 null 混雜造成排序不穩定
+      const reordered = [...list];
+      [reordered[idx], reordered[targetIdx]] = [reordered[targetIdx], reordered[idx]];
+
+      try {
+        for (let i = 0; i < reordered.length; i++) {
+          const newOrder = i + 1;
+          if (reordered[i].kh_sort_order !== newOrder) {
+            const { error } = await supabaseClient.from('products_master').update({ kh_sort_order: newOrder }).eq('product_key', reordered[i].product_key);
+            if (error) throw error;
+            reordered[i].kh_sort_order = newOrder;
+          }
+        }
+        renderKhManageList();
+      } catch (e) {
+        alert('調整順序失敗：' + e.message);
+      }
+    }
+
+    async function removeFromKhWall(encKey) {
+      const key = decodeURIComponent(encKey);
+      if (!confirm('確定要把這個商品移出「高雄郵局限定小物牆」嗎？（商品本身不會被刪除，只是不再顯示於該頁面）')) return;
+      try {
+        const { error } = await supabaseClient.from('products_master').update({ is_kh_limited: false }).eq('product_key', key);
+        if (error) throw error;
+        const item = globalMasterData.find(p => String(p.product_key) === String(key));
+        if (item) item.is_kh_limited = false;
+        renderKhManageList();
+      } catch (e) {
+        alert('移除失敗：' + e.message);
+      }
+    }
+    // ------------------------------------------------------------------
 
     // ★ 商品編輯視窗要用到文章清單（連結相關文章下拉選單），若還沒載入過就先抓一次
     async function ensureArticlesLoaded() {
@@ -1595,7 +1704,7 @@
         product.img = null;
         product.thumb = null;
         renderCurrentMainImage(product);
-        filterMasterProducts(); 
+        if (khManageMode) { renderKhManageList(); } else { filterMasterProducts(); }
         logMsg(`✅ 主圖已成功刪除！`);
       } catch (e) {
         logMsg(`❌ 刪除失敗: ${e.message}`);
@@ -1825,7 +1934,7 @@
               item.kh_article_id = updatePayload.kh_article_id;
               if (updatePayload.kh_added_at) item.kh_added_at = updatePayload.kh_added_at;
               if (updatePayload.img_url) { item.img = updatePayload.img_url; item.thumb = updatePayload.thumb_url; }
-              filterMasterProducts(); 
+              if (khManageMode) { renderKhManageList(); } else { filterMasterProducts(); }
             }
         }, 600);
         
