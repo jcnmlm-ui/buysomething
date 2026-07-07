@@ -95,6 +95,8 @@
     }
 
     .header h1 { margin: 0; font-size: 22px; font-weight: bold; letter-spacing: 2px; flex: 1; min-width: 250px;}
+    .header-logo-link { color: inherit; text-decoration: none; }
+    .header-logo-link:hover { opacity: 0.85; }
     
     /* ★ 頂部導覽列按鈕樣式 */
     .nav-group { display: flex; gap: 10px; }
@@ -489,7 +491,7 @@
   </div>
 
   <header class="header">
-    <h1><i class="fa-solid fa-sign-hanging" style="margin-right: 8px; color: #fdeca6;"></i>高雄郵局｜郵風商品櫥窗</h1>
+    <h1><a href="/" class="header-logo-link"><i class="fa-solid fa-sign-hanging" style="margin-right: 8px; color: #fdeca6;"></i>高雄郵局｜郵風商品櫥窗</a></h1>
     <!-- ★ 將所有分頁導覽按鈕都移至頂部，解決手機版要滑很久的問題 -->
     <nav class="nav-group">
       <a href="/blog/" class="nav-btn">
