@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>郵票編輯器 · 娃娃機風格原型 v6</title>
+<title>郵票編輯器 · 娃娃機風格原型 v7</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -47,6 +47,12 @@
   }
   header h1 { font-size: 22px; font-weight: 800; margin: 0; letter-spacing: 1px; color: var(--ink); }
   header p { margin: 10px 0 0; font-size: 13px; color: #8A6E86; }
+  .help-btn {
+    margin-top: 10px; display: inline-block; background: var(--yellow); border: 2px solid var(--yellow-deep);
+    color: var(--ink); padding: 7px 18px; border-radius: 999px; font-size: 12.5px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 3px 0 var(--yellow-deep);
+  }
+  .help-btn:active { transform: translateY(3px); box-shadow: none; }
 
   .layout {
     display: flex; gap: 28px; flex-wrap: wrap;
@@ -141,6 +147,13 @@
   .check-row { display: flex; gap: 14px; align-items: center; font-size: 12.5px; }
   .check-row label { display: flex; align-items: center; gap: 5px; font-weight: normal !important; }
 
+  .align-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 6px; }
+  .align-btn {
+    padding: 8px 0; border-radius: 10px; border: 2px solid var(--line); background: #fff;
+    font-size: 11px; cursor: pointer; color: var(--ink); font-weight: 700;
+  }
+  .align-btn:hover { background: var(--mint); border-color: var(--mint-deep); }
+
   .legend { font-size: 11.5px; color: var(--ink-soft); }
   .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .swatch { width: 11px; height: 11px; border-radius: 4px; flex: none; }
@@ -201,6 +214,66 @@
   .admin-list-item img { width: 34px; height: 34px; object-fit: contain; border-radius: 8px; background: #fff; }
   .admin-list-item .name { flex: 1; font-size: 12.5px; }
   .admin-empty { font-size: 12px; color: var(--ink-soft); text-align: center; padding: 10px 0; }
+
+  /* ===== 教學面板 ===== */
+  .tutorial-steps { margin: 14px 0; }
+  .tutorial-step {
+    display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px;
+    background: #FCEFF6; border-radius: 16px; padding: 12px 14px;
+  }
+  .tutorial-step .num {
+    flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--pink);
+    color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px;
+  }
+  .tutorial-step .txt { font-size: 13px; line-height: 1.6; }
+  .tutorial-step .txt b { color: var(--pink-deep); }
+  .video-link {
+    display: block; text-align: center; padding: 12px 0; border-radius: 999px;
+    background: var(--lavender); color: var(--ink); font-weight: 800; font-size: 13.5px;
+    text-decoration: none; box-shadow: 0 4px 0 #C9BCF7; margin-bottom: 10px;
+  }
+  .video-link:active { transform: translateY(4px); box-shadow: none; }
+
+  /* ===== 右鍵選單 ===== */
+  .ctx-menu {
+    display: none; position: fixed; z-index: 50; min-width: 150px;
+    background: var(--cream); border: 2px solid var(--pink); border-radius: 14px;
+    box-shadow: 0 8px 20px rgba(107,84,104,0.3); overflow: hidden; padding: 5px;
+  }
+  .ctx-menu.open { display: block; }
+  .ctx-item {
+    padding: 9px 14px; font-size: 12.5px; cursor: pointer; border-radius: 9px; color: var(--ink);
+  }
+  .ctx-item:hover { background: var(--mint); }
+  .ctx-item.danger:hover { background: #FFD9DE; color: var(--locked-deep); }
+  .ctx-sep { height: 1px; background: var(--line); margin: 4px 8px; }
+
+  /* ===== 全螢幕預覽 ===== */
+  .preview-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(20, 14, 20, 0.94);
+    z-index: 60; align-items: center; justify-content: center; flex-direction: column;
+  }
+  .preview-overlay.open { display: flex; }
+  .preview-overlay img {
+    max-width: 86vw; max-height: 78vh; border-radius: 6px;
+    box-shadow: 0 24px 70px rgba(0,0,0,0.6);
+  }
+  .preview-close {
+    position: absolute; top: 18px; right: 22px;
+    border: none; background: rgba(255,255,255,0.15); color: #fff; border-radius: 50%;
+    width: 42px; height: 42px; cursor: pointer; font-size: 18px; font-weight: 700;
+  }
+  .preview-close:hover { background: rgba(255,255,255,0.3); }
+  .preview-hint {
+    position: absolute; bottom: 26px; right: 26px; display: flex; align-items: center; gap: 12px;
+  }
+  .preview-hint span { color: rgba(255,255,255,0.85); font-size: 13px; }
+  .preview-download {
+    border: none; background: var(--pink-deep); color: #fff; border-radius: 999px;
+    padding: 12px 24px; font-size: 14px; font-weight: 800; cursor: pointer;
+    box-shadow: 0 5px 0 #D14E85; font-family: inherit;
+  }
+  .preview-download:active { transform: translateY(5px); box-shadow: none; }
 </style>
 </head>
 <body>
@@ -212,8 +285,9 @@
 
 <div class="page">
   <header>
-    <div class="badge-title"><h1>🎀 郵票編輯器 · 娃娃機風原型 v6</h1></div>
-    <p>畫布隨視窗自適應 · 平板觸控支援 · 雲端資料庫(Supabase)</p>
+    <div class="badge-title"><h1>🎀 郵票編輯器 · 娃娃機風原型 v7</h1></div>
+    <p>教學面板 · 右鍵圖層選單 · 多選對齊 · 全螢幕預覽 · 照片解析度提示</p>
+    <button class="help-btn" id="helpBtn">❓ 操作教學</button>
   </header>
 
   <div class="layout">
@@ -233,7 +307,6 @@
           <option value="b">郵局限量典藏章(直式 40×52mm)</option>
         </select>
         <p class="hint" id="templateSizeHint"></p>
-        <p class="hint">畫布顯示大小會隨瀏覽器視窗自動調整,方便操作;輸出解析度不受顯示大小影響,固定依實際 mm 尺寸換算 300 DPI。</p>
       </div>
 
       <div class="section">
@@ -254,11 +327,29 @@
           </div>
         </div>
 
-        <p class="hint">電腦:選取元件後按 <b>Enter</b> 編輯文字、<b>Delete</b> 刪除。平板:單指拖曳移動,<b>雙指開合</b>縮放選取中的元件,雙擊文字進入編輯。</p>
+        <p class="hint">電腦:<b>Enter</b> 編輯文字、<b>Delete</b> 刪除、<b>右鍵</b>開啟圖層選單、<b>Shift+點選</b>可選取多個元件。平板:單指拖曳、雙指開合縮放、雙擊文字編輯。</p>
+      </div>
+
+      <div class="section" id="alignSection" style="display:none;">
+        <h2>📐 對齊與均分(已選 <span id="alignCount">0</span> 個)</h2>
+        <div class="align-grid">
+          <button class="align-btn" data-align="left">⇤ 靠左</button>
+          <button class="align-btn" data-align="centerH">↔ 水平置中</button>
+          <button class="align-btn" data-align="right">⇥ 靠右</button>
+          <button class="align-btn" data-align="top">⤒ 靠上</button>
+          <button class="align-btn" data-align="middle">↕ 垂直置中</button>
+          <button class="align-btn" data-align="bottom">⤓ 靠下</button>
+        </div>
+        <div class="two-col">
+          <button class="align-btn" data-align="distH">⫴ 水平均分</button>
+          <button class="align-btn" data-align="distV">⫵ 垂直均分</button>
+        </div>
+        <p class="hint" style="margin-top:8px;">均分需要選取 3 個以上元件。對齊以「目前選取範圍」為基準。</p>
       </div>
 
       <div class="section">
         <h2>🗂️ 圖層(由上到下)</h2>
+        <p class="hint">滑鼠停在「照片」名稱上,會顯示原始像素與輸出解析度估算。</p>
         <div class="layer-list" id="layerList"></div>
       </div>
 
@@ -267,6 +358,7 @@
         <p class="hint" id="propEmpty">點選畫布上的元件,或從圖層清單點選,即可調整屬性。</p>
 
         <div id="imageProps" style="display:none;">
+          <p class="hint" id="imgResInfo" style="background:#FCEFF6; padding:8px 10px; border-radius:10px;"></p>
           <div class="prop-row">
             <label>透明度</label>
             <input type="range" id="opacityRange" min="0" max="100" value="100">
@@ -282,7 +374,6 @@
               <button class="btn tiny" id="bgKeyApply">套用去背</button>
             </div>
             <button class="btn secondary tiny" id="bgKeyReset" style="margin-top:6px;">還原原圖</button>
-            <p class="hint" style="margin-top:6px;">僅適用於單一背景色(如棚拍白底),複雜背景效果有限。</p>
           </div>
           <button class="btn secondary tiny" id="deleteImgBtn">刪除此元件</button>
         </div>
@@ -318,8 +409,9 @@
       </div>
 
       <div class="section">
-        <h2>📦 輸出</h2>
+        <h2>📦 預覽與輸出</h2>
         <p class="export-note" id="exportNote"></p>
+        <button class="btn secondary" id="previewBtn">🔍 全螢幕預覽</button>
         <button class="btn" id="exportBtn">匯出設計(300 DPI PNG)</button>
       </div>
 
@@ -333,6 +425,57 @@
 </div>
 
 <button class="admin-fab" id="adminFab">🛠 後台管理</button>
+
+<!-- 右鍵選單 -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" data-act="up">⬆ 上移一層</div>
+  <div class="ctx-item" data-act="down">⬇ 下移一層</div>
+  <div class="ctx-item" data-act="toTop">⏫ 移到最上層</div>
+  <div class="ctx-item" data-act="toBottom">⏬ 移到最下層</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" data-act="delete">✕ 刪除元件</div>
+</div>
+
+<!-- 全螢幕預覽 -->
+<div class="preview-overlay" id="previewOverlay">
+  <button class="preview-close" id="previewClose">✕</button>
+  <img id="previewImg" alt="設計預覽">
+  <div class="preview-hint">
+    <span>喜歡這個設計嗎?</span>
+    <button class="preview-download" id="previewDownload">⬇ 下載 300 DPI 圖檔</button>
+  </div>
+</div>
+
+<!-- 教學面板 -->
+<div class="modal-overlay open" id="tutorialModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>👋 歡迎使用個人化郵票編輯器!</h2>
+      <button class="modal-close" id="tutorialClose">✕</button>
+    </div>
+    <p class="hint" style="font-size:12.5px;">四個步驟,做出屬於你的專屬郵票:</p>
+    <div class="tutorial-steps">
+      <div class="tutorial-step">
+        <div class="num">1</div>
+        <div class="txt"><b>選擇版型</b> — 右側「版型選擇」挑一款喜歡的樣式。紅框與固定圖文是郵票的標準版面,無法更動;其餘空間都可以自由發揮。</div>
+      </div>
+      <div class="tutorial-step">
+        <div class="num">2</div>
+        <div class="txt"><b>加入內容</b> — 上傳自己的照片、挑選郵局圖庫貼紙、輸入紀念文字,或用畫筆親手畫上一筆。</div>
+      </div>
+      <div class="tutorial-step">
+        <div class="num">3</div>
+        <div class="txt"><b>調整編排</b> — 拖曳移動、四角縮放、右鍵調整圖層順序;按住 Shift 選取多個元件,可以使用對齊與均分工具。</div>
+      </div>
+      <div class="tutorial-step">
+        <div class="num">4</div>
+        <div class="txt"><b>預覽與下載</b> — 點「🔍 全螢幕預覽」欣賞成品,滿意後下載 300 DPI 可直接印刷的高解析圖檔!</div>
+      </div>
+    </div>
+    <a class="video-link" id="tutorialVideoLink" href="#" target="_blank" rel="noopener">📺 觀看完整操作教學影片</a>
+    <button class="btn" id="tutorialStart">開始設計!</button>
+  </div>
+</div>
 
 <div class="modal-overlay" id="adminModal">
   <div class="modal">
@@ -368,7 +511,7 @@
     </div>
 
     <div class="tab-pane" id="templateTab">
-      <p class="hint">上傳含透明區域的 PNG 作為版型遮罩:<b>透明處 = 使用者可編輯範圍</b>,<b>不透明處 = 固定不可編輯</b>。請務必填寫這張圖對應的<b>實際印刷尺寸(mm)</b>,畫布會依照這個比例自動調整,橫式、直式都可以。</p>
+      <p class="hint">上傳含透明區域的 PNG 作為版型遮罩:<b>透明處 = 使用者可編輯範圍</b>,<b>不透明處 = 固定不可編輯</b>。請務必填寫這張圖對應的<b>實際印刷尺寸(mm)</b>。</p>
       <div class="admin-form">
         <input type="text" id="templateNameInput" placeholder="版型名稱,例如:永續郵票橫式">
         <input type="number" id="templateMmW" placeholder="寬(mm)" min="10" max="600">
@@ -382,19 +525,18 @@
 </div>
 
 <script>
-  // ================= Supabase 設定 =================
-  // 在 Supabase 專案建好資料表後(SQL 見隨附的 stamp-editor-supabase-setup.sql),
-  // 把下面兩個值填入你專案的 URL 與 anon key,存檔重新整理即可啟用雲端資料庫。
-  // 留空時會自動退回:Claude 環境的 window.storage → 或純記憶體(重新整理即消失)。
+  // ================= 設定區 =================
   const SUPABASE_CONFIG = {
-    url: '',      // 例如 'https://xxxx.supabase.co'
-    anonKey: ''   // Settings → API → anon public key
+    url: 'https://tukzmdtkhdxdpbnvkjzz.supabase.co',      // 例如 'https://xxxx.supabase.co'
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA'   // Settings → API → anon public key
   };
+  // 教學影片連結:之後把拍好的影片網址(YouTube 等)貼進來即可
+  const TUTORIAL_VIDEO_URL = '';
 
-  let CANVAS_W = 400, CANVAS_H = 520; // 邏輯設計座標(隨版型比例變動)
-  let ZOOM = 1;                        // 顯示縮放(隨瀏覽器視窗變動)
+  let CANVAS_W = 400, CANVAS_H = 520;
+  let ZOOM = 1;
   const DPI = 300;
-  const BASE_LOGICAL_DIM = 480;        // 邏輯座標長邊
+  const BASE_LOGICAL_DIM = 480;
   let EXPORT_PX_W = 0, EXPORT_PX_H = 0, EXPORT_MM_W = 40, EXPORT_MM_H = 52;
 
   function computeLogicalSize(mmW, mmH) {
@@ -410,23 +552,24 @@
     EXPORT_PX_W = Math.round(mmW / 25.4 * DPI);
     EXPORT_PX_H = Math.round(mmH / 25.4 * DPI);
     document.getElementById('exportNote').textContent =
-      `輸出解析度 ${EXPORT_PX_W}×${EXPORT_PX_H} px,並已內嵌 300 DPI metadata(對應實體尺寸 ${mmW}×${mmH}mm),用 Photoshop 等軟體開啟「影像尺寸」會直接顯示 300 dpi。`;
+      `輸出解析度 ${EXPORT_PX_W}×${EXPORT_PX_H} px,已內嵌 300 DPI metadata(對應實體尺寸 ${mmW}×${mmH}mm)。`;
     document.getElementById('templateSizeHint').textContent = `目前版型工作尺寸:${mmW}×${mmH}mm`;
   }
 
-  // 觸控友善的控制點外觀(平板上更好抓)
   fabric.Object.prototype.transparentCorners = false;
   fabric.Object.prototype.cornerStyle = 'circle';
   fabric.Object.prototype.cornerColor = '#FF6FA5';
   fabric.Object.prototype.cornerStrokeColor = '#FFFFFF';
   fabric.Object.prototype.cornerSize = 11;
-  fabric.Object.prototype.touchCornerSize = 30; // 觸控時的感應範圍加大
+  fabric.Object.prototype.touchCornerSize = 30;
   fabric.Object.prototype.borderColor = '#4ED9BE';
 
   const canvas = new fabric.Canvas('stampCanvas', {
     width: CANVAS_W, height: CANVAS_H, backgroundColor: '#F6EFE0', selection: true,
     preserveObjectStacking: true,
-    allowTouchScrolling: false
+    allowTouchScrolling: false,
+    fireRightClick: true,
+    stopContextMenu: true
   });
 
   let lockedObjects = [];
@@ -436,7 +579,7 @@
   // ================= 響應式畫布縮放 =================
   function applyResponsiveZoom() {
     const col = document.getElementById('canvasCol');
-    const padding = 36 + 24; // stamp-outer padding 18*2 + 一點呼吸空間
+    const padding = 36 + 24;
     const availW = Math.max(260, col.clientWidth - padding);
     const availH = Math.max(300, window.innerHeight - 240);
     let zoom = Math.min(availW / CANVAS_W, availH / CANVAS_H);
@@ -472,7 +615,7 @@
     for (let y = y0 + spacing / 2; y < y1; y += spacing) { circle(x0, y); circle(x1, y); }
   }
 
-  // ================= 平板:雙指縮放選取中的元件 =================
+  // ================= 平板:雙指縮放 =================
   (function setupPinch() {
     let pinch = null;
     function dist(touches) {
@@ -507,7 +650,7 @@
     });
   })();
 
-  // ================= PNG DPI metadata(pHYs chunk) =================
+  // ================= PNG DPI metadata =================
   const CRC_TABLE = (() => {
     const table = [];
     for (let n = 0; n < 256; n++) {
@@ -554,16 +697,14 @@
     return bytes;
   }
 
-  // ================= 資料層:Supabase → window.storage → 記憶體 =================
+  // ================= 資料層 =================
   let sb = null;
   const memoryStore = { sticker: [], font: [], template: [] };
   const hasClaudeStorage = typeof window.storage !== 'undefined';
 
   function initSupabase() {
     if (SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey && window.supabase) {
-      try {
-        sb = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
-      } catch (e) { sb = null; }
+      try { sb = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey); } catch (e) { sb = null; }
     }
     const status = document.getElementById('dbStatus');
     if (sb) { status.textContent = '資料儲存:Supabase 雲端資料庫'; status.classList.add('online'); }
@@ -754,6 +895,16 @@
   }
   document.getElementById('templateSelect').addEventListener('change', e => loadTemplate(e.target.value));
 
+  // ================= 照片解析度資訊 =================
+  function getImageResInfo(obj) {
+    if (!obj || obj.type !== 'image' || !obj._naturalW) return '';
+    // 該照片在最終輸出中占用的實體寬度(inch)
+    const printedInchW = (obj.getScaledWidth() / CANVAS_W) * EXPORT_MM_W / 25.4;
+    const effDpi = printedInchW > 0 ? Math.round(obj._naturalW / printedInchW) : 0;
+    const quality = effDpi >= 300 ? '✅ 印刷品質充足' : (effDpi >= 180 ? '⚠️ 略低於印刷建議(300dpi)' : '❌ 解析度不足,列印可能模糊');
+    return `原始 ${obj._naturalW}×${obj._naturalH} px · 目前輸出約 ${effDpi} DPI · ${quality}`;
+  }
+
   // ================= 圖層清單 =================
   function updateLayerPanel() {
     const list = document.getElementById('layerList');
@@ -772,7 +923,11 @@
         <button class="icon-btn down">↓</button>
         <button class="icon-btn del">✕</button>
       `;
-      row.querySelector('.layer-name').addEventListener('click', () => {
+      const nameEl = row.querySelector('.layer-name');
+      if (obj.type === 'image' && obj._naturalW) {
+        nameEl.title = getImageResInfo(obj); // 滑鼠停留顯示原始像素與輸出DPI
+      }
+      nameEl.addEventListener('click', () => {
         canvas.setActiveObject(obj); showPropertiesFor(obj); canvas.renderAll(); updateLayerPanel();
       });
       row.querySelector('.eye').addEventListener('click', ev => {
@@ -801,7 +956,7 @@
   function isTextObj(obj) { return obj && (obj.type === 'i-text' || obj.type === 'text' || obj.type === 'textbox'); }
 
   function showPropertiesFor(obj) {
-    if (!obj || obj.isLocked) { clearProperties(); return; }
+    if (!obj || obj.isLocked || obj.type === 'activeSelection') { clearProperties(); return; }
     document.getElementById('propEmpty').style.display = 'none';
     if (isTextObj(obj)) {
       document.getElementById('textProps').style.display = 'block';
@@ -820,14 +975,66 @@
       document.getElementById('imageProps').style.display = 'block';
       document.getElementById('textProps').style.display = 'none';
       document.getElementById('opacityRange').value = Math.round((obj.opacity ?? 1) * 100);
+      document.getElementById('imgResInfo').textContent = getImageResInfo(obj) || '(圖庫貼紙為向量圖,縮放不影響輸出品質)';
     } else {
       clearProperties();
     }
   }
 
-  canvas.on('selection:created', () => showPropertiesFor(canvas.getActiveObject()));
-  canvas.on('selection:updated', () => showPropertiesFor(canvas.getActiveObject()));
-  canvas.on('selection:cleared', () => { clearProperties(); updateLayerPanel(); });
+  // ================= 多選對齊與均分 =================
+  function updateAlignSection() {
+    const sel = canvas.getActiveObject();
+    const section = document.getElementById('alignSection');
+    if (sel && sel.type === 'activeSelection') {
+      section.style.display = 'block';
+      document.getElementById('alignCount').textContent = sel.getObjects().length;
+    } else {
+      section.style.display = 'none';
+    }
+  }
+
+  function applyAlign(mode) {
+    const sel = canvas.getActiveObject();
+    if (!sel || sel.type !== 'activeSelection') return;
+    const objs = sel.getObjects();
+    const W = sel.width, H = sel.height;
+
+    if (mode === 'left') objs.forEach(o => o.set('left', -W / 2));
+    if (mode === 'centerH') objs.forEach(o => o.set('left', -o.getScaledWidth() / 2));
+    if (mode === 'right') objs.forEach(o => o.set('left', W / 2 - o.getScaledWidth()));
+    if (mode === 'top') objs.forEach(o => o.set('top', -H / 2));
+    if (mode === 'middle') objs.forEach(o => o.set('top', -o.getScaledHeight() / 2));
+    if (mode === 'bottom') objs.forEach(o => o.set('top', H / 2 - o.getScaledHeight()));
+
+    if (mode === 'distH' && objs.length >= 3) {
+      const sorted = [...objs].sort((a, b) => a.left - b.left);
+      const first = sorted[0], last = sorted[sorted.length - 1];
+      const span = (last.left + last.getScaledWidth()) - first.left;
+      const totalWidths = sorted.reduce((s, o) => s + o.getScaledWidth(), 0);
+      const gap = (span - totalWidths) / (sorted.length - 1);
+      let cursor = first.left;
+      sorted.forEach(o => { o.set('left', cursor); cursor += o.getScaledWidth() + gap; });
+    }
+    if (mode === 'distV' && objs.length >= 3) {
+      const sorted = [...objs].sort((a, b) => a.top - b.top);
+      const first = sorted[0], last = sorted[sorted.length - 1];
+      const span = (last.top + last.getScaledHeight()) - first.top;
+      const totalHeights = sorted.reduce((s, o) => s + o.getScaledHeight(), 0);
+      const gap = (span - totalHeights) / (sorted.length - 1);
+      let cursor = first.top;
+      sorted.forEach(o => { o.set('top', cursor); cursor += o.getScaledHeight() + gap; });
+    }
+
+    objs.forEach(o => o.setCoords());
+    canvas.requestRenderAll();
+  }
+  document.querySelectorAll('.align-btn').forEach(btn => {
+    btn.addEventListener('click', () => applyAlign(btn.dataset.align));
+  });
+
+  canvas.on('selection:created', () => { showPropertiesFor(canvas.getActiveObject()); updateAlignSection(); });
+  canvas.on('selection:updated', () => { showPropertiesFor(canvas.getActiveObject()); updateAlignSection(); });
+  canvas.on('selection:cleared', () => { clearProperties(); updateAlignSection(); updateLayerPanel(); });
   canvas.on('text:changed', () => updateLayerPanel());
   canvas.on('path:created', e => {
     e.path.layerName = '畫筆線稿';
@@ -854,9 +1061,56 @@
       canvas.requestRenderAll();
       if (canvas.getActiveObject() === obj) showPropertiesFor(obj);
     }
+    // 照片縮放後即時更新解析度資訊
+    if (obj && obj.type === 'image' && canvas.getActiveObject() === obj) {
+      document.getElementById('imgResInfo').textContent = getImageResInfo(obj) || '(圖庫貼紙為向量圖,縮放不影響輸出品質)';
+    }
     updateLayerPanel();
   });
 
+  // ================= 右鍵選單 =================
+  const ctxMenu = document.getElementById('ctxMenu');
+  let ctxTarget = null;
+
+  canvas.on('mouse:down', opt => {
+    if (opt.button === 3) { // fabric: 1=左鍵 2=中鍵 3=右鍵
+      const target = opt.target;
+      if (target && !target.isLocked) {
+        ctxTarget = target;
+        canvas.setActiveObject(target);
+        canvas.renderAll();
+        updateLayerPanel();
+        showPropertiesFor(target);
+        const ev = opt.e;
+        ctxMenu.style.left = Math.min(ev.clientX, window.innerWidth - 170) + 'px';
+        ctxMenu.style.top = Math.min(ev.clientY, window.innerHeight - 220) + 'px';
+        ctxMenu.classList.add('open');
+      } else {
+        ctxMenu.classList.remove('open');
+      }
+    } else {
+      ctxMenu.classList.remove('open');
+    }
+  });
+  document.addEventListener('click', e => {
+    if (!ctxMenu.contains(e.target)) ctxMenu.classList.remove('open');
+  });
+  ctxMenu.addEventListener('click', e => {
+    const item = e.target.closest('.ctx-item');
+    if (!item || !ctxTarget) return;
+    const act = item.dataset.act;
+    if (act === 'up') canvas.bringForward(ctxTarget);
+    if (act === 'down') canvas.sendBackwards(ctxTarget);
+    if (act === 'toTop') canvas.bringToFront(ctxTarget);
+    if (act === 'toBottom') canvas.sendToBack(ctxTarget);
+    if (act === 'delete') { canvas.remove(ctxTarget); clearProperties(); }
+    ensureLockedOnTop();
+    canvas.renderAll();
+    updateLayerPanel();
+    ctxMenu.classList.remove('open');
+  });
+
+  // ================= 屬性面板事件 =================
   document.getElementById('opacityRange').addEventListener('input', e => {
     const obj = canvas.getActiveObject(); if (!obj) return;
     obj.set('opacity', e.target.value / 100); canvas.renderAll();
@@ -968,7 +1222,13 @@
       if (isTextObj(obj) && !obj.isEditing) { e.preventDefault(); obj.enterEditing(); obj.selectAll(); canvas.renderAll(); }
     } else if ((e.key === 'Delete' || e.key === 'Backspace') && !(isTextObj(obj) && obj.isEditing)) {
       e.preventDefault();
-      canvas.remove(obj); clearProperties(); canvas.renderAll(); updateLayerPanel();
+      if (obj.type === 'activeSelection') {
+        obj.getObjects().forEach(o => canvas.remove(o));
+        canvas.discardActiveObject();
+      } else {
+        canvas.remove(obj);
+      }
+      clearProperties(); canvas.renderAll(); updateLayerPanel(); updateAlignSection();
     }
   });
 
@@ -1030,6 +1290,8 @@
           layerName: '照片 ' + (++photoCounter)
         });
         img._originalDataUrl = evt.target.result;
+        img._naturalW = img.width;   // 原始像素尺寸(供解析度提示用)
+        img._naturalH = img.height;
         canvas.add(img);
         ensureLockedOnTop();
         canvas.setActiveObject(img);
@@ -1078,6 +1340,8 @@
         layerName: '貼紙: ' + s.name
       });
       img._originalDataUrl = s.dataUrl;
+      // 後台上傳的 PNG 貼紙也提供解析度提示;內建 SVG 貼紙不需要
+      if (!s.id.startsWith('builtin_')) { img._naturalW = img.width; img._naturalH = img.height; }
       canvas.add(img);
       ensureLockedOnTop();
       canvas.setActiveObject(img);
@@ -1235,6 +1499,22 @@
     renderTemplateOptions(); renderTemplateAdminList();
   }
 
+  // ================= 教學面板 =================
+  const tutorialModal = document.getElementById('tutorialModal');
+  const videoLink = document.getElementById('tutorialVideoLink');
+  if (TUTORIAL_VIDEO_URL) {
+    videoLink.href = TUTORIAL_VIDEO_URL;
+  } else {
+    videoLink.addEventListener('click', e => {
+      e.preventDefault();
+      alert('教學影片準備中,敬請期待!\n(管理者:請在程式開頭的 TUTORIAL_VIDEO_URL 填入影片網址)');
+    });
+  }
+  document.getElementById('tutorialClose').addEventListener('click', () => tutorialModal.classList.remove('open'));
+  document.getElementById('tutorialStart').addEventListener('click', () => tutorialModal.classList.remove('open'));
+  tutorialModal.addEventListener('click', e => { if (e.target === tutorialModal) tutorialModal.classList.remove('open'); });
+  document.getElementById('helpBtn').addEventListener('click', () => tutorialModal.classList.add('open'));
+
   // ================= 後台管理 Modal =================
   const adminModal = document.getElementById('adminModal');
   document.getElementById('adminFab').addEventListener('click', () => adminModal.classList.add('open'));
@@ -1249,8 +1529,8 @@
     });
   });
 
-  // ================= 匯出 300 DPI(含 DPI metadata) =================
-  document.getElementById('exportBtn').addEventListener('click', () => {
+  // ================= 匯出與預覽 =================
+  function exportPngWithDpi() {
     canvas.discardActiveObject();
     canvas.renderAll();
     const multiplier = EXPORT_PX_W / canvas.getWidth();
@@ -1263,6 +1543,28 @@
     a.href = url; a.download = 'stamp-design-300dpi.png'; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
     updateLayerPanel();
+  }
+  document.getElementById('exportBtn').addEventListener('click', exportPngWithDpi);
+
+  const previewOverlay = document.getElementById('previewOverlay');
+  document.getElementById('previewBtn').addEventListener('click', () => {
+    canvas.discardActiveObject();
+    canvas.renderAll();
+    updateAlignSection();
+    // 預覽用中等解析度即可,兼顧清晰與速度
+    const previewMultiplier = Math.min(3, Math.max(1.5, 1200 / canvas.getWidth()));
+    document.getElementById('previewImg').src = canvas.toDataURL({ format: 'png', multiplier: previewMultiplier });
+    previewOverlay.classList.add('open');
+  });
+  document.getElementById('previewClose').addEventListener('click', () => previewOverlay.classList.remove('open'));
+  previewOverlay.addEventListener('click', e => {
+    if (e.target === previewOverlay) previewOverlay.classList.remove('open');
+  });
+  document.getElementById('previewDownload').addEventListener('click', () => {
+    exportPngWithDpi();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && previewOverlay.classList.contains('open')) previewOverlay.classList.remove('open');
   });
 
   // ================= 初始化 =================
