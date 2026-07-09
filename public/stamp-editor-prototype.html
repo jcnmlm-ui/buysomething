@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>郵票編輯器 · 娃娃機風格原型 v7</title>
+<title>郵票編輯器 · 娃娃機風格原型 v8</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -60,8 +60,16 @@
   }
   .canvas-col {
     flex: 1 1 460px; min-width: 300px;
-    display: flex; justify-content: center; align-items: flex-start;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
   }
+  .history-bar { display: flex; gap: 10px; }
+  .history-btn {
+    background: var(--cream); border: 2px solid var(--line); color: var(--ink);
+    padding: 9px 20px; border-radius: 999px; font-size: 13px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 3px 0 var(--line); font-family: inherit;
+  }
+  .history-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: none; }
+  .history-btn:disabled { opacity: 0.4; cursor: default; }
 
   .stamp-outer {
     position: relative; background: var(--pink-deep);
@@ -98,6 +106,7 @@
   }
   .btn:active { transform: translateY(4px); box-shadow: none; }
   .btn.secondary { background: var(--mint); color: var(--ink); box-shadow: 0 4px 0 var(--mint-deep); }
+  .btn.lavender { background: var(--lavender); color: var(--ink); box-shadow: 0 4px 0 #C9BCF7; }
   .btn.tiny { padding: 8px 0; font-size: 12px; }
   input[type=file] { display: none; }
 
@@ -139,7 +148,7 @@
   .prop-row { margin-bottom: 12px; }
   .prop-row label { display: block; font-size: 11.5px; font-weight: 700; margin-bottom: 5px; color: var(--ink); }
   .prop-row input[type=range] { width: 100%; }
-  .prop-row input[type=number], .prop-row input[type=color] {
+  .prop-row input[type=number], .prop-row input[type=color], .prop-row input[type=text] {
     width: 100%; padding: 6px 8px; border: 2px solid var(--line); border-radius: 10px; font-size: 13px;
   }
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -161,6 +170,14 @@
   .swatch.editable { background: var(--mint-deep); }
 
   .export-note { font-size: 11.5px; color: var(--ink-soft); margin: 8px 0 10px; line-height: 1.6; }
+
+  .design-code-box {
+    background: var(--yellow); border-radius: 14px; padding: 12px 14px;
+    text-align: center; margin-bottom: 10px; display: none;
+  }
+  .design-code-box.show { display: block; }
+  .design-code-box .code { font-size: 22px; font-weight: 800; letter-spacing: 3px; color: var(--ink); }
+  .design-code-box .note { font-size: 11px; color: #8A7A50; margin-top: 4px; }
 
   .admin-fab {
     position: fixed; right: 22px; bottom: 22px; z-index: 20;
@@ -215,7 +232,6 @@
   .admin-list-item .name { flex: 1; font-size: 12.5px; }
   .admin-empty { font-size: 12px; color: var(--ink-soft); text-align: center; padding: 10px 0; }
 
-  /* ===== 教學面板 ===== */
   .tutorial-steps { margin: 14px 0; }
   .tutorial-step {
     display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px;
@@ -234,7 +250,6 @@
   }
   .video-link:active { transform: translateY(4px); box-shadow: none; }
 
-  /* ===== 右鍵選單 ===== */
   .ctx-menu {
     display: none; position: fixed; z-index: 50; min-width: 150px;
     background: var(--cream); border: 2px solid var(--pink); border-radius: 14px;
@@ -248,7 +263,6 @@
   .ctx-item.danger:hover { background: #FFD9DE; color: var(--locked-deep); }
   .ctx-sep { height: 1px; background: var(--line); margin: 4px 8px; }
 
-  /* ===== 全螢幕預覽 ===== */
   .preview-overlay {
     display: none; position: fixed; inset: 0; background: rgba(20, 14, 20, 0.94);
     z-index: 60; align-items: center; justify-content: center; flex-direction: column;
@@ -285,13 +299,17 @@
 
 <div class="page">
   <header>
-    <div class="badge-title"><h1>🎀 郵票編輯器 · 娃娃機風原型 v7</h1></div>
-    <p>教學面板 · 右鍵圖層選單 · 多選對齊 · 全螢幕預覽 · 照片解析度提示</p>
+    <div class="badge-title"><h1>🎀 郵票編輯器 · 娃娃機風原型 v8</h1></div>
+    <p>50 步復原/重做 · 雲端取件碼保存設計 · 設計檔匯出匯入</p>
     <button class="help-btn" id="helpBtn">❓ 操作教學</button>
   </header>
 
   <div class="layout">
     <div class="canvas-col" id="canvasCol">
+      <div class="history-bar">
+        <button class="history-btn" id="undoBtn" disabled>↩ 上一步</button>
+        <button class="history-btn" id="redoBtn" disabled>↪ 下一步</button>
+      </div>
       <div class="stamp-outer" id="stampOuter">
         <svg class="perf" id="perfSvg"></svg>
         <canvas id="stampCanvas" width="400" height="520"></canvas>
@@ -327,7 +345,7 @@
           </div>
         </div>
 
-        <p class="hint">電腦:<b>Enter</b> 編輯文字、<b>Delete</b> 刪除、<b>右鍵</b>開啟圖層選單、<b>Shift+點選</b>可選取多個元件。平板:單指拖曳、雙指開合縮放、雙擊文字編輯。</p>
+        <p class="hint">電腦:<b>Ctrl+Z</b> 復原、<b>Ctrl+Y</b> 重做、<b>Enter</b> 編輯文字、<b>Delete</b> 刪除、<b>右鍵</b>圖層選單、<b>Shift+點選</b>多選。平板:單指拖曳、雙指縮放、雙擊文字編輯。</p>
       </div>
 
       <div class="section" id="alignSection" style="display:none;">
@@ -344,7 +362,7 @@
           <button class="align-btn" data-align="distH">⫴ 水平均分</button>
           <button class="align-btn" data-align="distV">⫵ 垂直均分</button>
         </div>
-        <p class="hint" style="margin-top:8px;">均分需要選取 3 個以上元件。對齊以「目前選取範圍」為基準。</p>
+        <p class="hint" style="margin-top:8px;">均分需要選取 3 個以上元件。</p>
       </div>
 
       <div class="section">
@@ -409,6 +427,25 @@
       </div>
 
       <div class="section">
+        <h2>💾 我的設計</h2>
+        <div class="design-code-box" id="designCodeBox">
+          <div class="code" id="designCodeText"></div>
+          <div class="note">請記下這組取件碼,下次輸入即可繼續編輯</div>
+        </div>
+        <button class="btn lavender" id="saveCloudBtn">☁️ 儲存到雲端(取得取件碼)</button>
+        <div class="two-col" style="margin-bottom:8px;">
+          <input type="text" id="loadCodeInput" placeholder="輸入取件碼" style="padding:9px 12px; border:2px solid var(--line); border-radius:999px; font-size:13px; text-transform:uppercase;">
+          <button class="btn secondary tiny" id="loadCloudBtn" style="margin-bottom:0;">載入設計</button>
+        </div>
+        <div class="two-col">
+          <button class="btn secondary tiny" id="exportDesignBtn" style="margin-bottom:0;">匯出設計檔</button>
+          <label class="btn secondary tiny" for="importDesignInput" style="margin-bottom:0;">匯入設計檔</label>
+          <input type="file" id="importDesignInput" accept=".json,application/json">
+        </div>
+        <p class="hint" style="margin-top:8px;">「設計檔」是可以存在自己電腦的 .json 檔案,不需要網路也能保存進度。</p>
+      </div>
+
+      <div class="section">
         <h2>📦 預覽與輸出</h2>
         <p class="export-note" id="exportNote"></p>
         <button class="btn secondary" id="previewBtn">🔍 全螢幕預覽</button>
@@ -426,7 +463,6 @@
 
 <button class="admin-fab" id="adminFab">🛠 後台管理</button>
 
-<!-- 右鍵選單 -->
 <div class="ctx-menu" id="ctxMenu">
   <div class="ctx-item" data-act="up">⬆ 上移一層</div>
   <div class="ctx-item" data-act="down">⬇ 下移一層</div>
@@ -436,7 +472,6 @@
   <div class="ctx-item danger" data-act="delete">✕ 刪除元件</div>
 </div>
 
-<!-- 全螢幕預覽 -->
 <div class="preview-overlay" id="previewOverlay">
   <button class="preview-close" id="previewClose">✕</button>
   <img id="previewImg" alt="設計預覽">
@@ -446,7 +481,6 @@
   </div>
 </div>
 
-<!-- 教學面板 -->
 <div class="modal-overlay open" id="tutorialModal">
   <div class="modal">
     <div class="modal-header">
@@ -457,19 +491,19 @@
     <div class="tutorial-steps">
       <div class="tutorial-step">
         <div class="num">1</div>
-        <div class="txt"><b>選擇版型</b> — 右側「版型選擇」挑一款喜歡的樣式。紅框與固定圖文是郵票的標準版面,無法更動;其餘空間都可以自由發揮。</div>
+        <div class="txt"><b>選擇版型</b> — 右側「版型選擇」挑一款喜歡的樣式。固定圖文是郵票的標準版面,無法更動;其餘空間都可以自由發揮。</div>
       </div>
       <div class="tutorial-step">
         <div class="num">2</div>
-        <div class="txt"><b>加入內容</b> — 上傳自己的照片、挑選郵局圖庫貼紙、輸入紀念文字,或用畫筆親手畫上一筆。</div>
+        <div class="txt"><b>加入內容</b> — 上傳照片、挑選圖庫貼紙、輸入文字,或用畫筆親手畫一筆。做錯了隨時 Ctrl+Z 復原!</div>
       </div>
       <div class="tutorial-step">
         <div class="num">3</div>
-        <div class="txt"><b>調整編排</b> — 拖曳移動、四角縮放、右鍵調整圖層順序;按住 Shift 選取多個元件,可以使用對齊與均分工具。</div>
+        <div class="txt"><b>調整編排</b> — 拖曳移動、四角縮放、右鍵調整圖層;Shift 多選後可用對齊與均分工具。</div>
       </div>
       <div class="tutorial-step">
         <div class="num">4</div>
-        <div class="txt"><b>預覽與下載</b> — 點「🔍 全螢幕預覽」欣賞成品,滿意後下載 300 DPI 可直接印刷的高解析圖檔!</div>
+        <div class="txt"><b>保存與下載</b> — 「儲存到雲端」會給你一組取件碼,下次回來繼續編輯;完成後下載 300 DPI 印刷級圖檔!</div>
       </div>
     </div>
     <a class="video-link" id="tutorialVideoLink" href="#" target="_blank" rel="noopener">📺 觀看完整操作教學影片</a>
@@ -527,10 +561,9 @@
 <script>
   // ================= 設定區 =================
   const SUPABASE_CONFIG = {
-    url: 'https://tukzmdtkhdxdpbnvkjzz.supabase.co',      // 例如 'https://xxxx.supabase.co'
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA'   // Settings → API → anon public key
+    url: 'https://tukzmdtkhdxdpbnvkjzz.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR1a3ptZHRraGR4ZHBibnZranp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkzMzcyMDQsImV4cCI6MjA5NDkxMzIwNH0.g-wtAQ259b8h9qdiQTUF6Vuoxjm5K1MPJLqkZmFfBjA'
   };
-  // 教學影片連結:之後把拍好的影片網址(YouTube 等)貼進來即可
   const TUTORIAL_VIDEO_URL = '';
 
   let CANVAS_W = 400, CANVAS_H = 520;
@@ -576,12 +609,76 @@
   let photoCounter = 0;
   let drawingMode = false;
 
+  // ================= 歷史紀錄(復原/重做,最多50步) =================
+  const MAX_HISTORY = 50;
+  const EXTRA_PROPS = ['isLocked', 'layerName', 'selectable', 'evented', 'paintFirst', 'lockUniScaling', '_naturalW', '_naturalH', '_originalDataUrl'];
+  let history = [];
+  let historyIndex = -1;
+  let isRestoring = false;
+  let suspendHistory = false;
+  let textHistoryDebounce = null;
+
+  function snapshotState() {
+    return {
+      json: canvas.toJSON(EXTRA_PROPS),
+      canvasW: CANVAS_W, canvasH: CANVAS_H,
+      mmW: EXPORT_MM_W, mmH: EXPORT_MM_H,
+      templateKey: document.getElementById('templateSelect').value
+    };
+  }
+
+  function pushHistory() {
+    if (isRestoring || suspendHistory) return;
+    history = history.slice(0, historyIndex + 1);
+    history.push(JSON.stringify(snapshotState()));
+    if (history.length > MAX_HISTORY) history.shift();
+    historyIndex = history.length - 1;
+    updateUndoRedoButtons();
+  }
+
+  function restoreState(stateStr, done) {
+    const state = JSON.parse(stateStr);
+    isRestoring = true;
+    CANVAS_W = state.canvasW; CANVAS_H = state.canvasH;
+    updateExportDimensions(state.mmW, state.mmH);
+    const sel = document.getElementById('templateSelect');
+    if ([...sel.options].some(o => o.value === state.templateKey)) sel.value = state.templateKey;
+    canvas.loadFromJSON(state.json, () => {
+      lockedObjects = canvas.getObjects().filter(o => o.isLocked);
+      lockedObjects.forEach(o => { o.selectable = false; o.evented = false; });
+      applyResponsiveZoom();
+      canvas.renderAll();
+      updateLayerPanel();
+      clearProperties();
+      updateAlignSection();
+      isRestoring = false;
+      updateUndoRedoButtons();
+      if (done) done();
+    });
+  }
+
+  function undo() {
+    if (historyIndex > 0) { historyIndex--; restoreState(history[historyIndex]); }
+  }
+  function redo() {
+    if (historyIndex < history.length - 1) { historyIndex++; restoreState(history[historyIndex]); }
+  }
+  function updateUndoRedoButtons() {
+    document.getElementById('undoBtn').disabled = historyIndex <= 0;
+    document.getElementById('redoBtn').disabled = historyIndex >= history.length - 1;
+  }
+  document.getElementById('undoBtn').addEventListener('click', undo);
+  document.getElementById('redoBtn').addEventListener('click', redo);
+
+  canvas.on('object:added', () => pushHistory());
+  canvas.on('object:removed', () => pushHistory());
+
   // ================= 響應式畫布縮放 =================
   function applyResponsiveZoom() {
     const col = document.getElementById('canvasCol');
     const padding = 36 + 24;
     const availW = Math.max(260, col.clientWidth - padding);
-    const availH = Math.max(300, window.innerHeight - 240);
+    const availH = Math.max(300, window.innerHeight - 280);
     let zoom = Math.min(availW / CANVAS_W, availH / CANVAS_H);
     zoom = Math.max(0.45, Math.min(zoom, 2.6));
     ZOOM = zoom;
@@ -700,6 +797,7 @@
   // ================= 資料層 =================
   let sb = null;
   const memoryStore = { sticker: [], font: [], template: [] };
+  const memoryDesigns = {};
   const hasClaudeStorage = typeof window.storage !== 'undefined';
 
   function initSupabase() {
@@ -767,6 +865,33 @@
       return;
     }
     memoryStore[kind] = memoryStore[kind].filter(x => x.id !== id);
+  }
+
+  async function dbSaveDesign(code, dataStr) {
+    if (sb) {
+      try {
+        const { error } = await sb.from('stamp_designs').insert({ code, data: dataStr });
+        return !error;
+      } catch (e) { return false; }
+    }
+    if (hasClaudeStorage) {
+      try { await window.storage.set('design:item:' + code, dataStr, true); return true; } catch (e) { return false; }
+    }
+    memoryDesigns[code] = dataStr;
+    return true;
+  }
+  async function dbLoadDesign(code) {
+    if (sb) {
+      try {
+        const { data, error } = await sb.from('stamp_designs').select('data').eq('code', code).single();
+        if (!error && data) return data.data;
+      } catch (e) {}
+      return null;
+    }
+    if (hasClaudeStorage) {
+      try { const r = await window.storage.get('design:item:' + code, true); return r ? r.value : null; } catch (e) { return null; }
+    }
+    return memoryDesigns[code] || null;
   }
 
   // ================= 版型定義 =================
@@ -866,6 +991,8 @@
       mmW = TEMPLATES[key].mmW; mmH = TEMPLATES[key].mmH;
     }
 
+    suspendHistory = true; // 版型載入的批次動作只記成一步
+
     const logical = computeLogicalSize(mmW, mmH);
     resizeCanvasKeepingContent(logical.w, logical.h);
     updateExportDimensions(mmW, mmH);
@@ -885,12 +1012,16 @@
         ensureLockedOnTop();
         canvas.renderAll();
         updateLayerPanel();
+        suspendHistory = false;
+        pushHistory();
       });
     } else {
       TEMPLATES[key].build(canvas, lockedObjects);
       ensureLockedOnTop();
       canvas.renderAll();
       updateLayerPanel();
+      suspendHistory = false;
+      pushHistory();
     }
   }
   document.getElementById('templateSelect').addEventListener('change', e => loadTemplate(e.target.value));
@@ -898,7 +1029,6 @@
   // ================= 照片解析度資訊 =================
   function getImageResInfo(obj) {
     if (!obj || obj.type !== 'image' || !obj._naturalW) return '';
-    // 該照片在最終輸出中占用的實體寬度(inch)
     const printedInchW = (obj.getScaledWidth() / CANVAS_W) * EXPORT_MM_W / 25.4;
     const effDpi = printedInchW > 0 ? Math.round(obj._naturalW / printedInchW) : 0;
     const quality = effDpi >= 300 ? '✅ 印刷品質充足' : (effDpi >= 180 ? '⚠️ 略低於印刷建議(300dpi)' : '❌ 解析度不足,列印可能模糊');
@@ -925,20 +1055,20 @@
       `;
       const nameEl = row.querySelector('.layer-name');
       if (obj.type === 'image' && obj._naturalW) {
-        nameEl.title = getImageResInfo(obj); // 滑鼠停留顯示原始像素與輸出DPI
+        nameEl.title = getImageResInfo(obj);
       }
       nameEl.addEventListener('click', () => {
         canvas.setActiveObject(obj); showPropertiesFor(obj); canvas.renderAll(); updateLayerPanel();
       });
       row.querySelector('.eye').addEventListener('click', ev => {
         ev.stopPropagation(); obj.visible = obj.visible === false ? true : false;
-        canvas.renderAll(); updateLayerPanel();
+        canvas.renderAll(); updateLayerPanel(); pushHistory();
       });
       row.querySelector('.up').addEventListener('click', ev => {
-        ev.stopPropagation(); canvas.bringForward(obj); ensureLockedOnTop(); canvas.renderAll(); updateLayerPanel();
+        ev.stopPropagation(); canvas.bringForward(obj); ensureLockedOnTop(); canvas.renderAll(); updateLayerPanel(); pushHistory();
       });
       row.querySelector('.down').addEventListener('click', ev => {
-        ev.stopPropagation(); canvas.sendBackwards(obj); ensureLockedOnTop(); canvas.renderAll(); updateLayerPanel();
+        ev.stopPropagation(); canvas.sendBackwards(obj); ensureLockedOnTop(); canvas.renderAll(); updateLayerPanel(); pushHistory();
       });
       row.querySelector('.del').addEventListener('click', ev => {
         ev.stopPropagation(); canvas.remove(obj); clearProperties(); canvas.renderAll(); updateLayerPanel();
@@ -981,7 +1111,7 @@
     }
   }
 
-  // ================= 多選對齊與均分 =================
+  // ================= 多選對齊 =================
   function updateAlignSection() {
     const sel = canvas.getActiveObject();
     const section = document.getElementById('alignSection');
@@ -1027,6 +1157,7 @@
 
     objs.forEach(o => o.setCoords());
     canvas.requestRenderAll();
+    pushHistory();
   }
   document.querySelectorAll('.align-btn').forEach(btn => {
     btn.addEventListener('click', () => applyAlign(btn.dataset.align));
@@ -1035,7 +1166,11 @@
   canvas.on('selection:created', () => { showPropertiesFor(canvas.getActiveObject()); updateAlignSection(); });
   canvas.on('selection:updated', () => { showPropertiesFor(canvas.getActiveObject()); updateAlignSection(); });
   canvas.on('selection:cleared', () => { clearProperties(); updateAlignSection(); updateLayerPanel(); });
-  canvas.on('text:changed', () => updateLayerPanel());
+  canvas.on('text:changed', () => {
+    updateLayerPanel();
+    clearTimeout(textHistoryDebounce);
+    textHistoryDebounce = setTimeout(() => pushHistory(), 600);
+  });
   canvas.on('path:created', e => {
     e.path.layerName = '畫筆線稿';
     ensureLockedOnTop();
@@ -1061,11 +1196,11 @@
       canvas.requestRenderAll();
       if (canvas.getActiveObject() === obj) showPropertiesFor(obj);
     }
-    // 照片縮放後即時更新解析度資訊
     if (obj && obj.type === 'image' && canvas.getActiveObject() === obj) {
       document.getElementById('imgResInfo').textContent = getImageResInfo(obj) || '(圖庫貼紙為向量圖,縮放不影響輸出品質)';
     }
     updateLayerPanel();
+    pushHistory();
   });
 
   // ================= 右鍵選單 =================
@@ -1073,7 +1208,7 @@
   let ctxTarget = null;
 
   canvas.on('mouse:down', opt => {
-    if (opt.button === 3) { // fabric: 1=左鍵 2=中鍵 3=右鍵
+    if (opt.button === 3) {
       const target = opt.target;
       if (target && !target.isLocked) {
         ctxTarget = target;
@@ -1099,10 +1234,10 @@
     const item = e.target.closest('.ctx-item');
     if (!item || !ctxTarget) return;
     const act = item.dataset.act;
-    if (act === 'up') canvas.bringForward(ctxTarget);
-    if (act === 'down') canvas.sendBackwards(ctxTarget);
-    if (act === 'toTop') canvas.bringToFront(ctxTarget);
-    if (act === 'toBottom') canvas.sendToBack(ctxTarget);
+    if (act === 'up') { canvas.bringForward(ctxTarget); pushHistory(); }
+    if (act === 'down') { canvas.sendBackwards(ctxTarget); pushHistory(); }
+    if (act === 'toTop') { canvas.bringToFront(ctxTarget); pushHistory(); }
+    if (act === 'toBottom') { canvas.sendToBack(ctxTarget); pushHistory(); }
     if (act === 'delete') { canvas.remove(ctxTarget); clearProperties(); }
     ensureLockedOnTop();
     canvas.renderAll();
@@ -1111,6 +1246,8 @@
   });
 
   // ================= 屬性面板事件 =================
+  function propChanged() { canvas.renderAll(); pushHistory(); }
+  document.getElementById('opacityRange').addEventListener('change', () => pushHistory());
   document.getElementById('opacityRange').addEventListener('input', e => {
     const obj = canvas.getActiveObject(); if (!obj) return;
     obj.set('opacity', e.target.value / 100); canvas.renderAll();
@@ -1125,32 +1262,39 @@
   });
   document.getElementById('fontSelect').addEventListener('change', e => {
     const obj = canvas.getActiveObject(); if (!obj) return;
-    obj.set('fontFamily', e.target.value); canvas.renderAll(); updateLayerPanel();
+    obj.set('fontFamily', e.target.value); updateLayerPanel(); propChanged();
   });
   document.getElementById('boldCheck').addEventListener('change', e => {
     const obj = canvas.getActiveObject(); if (!obj) return;
-    obj.set('fontWeight', e.target.checked ? 'bold' : 'normal'); canvas.renderAll();
+    obj.set('fontWeight', e.target.checked ? 'bold' : 'normal'); propChanged();
   });
   document.getElementById('italicCheck').addEventListener('change', e => {
     const obj = canvas.getActiveObject(); if (!obj) return;
-    obj.set('fontStyle', e.target.checked ? 'italic' : 'normal'); canvas.renderAll();
+    obj.set('fontStyle', e.target.checked ? 'italic' : 'normal'); propChanged();
   });
+  document.getElementById('fontSizeInput').addEventListener('change', () => pushHistory());
   document.getElementById('fontSizeInput').addEventListener('input', e => {
     const obj = canvas.getActiveObject(); if (!obj) return;
     obj.set('fontSize', parseInt(e.target.value || 26, 10)); canvas.renderAll();
   });
+  document.getElementById('colorInput').addEventListener('change', () => pushHistory());
   document.getElementById('colorInput').addEventListener('input', e => {
     const obj = canvas.getActiveObject(); if (!obj) return;
     obj.set('fill', e.target.value); canvas.renderAll();
   });
+  document.getElementById('strokeColorInput').addEventListener('change', () => pushHistory());
   document.getElementById('strokeColorInput').addEventListener('input', e => {
     const obj = canvas.getActiveObject(); if (!obj) return;
     obj.set({ stroke: e.target.value, paintFirst: 'stroke' }); canvas.renderAll();
   });
+  document.getElementById('strokeWidthRange').addEventListener('change', () => pushHistory());
   document.getElementById('strokeWidthRange').addEventListener('input', e => {
     const obj = canvas.getActiveObject(); if (!obj) return;
     obj.set({ strokeWidth: parseInt(e.target.value, 10), paintFirst: 'stroke' }); canvas.renderAll();
   });
+  document.getElementById('shadowColorInput').addEventListener('change', () => pushHistory());
+  document.getElementById('shadowBlurRange').addEventListener('change', () => pushHistory());
+  document.getElementById('shadowDistanceRange').addEventListener('change', () => pushHistory());
   document.getElementById('shadowColorInput').addEventListener('input', () => applyShadow(canvas.getActiveObject()));
   document.getElementById('shadowBlurRange').addEventListener('input', () => applyShadow(canvas.getActiveObject()));
   document.getElementById('shadowDistanceRange').addEventListener('input', () => applyShadow(canvas.getActiveObject()));
@@ -1202,13 +1346,13 @@
       ctx.putImageData(imgData, 0, 0);
       const resultUrl = c.toDataURL('image/png');
       if (!obj._originalDataUrl) obj._originalDataUrl = src;
-      obj.setSrc(resultUrl, () => canvas.renderAll());
+      obj.setSrc(resultUrl, () => { canvas.renderAll(); pushHistory(); });
     };
     tmp.src = src;
   });
   document.getElementById('bgKeyReset').addEventListener('click', () => {
     const obj = canvas.getActiveObject(); if (!obj || !obj._originalDataUrl) return;
-    obj.setSrc(obj._originalDataUrl, () => canvas.renderAll());
+    obj.setSrc(obj._originalDataUrl, () => { canvas.renderAll(); pushHistory(); });
   });
 
   // ================= 鍵盤操作 =================
@@ -1216,6 +1360,16 @@
     const activeEl = document.activeElement;
     const typingInForm = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
     if (typingInForm) return;
+
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z') {
+      const obj = canvas.getActiveObject();
+      if (obj && isTextObj(obj) && obj.isEditing) return;
+      e.preventDefault(); undo(); return;
+    }
+    if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+      e.preventDefault(); redo(); return;
+    }
+
     const obj = canvas.getActiveObject();
     if (!obj || obj.isLocked) return;
     if (e.key === 'Enter') {
@@ -1290,7 +1444,7 @@
           layerName: '照片 ' + (++photoCounter)
         });
         img._originalDataUrl = evt.target.result;
-        img._naturalW = img.width;   // 原始像素尺寸(供解析度提示用)
+        img._naturalW = img.width;
         img._naturalH = img.height;
         canvas.add(img);
         ensureLockedOnTop();
@@ -1340,7 +1494,6 @@
         layerName: '貼紙: ' + s.name
       });
       img._originalDataUrl = s.dataUrl;
-      // 後台上傳的 PNG 貼紙也提供解析度提示;內建 SVG 貼紙不需要
       if (!s.id.startsWith('builtin_')) { img._naturalW = img.width; img._naturalH = img.height; }
       canvas.add(img);
       ensureLockedOnTop();
@@ -1499,6 +1652,57 @@
     renderTemplateOptions(); renderTemplateAdminList();
   }
 
+  // ================= 我的設計:雲端取件碼 + 設計檔 =================
+  function generateDesignCode() {
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // 去掉易混淆的 I/L/O/0/1
+    let code = 'KH-';
+    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    return code;
+  }
+
+  document.getElementById('saveCloudBtn').addEventListener('click', async () => {
+    const code = generateDesignCode();
+    const ok = await dbSaveDesign(code, JSON.stringify(snapshotState()));
+    const box = document.getElementById('designCodeBox');
+    if (ok) {
+      document.getElementById('designCodeText').textContent = code;
+      box.classList.add('show');
+    } else {
+      alert('儲存失敗,請稍後再試。也可以改用「匯出設計檔」保存到自己的電腦。');
+    }
+  });
+
+  document.getElementById('loadCloudBtn').addEventListener('click', async () => {
+    const code = document.getElementById('loadCodeInput').value.trim().toUpperCase();
+    if (!code) { alert('請先輸入取件碼'); return; }
+    const dataStr = await dbLoadDesign(code);
+    if (!dataStr) { alert('找不到這組取件碼對應的設計,請確認輸入是否正確。'); return; }
+    restoreState(dataStr, () => pushHistory());
+  });
+
+  document.getElementById('exportDesignBtn').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(snapshotState())], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'my-stamp-design.json'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  });
+
+  document.getElementById('importDesignInput').addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = evt => {
+      try {
+        JSON.parse(evt.target.result);
+        restoreState(evt.target.result, () => pushHistory());
+      } catch (err) {
+        alert('這個檔案不是有效的設計檔,請確認選擇的是先前匯出的 .json 檔。');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
   // ================= 教學面板 =================
   const tutorialModal = document.getElementById('tutorialModal');
   const videoLink = document.getElementById('tutorialVideoLink');
@@ -1551,7 +1755,6 @@
     canvas.discardActiveObject();
     canvas.renderAll();
     updateAlignSection();
-    // 預覽用中等解析度即可,兼顧清晰與速度
     const previewMultiplier = Math.min(3, Math.max(1.5, 1200 / canvas.getWidth()));
     document.getElementById('previewImg').src = canvas.toDataURL({ format: 'png', multiplier: previewMultiplier });
     previewOverlay.classList.add('open');
@@ -1571,7 +1774,7 @@
   initSupabase();
   renderFontSelect();
   renderStickerGrid();
-  loadTemplate('a');
+  loadTemplate('a'); // 內含第一筆歷史紀錄
   applyResponsiveZoom();
   loadStickers();
   loadFonts();
