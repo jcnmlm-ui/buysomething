@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>郵票編輯器 · 娃娃機風格原型 v8</title>
+<title>郵票編輯器 · 娃娃機風格原型 v10</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -95,6 +95,10 @@
   select {
     width: 100%; padding: 9px 12px; border-radius: 14px; border: 2px solid var(--line);
     font-size: 13px; background: #fff; font-family: inherit; color: var(--ink);
+  }
+  .search-input {
+    width: 100%; padding: 8px 12px; border-radius: 999px; border: 2px solid var(--line);
+    font-size: 12.5px; margin-bottom: 8px; font-family: inherit; background:#fff;
   }
 
   .btn {
@@ -299,8 +303,8 @@
 
 <div class="page">
   <header>
-    <div class="badge-title"><h1>🎀 郵票編輯器 · 娃娃機風原型 v8</h1></div>
-    <p>50 步復原/重做 · 雲端取件碼保存設計 · 設計檔匯出匯入</p>
+    <div class="badge-title"><h1>🎀 郵票編輯器 · 娃娃機風原型 v10</h1></div>
+    <p>白色畫布底色 · 雲端設計 14 天自動清理</p>
     <button class="help-btn" id="helpBtn">❓ 操作教學</button>
   </header>
 
@@ -320,10 +324,7 @@
 
       <div class="section">
         <h2>🖼️ 版型選擇</h2>
-        <select id="templateSelect">
-          <option value="a">高雄限定・波波鴿(直式 40×52mm)</option>
-          <option value="b">郵局限量典藏章(直式 40×52mm)</option>
-        </select>
+        <select id="templateSelect"></select>
         <p class="hint" id="templateSizeHint"></p>
       </div>
 
@@ -332,7 +333,8 @@
         <label class="btn" for="photoInput">上傳自己的照片</label>
         <input type="file" id="photoInput" accept="image/*">
 
-        <p class="hint" style="margin-top:2px;">郵局提供的圖庫貼紙(可捲動):</p>
+        <p class="hint" style="margin-top:2px;">郵局提供的圖庫貼紙:</p>
+        <input type="text" id="stickerSearchInput" class="search-input" placeholder="🔍 搜尋貼紙關鍵字…">
         <div class="sticker-grid" id="stickerGrid"></div>
 
         <button class="btn secondary" id="addTextBtn">+ 新增文字</button>
@@ -367,7 +369,7 @@
 
       <div class="section">
         <h2>🗂️ 圖層(由上到下)</h2>
-        <p class="hint">滑鼠停在「照片」名稱上,會顯示原始像素與輸出解析度估算。</p>
+        <p class="hint">滑鼠停在元件名稱上,會顯示原始像素與輸出解析度估算。</p>
         <div class="layer-list" id="layerList"></div>
       </div>
 
@@ -430,8 +432,11 @@
         <h2>💾 我的設計</h2>
         <div class="design-code-box" id="designCodeBox">
           <div class="code" id="designCodeText"></div>
-          <div class="note">請記下這組取件碼,下次輸入即可繼續編輯</div>
+          <div class="note">請記下這組取件碼,14 天內輸入即可繼續編輯(逾期將自動清除)</div>
         </div>
+        <p class="hint" style="background:#FFF3D6; border:2px solid var(--yellow-deep); border-radius:12px; padding:9px 11px; color:#8A6A1F; margin-bottom:10px;">
+          ⚠️ 雲端設計僅保留 <b>14 天</b>,逾期將自動清除。若需要長期保存,請改用下方「匯出設計檔」下載到自己的電腦。
+        </p>
         <button class="btn lavender" id="saveCloudBtn">☁️ 儲存到雲端(取得取件碼)</button>
         <div class="two-col" style="margin-bottom:8px;">
           <input type="text" id="loadCodeInput" placeholder="輸入取件碼" style="padding:9px 12px; border:2px solid var(--line); border-radius:999px; font-size:13px; text-transform:uppercase;">
@@ -495,7 +500,7 @@
       </div>
       <div class="tutorial-step">
         <div class="num">2</div>
-        <div class="txt"><b>加入內容</b> — 上傳照片、挑選圖庫貼紙、輸入文字,或用畫筆親手畫一筆。做錯了隨時 Ctrl+Z 復原!</div>
+        <div class="txt"><b>加入內容</b> — 上傳照片、搜尋並挑選圖庫貼紙、輸入文字,或用畫筆親手畫一筆。做錯了隨時 Ctrl+Z 復原!</div>
       </div>
       <div class="tutorial-step">
         <div class="num">3</div>
@@ -525,11 +530,12 @@
     </div>
 
     <div class="tab-pane active" id="stickerTab">
-      <p class="hint">上傳的圖片建議使用透明背景 PNG,新增後會立即出現在客人端圖庫貼紙清單中。</p>
+      <p class="hint">建議使用透明背景 PNG,可一次選取多個檔案上傳。填寫關鍵字(逗號分隔)方便客人端搜尋;若一次選了多個檔案,關鍵字會套用到全部,名稱則會使用各自的檔名。</p>
       <div class="admin-form">
-        <input type="text" id="stickerNameInput" placeholder="貼紙名稱,例如:波波鴿">
-        <label class="btn tiny" for="stickerFileInput" style="width:auto; padding:9px 16px;">選檔案</label>
-        <input type="file" id="stickerFileInput" accept="image/png,image/svg+xml">
+        <input type="text" id="stickerNameInput" placeholder="貼紙名稱(僅單檔上傳時使用)">
+        <input type="text" id="stickerKeywordsInput" placeholder="關鍵字,逗號分隔,例如:動物,可愛">
+        <label class="btn tiny" for="stickerFileInput" style="width:auto; padding:9px 16px;">選檔案(可多選)</label>
+        <input type="file" id="stickerFileInput" accept="image/png,image/svg+xml" multiple>
       </div>
       <div class="admin-list" id="stickerAdminList"></div>
     </div>
@@ -545,7 +551,7 @@
     </div>
 
     <div class="tab-pane" id="templateTab">
-      <p class="hint">上傳含透明區域的 PNG 作為版型遮罩:<b>透明處 = 使用者可編輯範圍</b>,<b>不透明處 = 固定不可編輯</b>。請務必填寫這張圖對應的<b>實際印刷尺寸(mm)</b>。</p>
+      <p class="hint">上傳含透明區域的 PNG 作為版型遮罩:<b>透明處 = 使用者可編輯範圍</b>,<b>不透明處 = 固定不可編輯</b>。請務必填寫這張圖對應的<b>實際印刷尺寸(mm)</b>。清單第一筆會是客人端預設載入的版型。</p>
       <div class="admin-form">
         <input type="text" id="templateNameInput" placeholder="版型名稱,例如:永續郵票橫式">
         <input type="number" id="templateMmW" placeholder="寬(mm)" min="10" max="600">
@@ -571,6 +577,12 @@
   const DPI = 300;
   const BASE_LOGICAL_DIM = 480;
   let EXPORT_PX_W = 0, EXPORT_PX_H = 0, EXPORT_MM_W = 40, EXPORT_MM_H = 52;
+
+  function timestampStr() {
+    const d = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+  }
 
   function computeLogicalSize(mmW, mmH) {
     const ratio = mmW / mmH;
@@ -598,7 +610,7 @@
   fabric.Object.prototype.borderColor = '#4ED9BE';
 
   const canvas = new fabric.Canvas('stampCanvas', {
-    width: CANVAS_W, height: CANVAS_H, backgroundColor: '#F6EFE0', selection: true,
+    width: CANVAS_W, height: CANVAS_H, backgroundColor: '#FFFFFF', selection: true,
     preserveObjectStacking: true,
     allowTouchScrolling: false,
     fireRightClick: true,
@@ -811,15 +823,16 @@
   }
 
   function rowToEntry(row) {
-    return { id: row.id, name: row.name, dataUrl: row.data_url, mmW: row.mm_w, mmH: row.mm_h };
+    return { id: row.id, name: row.name, dataUrl: row.data_url, mmW: row.mm_w, mmH: row.mm_h, keywords: row.keywords || [] };
   }
 
   async function dbList(kind) {
     if (sb) {
       try {
         const { data, error } = await sb.from('stamp_assets').select('*').eq('kind', kind).order('created_at');
+        if (error) console.error('dbList error:', error);
         if (!error && data) return data.map(rowToEntry);
-      } catch (e) {}
+      } catch (e) { console.error(e); }
       return [];
     }
     if (hasClaudeStorage) {
@@ -841,11 +854,13 @@
   async function dbAdd(kind, entry) {
     if (sb) {
       try {
-        await sb.from('stamp_assets').insert({
+        const { error } = await sb.from('stamp_assets').insert({
           id: entry.id, kind, name: entry.name, data_url: entry.dataUrl,
-          mm_w: entry.mmW ?? null, mm_h: entry.mmH ?? null
+          mm_w: entry.mmW ?? null, mm_h: entry.mmH ?? null,
+          keywords: entry.keywords ?? null
         });
-      } catch (e) {}
+        if (error) console.error('dbAdd error:', error);
+      } catch (e) { console.error(e); }
       return;
     }
     if (hasClaudeStorage) {
@@ -867,26 +882,33 @@
     memoryStore[kind] = memoryStore[kind].filter(x => x.id !== id);
   }
 
+  // 設計存檔:Supabase 用 Storage(檔案上傳),不是資料表文字欄位,
+  // 因為單筆設計常包含好幾張照片的 base64,很容易超過資料表 API 的請求大小限制。
   async function dbSaveDesign(code, dataStr) {
     if (sb) {
       try {
-        const { error } = await sb.from('stamp_designs').insert({ code, data: dataStr });
-        return !error;
-      } catch (e) { return false; }
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const { error } = await sb.storage.from('stamp-designs').upload(`designs/${code}.json`, blob, {
+          contentType: 'application/json', upsert: false
+        });
+        if (error) { console.error('dbSaveDesign error:', error); return { ok: false, error: error.message || String(error) }; }
+        return { ok: true };
+      } catch (e) { console.error(e); return { ok: false, error: String(e) }; }
     }
     if (hasClaudeStorage) {
-      try { await window.storage.set('design:item:' + code, dataStr, true); return true; } catch (e) { return false; }
+      try { await window.storage.set('design:item:' + code, dataStr, true); return { ok: true }; }
+      catch (e) { return { ok: false, error: String(e) }; }
     }
     memoryDesigns[code] = dataStr;
-    return true;
+    return { ok: true };
   }
   async function dbLoadDesign(code) {
     if (sb) {
       try {
-        const { data, error } = await sb.from('stamp_designs').select('data').eq('code', code).single();
-        if (!error && data) return data.data;
-      } catch (e) {}
-      return null;
+        const { data, error } = await sb.storage.from('stamp-designs').download(`designs/${code}.json`);
+        if (error || !data) { console.error('dbLoadDesign error:', error); return null; }
+        return await data.text();
+      } catch (e) { console.error(e); return null; }
     }
     if (hasClaudeStorage) {
       try { const r = await window.storage.get('design:item:' + code, true); return r ? r.value : null; } catch (e) { return null; }
@@ -894,73 +916,9 @@
     return memoryDesigns[code] || null;
   }
 
-  // ================= 版型定義 =================
-  const TEMPLATES = {
-    a: {
-      mmW: 40, mmH: 52,
-      build(canvas, arr) {
-        const frame = new fabric.Rect({
-          left: 14, top: 14, width: CANVAS_W - 28, height: CANVAS_H - 28,
-          fill: 'transparent', stroke: '#FF7B89', strokeWidth: 3, rx: 10, ry: 10,
-          selectable: false, evented: false, isLocked: true
-        });
-        const title = new fabric.Text('高雄限定', {
-          left: CANVAS_W / 2, top: 34, fontSize: 30, fontWeight: '700',
-          fontFamily: "'Noto Serif TC', serif", fill: '#6B5468',
-          originX: 'center', selectable: false, evented: false, isLocked: true
-        });
-        const subtitle = new fabric.Text('波波鴿紀念郵票', {
-          left: CANVAS_W / 2, top: 72, fontSize: 14, fill: '#A594A0',
-          originX: 'center', selectable: false, evented: false, isLocked: true, charSpacing: 40
-        });
-        const brand = new fabric.Text('中華郵政 CHUNGHWA POST', {
-          left: CANVAS_W / 2, top: CANVAS_H - 44, fontSize: 11, fill: '#F5CC5C',
-          originX: 'center', selectable: false, evented: false, isLocked: true, charSpacing: 30
-        });
-        [frame, title, subtitle, brand].forEach(o => { canvas.add(o); arr.push(o); });
-      }
-    },
-    b: {
-      mmW: 40, mmH: 52,
-      build(canvas, arr) {
-        const frame = new fabric.Rect({
-          left: 10, top: 10, width: CANVAS_W - 20, height: CANVAS_H - 20,
-          fill: 'transparent', stroke: '#6B5468', strokeWidth: 2, rx: 8, ry: 8,
-          selectable: false, evented: false, isLocked: true
-        });
-        const ribbon = new fabric.Rect({
-          left: 0, top: 0, width: 34, height: CANVAS_H, fill: '#6B5468',
-          selectable: false, evented: false, isLocked: true
-        });
-        const ribbonText = new fabric.Text('限量典藏版', {
-          left: 17, top: CANVAS_H / 2, fontSize: 16, fill: '#FFEDB0',
-          originX: 'center', originY: 'center', angle: -90, charSpacing: 60,
-          selectable: false, evented: false, isLocked: true
-        });
-        const priceBar = new fabric.Rect({
-          left: 0, top: CANVAS_H - 46, width: CANVAS_W, height: 46, fill: '#FF7B89',
-          selectable: false, evented: false, isLocked: true
-        });
-        const priceText = new fabric.Text('NT$ 30', {
-          left: CANVAS_W / 2, top: CANVAS_H - 23, fontSize: 20, fontWeight: '700',
-          fill: '#fff', originX: 'center', originY: 'center',
-          selectable: false, evented: false, isLocked: true
-        });
-        const seal = new fabric.Circle({
-          left: CANVAS_W - 90, top: 20, radius: 34, fill: '#FFFDF9',
-          stroke: '#FF7B89', strokeWidth: 3, selectable: false, evented: false, isLocked: true
-        });
-        const sealText = new fabric.Text('紀念', {
-          left: CANVAS_W - 90 + 34, top: 20 + 34, fontSize: 16,
-          fontFamily: "'Noto Serif TC', serif", fill: '#FF7B89',
-          originX: 'center', originY: 'center', selectable: false, evented: false, isLocked: true
-        });
-        [frame, ribbon, ribbonText, priceBar, priceText, seal, sealText].forEach(o => { canvas.add(o); arr.push(o); });
-      }
-    }
-  };
-
+  // ================= 版型(完全由後台管理,無內建預設) =================
   let customTemplates = [];
+  let currentTemplateKey = null;
 
   function ensureLockedOnTop() { lockedObjects.forEach(o => canvas.bringToFront(o)); }
 
@@ -981,18 +939,12 @@
   }
 
   function loadTemplate(key) {
-    let mmW, mmH, isCustom = key.startsWith('custom_'), customEntry = null;
-    if (isCustom) {
-      const id = key.slice(7);
-      customEntry = customTemplates.find(t => t.id === id);
-      if (!customEntry) return;
-      mmW = customEntry.mmW; mmH = customEntry.mmH;
-    } else {
-      mmW = TEMPLATES[key].mmW; mmH = TEMPLATES[key].mmH;
-    }
+    const customEntry = customTemplates.find(t => 'custom_' + t.id === key);
+    if (!customEntry) return;
+    currentTemplateKey = key;
 
-    suspendHistory = true; // 版型載入的批次動作只記成一步
-
+    suspendHistory = true;
+    const mmW = customEntry.mmW, mmH = customEntry.mmH;
     const logical = computeLogicalSize(mmW, mmH);
     resizeCanvasKeepingContent(logical.w, logical.h);
     updateExportDimensions(mmW, mmH);
@@ -1000,31 +952,114 @@
     lockedObjects.forEach(o => canvas.remove(o));
     lockedObjects = [];
 
-    if (isCustom) {
-      fabric.Image.fromURL(customEntry.dataUrl, img => {
-        img.set({
-          left: 0, top: 0,
-          scaleX: CANVAS_W / img.width, scaleY: CANVAS_H / img.height,
-          selectable: false, evented: false, isLocked: true
-        });
-        canvas.add(img);
-        lockedObjects.push(img);
-        ensureLockedOnTop();
-        canvas.renderAll();
-        updateLayerPanel();
-        suspendHistory = false;
-        pushHistory();
+    fabric.Image.fromURL(customEntry.dataUrl, img => {
+      img.set({
+        left: 0, top: 0,
+        scaleX: CANVAS_W / img.width, scaleY: CANVAS_H / img.height,
+        selectable: false, evented: false, isLocked: true
       });
-    } else {
-      TEMPLATES[key].build(canvas, lockedObjects);
+      canvas.add(img);
+      lockedObjects.push(img);
       ensureLockedOnTop();
       canvas.renderAll();
       updateLayerPanel();
       suspendHistory = false;
       pushHistory();
-    }
+    });
   }
   document.getElementById('templateSelect').addEventListener('change', e => loadTemplate(e.target.value));
+
+  function showEmptyTemplateState() {
+    CANVAS_W = 400; CANVAS_H = 520;
+    updateExportDimensions(40, 52);
+    applyResponsiveZoom();
+    canvas.clear();
+    lockedObjects = [];
+    const msg = new fabric.Text('尚未設定版型\n請洽後台管理上傳', {
+      left: CANVAS_W / 2, top: CANVAS_H / 2, fontSize: 20, fill: '#A594A0',
+      originX: 'center', originY: 'center', textAlign: 'center',
+      selectable: false, evented: false, isLocked: true
+    });
+    canvas.add(msg);
+    lockedObjects.push(msg);
+    canvas.renderAll();
+    updateLayerPanel();
+    suspendHistory = false;
+    pushHistory();
+  }
+
+  function renderTemplateOptions() {
+    const sel = document.getElementById('templateSelect');
+    const prevValue = sel.value;
+    sel.innerHTML = '';
+    if (customTemplates.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = ''; opt.textContent = '尚未設定任何版型';
+      sel.appendChild(opt);
+      return;
+    }
+    customTemplates.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = 'custom_' + t.id;
+      opt.textContent = `${t.name}(${t.mmW}×${t.mmH}mm)`;
+      sel.appendChild(opt);
+    });
+    if ([...sel.options].some(o => o.value === prevValue)) sel.value = prevValue;
+  }
+
+  async function loadTemplates() {
+    customTemplates = await dbList('template');
+    renderTemplateOptions();
+    renderTemplateAdminList();
+  }
+
+  function renderTemplateAdminList() {
+    const list = document.getElementById('templateAdminList');
+    list.innerHTML = '';
+    if (customTemplates.length === 0) { list.innerHTML = '<p class="admin-empty">尚未上傳任何版型遮罩</p>'; return; }
+    customTemplates.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'admin-list-item';
+      row.innerHTML = `<img src="${t.dataUrl}"><span class="name">${t.name}(${t.mmW}×${t.mmH}mm)</span><button class="icon-btn">刪除</button>`;
+      row.querySelector('button').addEventListener('click', async () => {
+        await dbDelete('template', t.id);
+        await loadTemplates();
+        if (customTemplates.length > 0) {
+          loadTemplate('custom_' + customTemplates[0].id);
+        } else {
+          showEmptyTemplateState();
+        }
+      });
+      list.appendChild(row);
+    });
+  }
+  document.getElementById('templateFileInput').addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file) return;
+    const nameInput = document.getElementById('templateNameInput');
+    const mmWInput = document.getElementById('templateMmW');
+    const mmHInput = document.getElementById('templateMmH');
+    const mmW = parseFloat(mmWInput.value);
+    const mmH = parseFloat(mmHInput.value);
+    if (!mmW || !mmH || mmW <= 0 || mmH <= 0) {
+      alert('請先填寫這個版型正確的實際寬度與高度(mm),畫布會依此比例調整。');
+      e.target.value = '';
+      return;
+    }
+    const name = nameInput.value.trim() || file.name.replace(/\.[^.]+$/, '');
+    const reader = new FileReader();
+    reader.onload = async evt => {
+      const entry = { id: 'tpl_' + Date.now(), name, dataUrl: evt.target.result, mmW, mmH };
+      await dbAdd('template', entry);
+      nameInput.value = ''; mmWInput.value = ''; mmHInput.value = ''; e.target.value = '';
+      const hadNone = customTemplates.length === 0;
+      await loadTemplates();
+      if (hadNone && customTemplates.length > 0) {
+        document.getElementById('templateSelect').value = 'custom_' + customTemplates[0].id;
+        loadTemplate('custom_' + customTemplates[0].id);
+      }
+    };
+    reader.readAsDataURL(file);
+  });
 
   // ================= 照片解析度資訊 =================
   function getImageResInfo(obj) {
@@ -1105,7 +1140,7 @@
       document.getElementById('imageProps').style.display = 'block';
       document.getElementById('textProps').style.display = 'none';
       document.getElementById('opacityRange').value = Math.round((obj.opacity ?? 1) * 100);
-      document.getElementById('imgResInfo').textContent = getImageResInfo(obj) || '(圖庫貼紙為向量圖,縮放不影響輸出品質)';
+      document.getElementById('imgResInfo').textContent = getImageResInfo(obj);
     } else {
       clearProperties();
     }
@@ -1197,7 +1232,7 @@
       if (canvas.getActiveObject() === obj) showPropertiesFor(obj);
     }
     if (obj && obj.type === 'image' && canvas.getActiveObject() === obj) {
-      document.getElementById('imgResInfo').textContent = getImageResInfo(obj) || '(圖庫貼紙為向量圖,縮放不影響輸出品質)';
+      document.getElementById('imgResInfo').textContent = getImageResInfo(obj);
     }
     updateLayerPanel();
     pushHistory();
@@ -1458,23 +1493,27 @@
     e.target.value = '';
   });
 
-  // ================= 貼紙圖庫 =================
-  function svgToDataUrl(svg) { return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg))); }
-  const BUILTIN_STICKERS = [
-    { id: 'builtin_star', name: '星星', dataUrl: svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><polygon points="50,5 61,38 96,38 68,59 79,92 50,71 21,92 32,59 4,38 39,38" fill="#F5CC5C"/></svg>`) },
-    { id: 'builtin_ribbon', name: '緞帶', dataUrl: svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 60"><path d="M8 8 H132 L120 30 L132 52 H8 L20 30 Z" fill="#FF7B89"/></svg>`) },
-    { id: 'builtin_postmark', name: '郵戳', dataUrl: svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="#6B5468" stroke-width="4"/><circle cx="50" cy="50" r="35" fill="none" stroke="#6B5468" stroke-width="2"/><text x="50" y="57" font-size="18" text-anchor="middle" fill="#6B5468" font-family="serif">郵</text></svg>`) },
-    { id: 'builtin_heart', name: '愛心', dataUrl: svgToDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50 85 C20 60 5 40 5 22 C5 8 16 -2 30 3 C40 6 48 15 50 22 C52 15 60 6 70 3 C84 -2 95 8 95 22 C95 40 80 60 50 85 Z" fill="#FF9FC7"/></svg>`) }
-  ];
-  let stickerLibrary = [...BUILTIN_STICKERS];
+  // ================= 貼紙圖庫(完全由後台管理,支援關鍵字搜尋) =================
+  let stickerLibrary = [];
+  let stickerSearchQuery = '';
 
   function renderStickerGrid() {
     const grid = document.getElementById('stickerGrid');
     grid.innerHTML = '';
-    stickerLibrary.forEach(s => {
+    const filtered = stickerLibrary.filter(s => {
+      if (!stickerSearchQuery) return true;
+      const hay = (s.name + ' ' + (s.keywords || []).join(' ')).toLowerCase();
+      return hay.includes(stickerSearchQuery);
+    });
+    if (filtered.length === 0) {
+      const msg = stickerLibrary.length === 0 ? '尚未上傳任何貼紙,請洽後台管理新增' : '找不到符合的貼紙';
+      grid.innerHTML = `<p class="hint" style="grid-column:1/-1;">${msg}</p>`;
+      return;
+    }
+    filtered.forEach(s => {
       const wrap = document.createElement('div');
       const item = document.createElement('div');
-      item.className = 'sticker-item'; item.title = s.name;
+      item.className = 'sticker-item'; item.title = s.name + (s.keywords && s.keywords.length ? ' · ' + s.keywords.join(', ') : '');
       item.innerHTML = `<img src="${s.dataUrl}" alt="${s.name}">`;
       item.addEventListener('click', () => addStickerToCanvas(s));
       wrap.appendChild(item);
@@ -1484,6 +1523,11 @@
       grid.appendChild(wrap);
     });
   }
+  document.getElementById('stickerSearchInput').addEventListener('input', e => {
+    stickerSearchQuery = e.target.value.trim().toLowerCase();
+    renderStickerGrid();
+  });
+
   function addStickerToCanvas(s) {
     exitDrawingModeIfNeeded();
     fabric.Image.fromURL(s.dataUrl, img => {
@@ -1494,7 +1538,8 @@
         layerName: '貼紙: ' + s.name
       });
       img._originalDataUrl = s.dataUrl;
-      if (!s.id.startsWith('builtin_')) { img._naturalW = img.width; img._naturalH = img.height; }
+      img._naturalW = img.width;
+      img._naturalH = img.height;
       canvas.add(img);
       ensureLockedOnTop();
       canvas.setActiveObject(img);
@@ -1504,20 +1549,19 @@
     });
   }
   async function loadStickers() {
-    const items = await dbList('sticker');
-    stickerLibrary = [...BUILTIN_STICKERS, ...items];
+    stickerLibrary = await dbList('sticker');
     renderStickerGrid();
     renderStickerAdminList();
   }
   function renderStickerAdminList() {
     const list = document.getElementById('stickerAdminList');
     list.innerHTML = '';
-    const adminItems = stickerLibrary.filter(s => !s.id.startsWith('builtin_'));
-    if (adminItems.length === 0) { list.innerHTML = '<p class="admin-empty">尚未新增任何自訂貼紙</p>'; }
-    adminItems.forEach(s => {
+    if (stickerLibrary.length === 0) { list.innerHTML = '<p class="admin-empty">尚未新增任何貼紙</p>'; return; }
+    stickerLibrary.forEach(s => {
       const row = document.createElement('div');
       row.className = 'admin-list-item';
-      row.innerHTML = `<img src="${s.dataUrl}"><span class="name">${s.name}</span><button class="icon-btn">刪除</button>`;
+      const kw = (s.keywords && s.keywords.length) ? ` · ${s.keywords.join(', ')}` : '';
+      row.innerHTML = `<img src="${s.dataUrl}"><span class="name">${s.name}${kw}</span><button class="icon-btn">刪除</button>`;
       row.querySelector('button').addEventListener('click', async () => {
         await dbDelete('sticker', s.id);
         await loadStickers();
@@ -1525,18 +1569,36 @@
       list.appendChild(row);
     });
   }
-  document.getElementById('stickerFileInput').addEventListener('change', e => {
-    const file = e.target.files[0]; if (!file) return;
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = evt => resolve(evt.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  function stripExt(filename) { return filename.replace(/\.[^.]+$/, ''); }
+
+  document.getElementById('stickerFileInput').addEventListener('change', async e => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
     const nameInput = document.getElementById('stickerNameInput');
-    const name = nameInput.value.trim() || file.name.replace(/\.[^.]+$/, '');
-    const reader = new FileReader();
-    reader.onload = async evt => {
-      const entry = { id: 'stk_' + Date.now(), name, dataUrl: evt.target.result };
+    const keywordsInput = document.getElementById('stickerKeywordsInput');
+    const keywords = keywordsInput.value.split(',').map(s => s.trim()).filter(Boolean);
+    const baseName = nameInput.value.trim();
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const dataUrl = await readFileAsDataURL(file);
+      const name = files.length === 1
+        ? (baseName || stripExt(file.name))
+        : (baseName ? `${baseName} ${i + 1}` : stripExt(file.name));
+      const entry = { id: 'stk_' + Date.now() + '_' + i, name, dataUrl, keywords };
       await dbAdd('sticker', entry);
-      nameInput.value = ''; e.target.value = '';
-      await loadStickers();
-    };
-    reader.readAsDataURL(file);
+    }
+    nameInput.value = ''; keywordsInput.value = ''; e.target.value = '';
+    await loadStickers();
   });
 
   // ================= 字型管理 =================
@@ -1598,63 +1660,9 @@
     renderFontSelect(); renderFontAdminList();
   }
 
-  // ================= 版型遮罩管理 =================
-  function renderTemplateOptions() {
-    const sel = document.getElementById('templateSelect');
-    [...sel.querySelectorAll('option[data-custom]')].forEach(o => o.remove());
-    customTemplates.forEach(t => {
-      const opt = document.createElement('option');
-      opt.value = 'custom_' + t.id;
-      opt.textContent = `${t.name}(自訂・${t.mmW}×${t.mmH}mm)`;
-      opt.setAttribute('data-custom', '1');
-      sel.appendChild(opt);
-    });
-  }
-  function renderTemplateAdminList() {
-    const list = document.getElementById('templateAdminList');
-    list.innerHTML = '';
-    if (customTemplates.length === 0) { list.innerHTML = '<p class="admin-empty">尚未上傳任何自訂版型遮罩</p>'; return; }
-    customTemplates.forEach(t => {
-      const row = document.createElement('div');
-      row.className = 'admin-list-item';
-      row.innerHTML = `<img src="${t.dataUrl}"><span class="name">${t.name}(${t.mmW}×${t.mmH}mm)</span><button class="icon-btn">刪除</button>`;
-      row.querySelector('button').addEventListener('click', async () => {
-        await dbDelete('template', t.id);
-        await loadTemplates();
-      });
-      list.appendChild(row);
-    });
-  }
-  document.getElementById('templateFileInput').addEventListener('change', e => {
-    const file = e.target.files[0]; if (!file) return;
-    const nameInput = document.getElementById('templateNameInput');
-    const mmWInput = document.getElementById('templateMmW');
-    const mmHInput = document.getElementById('templateMmH');
-    const mmW = parseFloat(mmWInput.value);
-    const mmH = parseFloat(mmHInput.value);
-    if (!mmW || !mmH || mmW <= 0 || mmH <= 0) {
-      alert('請先填寫這個版型正確的實際寬度與高度(mm),畫布會依此比例調整。');
-      e.target.value = '';
-      return;
-    }
-    const name = nameInput.value.trim() || file.name.replace(/\.[^.]+$/, '');
-    const reader = new FileReader();
-    reader.onload = async evt => {
-      const entry = { id: 'tpl_' + Date.now(), name, dataUrl: evt.target.result, mmW, mmH };
-      await dbAdd('template', entry);
-      nameInput.value = ''; mmWInput.value = ''; mmHInput.value = ''; e.target.value = '';
-      await loadTemplates();
-    };
-    reader.readAsDataURL(file);
-  });
-  async function loadTemplates() {
-    customTemplates = await dbList('template');
-    renderTemplateOptions(); renderTemplateAdminList();
-  }
-
-  // ================= 我的設計:雲端取件碼 + 設計檔 =================
+  // ================= 我的設計:雲端取件碼 + 設計檔(檔名含時間戳記) =================
   function generateDesignCode() {
-    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // 去掉易混淆的 I/L/O/0/1
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
     let code = 'KH-';
     for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
     return code;
@@ -1662,13 +1670,13 @@
 
   document.getElementById('saveCloudBtn').addEventListener('click', async () => {
     const code = generateDesignCode();
-    const ok = await dbSaveDesign(code, JSON.stringify(snapshotState()));
+    const result = await dbSaveDesign(code, JSON.stringify(snapshotState()));
     const box = document.getElementById('designCodeBox');
-    if (ok) {
+    if (result.ok) {
       document.getElementById('designCodeText').textContent = code;
       box.classList.add('show');
     } else {
-      alert('儲存失敗,請稍後再試。也可以改用「匯出設計檔」保存到自己的電腦。');
+      alert('儲存失敗' + (result.error ? (':\n' + result.error) : '') + '\n請稍後再試,或改用「匯出設計檔」保存到自己的電腦。');
     }
   });
 
@@ -1684,7 +1692,7 @@
     const blob = new Blob([JSON.stringify(snapshotState())], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'my-stamp-design.json'; a.click();
+    a.href = url; a.download = `my-stamp-design-${timestampStr()}.json`; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   });
 
@@ -1733,7 +1741,7 @@
     });
   });
 
-  // ================= 匯出與預覽 =================
+  // ================= 匯出與預覽(檔名含時間戳記) =================
   function exportPngWithDpi() {
     canvas.discardActiveObject();
     canvas.renderAll();
@@ -1744,7 +1752,7 @@
     const blob = new Blob([withDpi], { type: 'image/png' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'stamp-design-300dpi.png'; a.click();
+    a.href = url; a.download = `stamp-design-300dpi-${timestampStr()}.png`; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
     updateLayerPanel();
   }
@@ -1771,14 +1779,22 @@
   });
 
   // ================= 初始化 =================
-  initSupabase();
-  renderFontSelect();
-  renderStickerGrid();
-  loadTemplate('a'); // 內含第一筆歷史紀錄
-  applyResponsiveZoom();
-  loadStickers();
-  loadFonts();
-  loadTemplates();
+  (async function init() {
+    initSupabase();
+    renderFontSelect();
+    renderStickerGrid();
+    await loadStickers();
+    await loadFonts();
+    await loadTemplates();
+
+    if (customTemplates.length > 0) {
+      document.getElementById('templateSelect').value = 'custom_' + customTemplates[0].id;
+      loadTemplate('custom_' + customTemplates[0].id);
+    } else {
+      showEmptyTemplateState();
+    }
+    applyResponsiveZoom();
+  })();
 </script>
 
 </body>
