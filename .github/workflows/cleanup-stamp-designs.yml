@@ -1,0 +1,22 @@
+name: 清理逾期的郵票設計檔(30天)
+
+on:
+  schedule:
+    - cron: '0 18 * * *'   # 每天 UTC 18:00,即台灣時間凌晨 02:00
+  workflow_dispatch: {}     # 也可以在 Actions 頁籤手動點擊執行,方便測試
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: 清理超過30天的雲端設計檔
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/cleanup-stamp-designs.mjs
