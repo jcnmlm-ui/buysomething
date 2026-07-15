@@ -739,10 +739,12 @@
       const urlParams = new URLSearchParams(window.location.search);
       const urlCity = urlParams.get('city');
       if (urlCity) {
-        document.getElementById('citySelect').value = urlCity;
+        // ★ 下拉選單只剩「高雄市」與「其他縣市」，非高雄市一律歸類為「其他縣市」
+        const mappedCity = urlCity === '高雄市' ? '高雄市' : '其他縣市';
+        document.getElementById('citySelect').value = mappedCity;
         updateDistricts();
         const urlDist = urlParams.get('dist');
-        if (urlDist) document.getElementById('districtSelect').value = urlDist;
+        if (urlDist && mappedCity === '高雄市') document.getElementById('districtSelect').value = urlDist;
       }
       
       // ★ SEO 關鍵優化：網頁載入時，直接無條件取得商品清單，讓 Google 爬蟲能看到資料！
@@ -769,8 +771,10 @@
 
     function initLocationDropdowns() {
       const citySel = document.getElementById('citySelect');
-      citySel.innerHTML = '<option value="" disabled selected>請選擇縣市</option>';
-      for (let city in twData) citySel.add(new Option(city, city));
+      // ★ 只保留「高雄市」與「其他縣市」兩個選項，其他縣市不需細分，減少使用者選擇負擔
+      citySel.innerHTML = '';
+      citySel.add(new Option('高雄市', '高雄市'));
+      citySel.add(new Option('其他縣市', '其他縣市'));
 
       const savedCity = localStorage.getItem('cust_city');
       const savedDist = localStorage.getItem('cust_dist');
@@ -782,6 +786,8 @@
         updateDistricts();
         if (savedDist) document.getElementById('districtSelect').value = savedDist;
       } else {
+        // ★ 預設「其他縣市」，此時鄉鎮市區不需選擇即可直接搜尋
+        citySel.value = '其他縣市';
         updateDistricts();
       }
     }
@@ -794,8 +800,8 @@
         distSel.innerHTML = '<option value="" disabled selected>請選擇區域</option>';
         twData[city].forEach(dist => distSel.add(new Option(dist, dist)));
       } else {
-        // ★ 外縣市不用選區，本站只查高雄地區的郵局庫存，選區沒有意義、只是徒增選擇負擔
-        distSel.innerHTML = '<option value="" selected>（外縣市不需選擇）</option>';
+        // ★ 其他縣市不用選區，本站只查高雄地區的郵局庫存，選區沒有意義、只是徒增選擇負擔
+        distSel.innerHTML = '<option value="" selected>（其他縣市不需選擇）</option>';
         distSel.disabled = true;
       }
       saveLocation();
@@ -1315,28 +1321,20 @@
 
            const citySel = document.getElementById('citySelect');
            const distSel = document.getElementById('districtSelect');
-           
-           let found = false;
-           
-           if (Array.from(citySel.options).some(opt => opt.value === city)) {
-               citySel.value = city;
-               updateDistricts();
 
-               let matchedDist = null;
-               if (city === '高雄市') {
-                 matchedDist = Array.from(distSel.options).find(opt => dist.includes(opt.value) || opt.value.includes(dist));
-                 if (matchedDist) {
-                     distSel.value = matchedDist.value;
-                 }
-               }
-               saveLocation();
-               found = true;
-               alert(`📍 已精準鎖定座標！\n目前大約位置：${city}${city === '高雄市' ? ' ' + (distSel.value || dist) : ''}\n(已為您啟用實際距離排序推薦)`);
+           // ★ 下拉選單只剩「高雄市」與「其他縣市」，只需判斷偵測到的縣市是否為高雄市
+           const isKaohsiung = city === '高雄市';
+           citySel.value = isKaohsiung ? '高雄市' : '其他縣市';
+           updateDistricts();
+
+           if (isKaohsiung) {
+             const matchedDist = Array.from(distSel.options).find(opt => dist.includes(opt.value) || opt.value.includes(dist));
+             if (matchedDist) {
+                 distSel.value = matchedDist.value;
+             }
            }
-           
-           if(!found) {
-               alert("📍 定位成功！座標已鎖定 (將啟用實際距離排序推薦)\n(文字地址無法精確配對，但不影響計算功能)");
-           }
+           saveLocation();
+           alert(`📍 已精準鎖定座標！\n目前大約位置：${city}${isKaohsiung ? ' ' + (distSel.value || dist) : ''}\n(已為您啟用實際距離排序推薦)`);
         } else {
            alert("📍 定位成功！座標已鎖定 (將啟用實際距離排序推薦)\n(唯地址解析伺服器無回應)");
         }
