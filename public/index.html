@@ -390,6 +390,26 @@
     .b-qty.low-stock { background: var(--sd-warning); }
     .b-detail { font-size: 16px; font-weight: bold; color: var(--sd-text-muted); display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; line-height: 1.4;}
 
+    /* ★ 鄰近區域標籤（非使用者選定區域的結果） */
+    .b-badge-nearby { background: #f59e0b; color: white; padding: 3px 8px; border: 2px solid var(--sd-border); border-radius: 4px; font-size: 12px; font-weight: bold; white-space: nowrap; box-shadow: 1px 1px 0px rgba(0,0,0,0.15); }
+
+    /* ★ 該區無貨提示橫幅 */
+    .no-stock-banner { margin: 16px 20px 0; padding: 12px 14px; background: #fff7ed; border: 2px dashed #f59e0b; border-radius: 8px; font-size: 14px; font-weight: bold; color: #92400e; line-height: 1.5; }
+
+    /* ★ 查看全部據點 CTA */
+    .view-all-cta { margin: 4px 20px 20px; padding: 16px; text-align: center; background: var(--sd-parchment-dark, #f1e6cf); border: 2px dashed var(--sd-wood-dark); border-radius: 8px; }
+    .view-all-cta p { font-size: 14px; font-weight: bold; color: var(--sd-text-muted); margin-bottom: 10px; }
+    .btn-view-all { display: inline-block; padding: 10px 18px; background: var(--sd-wood); color: white; border: 2px solid var(--sd-border); border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; box-shadow: 2px 2px 0px rgba(0,0,0,0.15); }
+    .btn-view-all:active { transform: translateY(2px); box-shadow: none; }
+
+    /* ★ 全部據點表格 */
+    .all-branch-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .all-branch-table th { position: sticky; top: 0; background: var(--sd-wood); color: white; text-align: left; padding: 10px 12px; font-size: 13px; }
+    .all-branch-table td { padding: 10px 12px; border-bottom: 1px dotted var(--sd-wood-dark); vertical-align: top; }
+    .all-branch-table tr:nth-child(odd) { background: rgba(255,255,255,0.4); }
+    .all-branch-table .abt-qty { font-weight: bold; color: var(--sd-grass-dark); white-space: nowrap; }
+    .all-branch-table .abt-qty.low-stock { color: var(--sd-warning); }
+
     /* 圖片畫廊 (Lightbox) 樣式 */
     #galleryLightbox { display: none; position: fixed; z-index: 10005; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; flex-direction: column; }
     .gallery-container { position: relative; width: 90vw; max-width: 800px; max-height: 80vh; display: flex; justify-content: center; align-items: center; }
@@ -565,7 +585,26 @@
         <button class="btn-close" onclick="closeBranchModal()" aria-label="關閉視窗"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="modal-body">
+        <div id="modalNoStockBanner"></div>
         <ul class="branch-list" id="modalBranchList"></ul>
+        <div id="modalViewAllCta"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="allBranchesModal" class="modal" onclick="closeAllBranchesModal()">
+    <div class="modal-content sd-ui-box" onclick="event.stopPropagation()" style="max-width: 640px;">
+      <div class="modal-header">
+        <span id="allBranchesTitle" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">全部據點庫存</span>
+        <button class="btn-close" onclick="closeAllBranchesModal()" aria-label="關閉視窗"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <table class="all-branch-table">
+          <thead>
+            <tr><th>郵局</th><th>地址</th><th>庫存</th></tr>
+          </thead>
+          <tbody id="allBranchesTableBody"></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -1028,6 +1067,9 @@
       if (document.getElementById('branchModal').style.display === 'flex') {
         if (event.key === 'Escape') closeBranchModal();
       }
+      if (document.getElementById('allBranchesModal').style.display === 'flex') {
+        if (event.key === 'Escape') closeAllBranchesModal();
+      }
     });
 
     async function openBranchModal(productKey, productName) {
@@ -1043,6 +1085,10 @@
 
         document.getElementById('modalProductName').innerText = `尋找「${productName}」`;
         const listUl = document.getElementById('modalBranchList');
+        const banner = document.getElementById('modalNoStockBanner');
+        const cta = document.getElementById('modalViewAllCta');
+        banner.innerHTML = '';
+        cta.innerHTML = '';
         listUl.innerHTML = '<li style="text-align:center; padding: 30px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:30px; margin-bottom:10px; color: var(--sd-wood);"></i><br>正在呼叫精靈查詢...</li>';
         document.getElementById('branchModal').style.display = 'flex';
         document.body.style.overflow = 'hidden'; 
@@ -1063,6 +1109,12 @@
         if(!branches || branches.length === 0) {
           listUl.innerHTML = '<li class="branch-item" style="text-align:center;color:var(--sd-text-muted);padding:40px;font-weight:bold;">目前此區域尚未查詢到庫存 <i class="fa-solid fa-leaf" style="margin-left: 6px; color: var(--sd-warning);"></i></li>';
         } else {
+          // ★ 如果排名第一的結果都不是同區域，代表使用者選的區域完全沒現貨，
+          // 明確告知，避免使用者誤以為系統壞掉或不準確
+          if (selDist && branches[0].match_level !== 1) {
+            banner.innerHTML = `<div class="no-stock-banner">😢 您選擇的「${selDist}」目前查不到現貨，以下為您找的鄰近地區據點：</div>`;
+          }
+
           branches.forEach((b, index) => {
             const qtyClass = b.qty <= 5 ? 'b-qty low-stock' : 'b-qty';
             const qtyLabel = b.qty <= 5 ? `即將完售 (${b.qty})` : `架上剩餘: ${b.qty}`;
@@ -1074,11 +1126,18 @@
                distBadge = `<span class="b-dist"><i class="fa-solid fa-location-arrow"></i> ${b.distance_km} km</span>`;
             }
 
+            // ★ 非同區域的結果加上「鄰近區域」標籤，明確標示這不是使用者選的那一區
+            let nearbyBadge = '';
+            if (selDist && b.match_level !== 1) {
+              nearbyBadge = `<span class="b-badge-nearby"><i class="fa-solid fa-map-pin"></i> 鄰近區域</span>`;
+            }
+
             listUl.innerHTML += `
               <li class="branch-item${highlightClass}">
                 <div class="b-header">
                   <div class="b-name-wrapper">
                     <span class="b-name">${rankIcon}${b.name}</span>
+                    ${nearbyBadge}
                     ${distBadge}
                   </div>
                   <span class="${qtyClass}">${qtyLabel}</span>
@@ -1088,10 +1147,64 @@
               </li>
             `;
           });
+
+          // ★ 如果全國有貨的據點總數超過這5筆推薦，提供「查看全部據點」入口，
+          // 讓使用者逛完5筆推薦還有路可以走，不會斷在這裡
+          const totalAvailable = Number(branches[0].total_available || branches.length);
+          if (totalAvailable > branches.length) {
+            cta.innerHTML = `
+              <div class="view-all-cta">
+                <p>這是我們幫你精選的 ${branches.length} 個據點，全國目前共有 ${totalAvailable} 個郵局有貨</p>
+                <button type="button" class="btn-view-all" onclick="openAllBranchesModal('${productKey}', '${productName.replace(/'/g, "\\'")}')">📋 查看全部 ${totalAvailable} 個據點 →</button>
+              </div>
+            `;
+          }
         }
       } catch(err) {
         document.getElementById('modalBranchList').innerHTML = `<li style="color:red; text-align:center; padding: 20px;">錯誤：${err.message}</li>`;
       }
+    }
+
+    async function openAllBranchesModal(productKey, productName) {
+      try {
+        document.getElementById('allBranchesTitle').innerText = `「${productName}」全部據點`;
+        const tbody = document.getElementById('allBranchesTableBody');
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 30px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:24px; color: var(--sd-wood);"></i></td></tr>';
+        document.getElementById('allBranchesModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        const { data: branches, error } = await supabaseClient.rpc('get_all_branches_by_product', {
+            p_product_key: productKey,
+            p_user_lat: userLat,
+            p_user_lng: userLng
+        });
+
+        if (error) throw error;
+
+        tbody.innerHTML = '';
+        if (!branches || branches.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 30px; color: var(--sd-text-muted); font-weight:bold;">目前查不到有貨的據點</td></tr>';
+          return;
+        }
+
+        branches.forEach(b => {
+          const qtyClass = b.qty <= 5 ? 'abt-qty low-stock' : 'abt-qty';
+          tbody.innerHTML += `
+            <tr>
+              <td><b>${b.name}</b>${b.distance_km != null ? `<br><span style="font-size:12px; color:var(--sd-text-muted);"><i class="fa-solid fa-location-arrow"></i> ${b.distance_km} km</span>` : ''}</td>
+              <td style="font-size:13px; color:var(--sd-text-muted);">${b.address}<br>${b.phone}</td>
+              <td class="${qtyClass}">${b.qty}</td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        document.getElementById('allBranchesTableBody').innerHTML = `<tr><td colspan="3" style="color:red; text-align:center; padding: 20px;">錯誤：${err.message}</td></tr>`;
+      }
+    }
+
+    function closeAllBranchesModal() {
+      document.getElementById('allBranchesModal').style.display = 'none';
+      document.body.style.overflow = 'auto';
     }
 
     function closeBranchModal() {
