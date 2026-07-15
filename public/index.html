@@ -160,6 +160,7 @@
       box-shadow: inset 2px 2px 0 rgba(0,0,0,0.05);
     }
     .select-group select:focus { border-color: var(--sd-border); background: #fff;}
+    .select-group select:disabled { background: #e5e0d0; color: var(--sd-text-muted); cursor: not-allowed; opacity: 0.75; }
     
     .btn-gps {
       background: #fff8d6;
@@ -393,6 +394,18 @@
     /* ★ 鄰近區域標籤（非使用者選定區域的結果） */
     .b-badge-nearby { background: #f59e0b; color: white; padding: 3px 8px; border: 2px solid var(--sd-border); border-radius: 4px; font-size: 12px; font-weight: bold; white-space: nowrap; box-shadow: 1px 1px 0px rgba(0,0,0,0.15); }
 
+    /* ★ 位置區塊標題列（標題 + 僅高雄地區提醒 badge） */
+    .title-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .region-scope-badge { display: inline-flex; align-items: center; gap: 5px; background: #fef3c7; color: #92400e; border: 2px solid #f59e0b; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; white-space: nowrap; }
+
+    /* ★ 頁面右下角小彈窗提醒（僅查詢高雄地區） */
+    #regionScopeToast { position: fixed; right: 18px; bottom: 18px; z-index: 10020; max-width: 300px; background: var(--sd-wood); color: white; border: 3px solid var(--sd-border); border-radius: 10px; padding: 14px 16px; box-shadow: 3px 3px 0px rgba(0,0,0,0.2); font-size: 14px; font-weight: bold; line-height: 1.5; display: flex; align-items: flex-start; gap: 10px; transform: translateY(150%); opacity: 0; transition: transform 0.4s ease, opacity 0.4s ease; }
+    #regionScopeToast.show { transform: translateY(0); opacity: 1; }
+    #regionScopeToast i.fa-lightbulb { color: #fdeca6; font-size: 18px; margin-top: 2px; }
+    #regionScopeToast .toast-close { background: none; border: none; color: white; opacity: 0.7; cursor: pointer; font-size: 14px; margin-left: auto; padding: 2px; }
+    #regionScopeToast .toast-close:hover { opacity: 1; }
+    @media (max-width: 600px) { #regionScopeToast { left: 12px; right: 12px; bottom: 12px; max-width: none; } }
+
     /* ★ 該區無貨提示橫幅 */
     .no-stock-banner { margin: 16px 20px 0; padding: 12px 14px; background: #fff7ed; border: 2px dashed #f59e0b; border-radius: 8px; font-size: 14px; font-weight: bold; color: #92400e; line-height: 1.5; }
 
@@ -528,7 +541,10 @@
 
   <main class="container">
     <section class="location-box sd-ui-box">
-      <h2 class="title" style="margin: 0; padding-bottom: 5px;"><i class="fa-solid fa-house-chimney" style="color: #d9382e; margin-right: 8px;"></i>告訴我們您的位置</h2>
+      <div class="title-row">
+        <h2 class="title" style="margin: 0; padding-bottom: 5px;"><i class="fa-solid fa-house-chimney" style="color: #d9382e; margin-right: 8px;"></i>告訴我們您的位置</h2>
+        <span class="region-scope-badge"><i class="fa-solid fa-circle-info"></i> 僅查詢高雄地區郵局庫存</span>
+      </div>
       <div class="select-group">
         <select id="citySelect" aria-label="選擇縣市" onchange="updateDistricts();"></select>
         <select id="districtSelect" aria-label="選擇鄉鎮市區" onchange="saveLocation()"></select>
@@ -607,6 +623,12 @@
         </table>
       </div>
     </div>
+  </div>
+
+  <div id="regionScopeToast">
+    <i class="fa-solid fa-lightbulb"></i>
+    <span>本搜尋僅查找「高雄地區」郵局的庫存，其他縣市的位置僅供估算距離參考</span>
+    <button type="button" class="toast-close" onclick="closeRegionScopeToast()" aria-label="關閉提醒"><i class="fa-solid fa-xmark"></i></button>
   </div>
 
   <button id="scrollToTopBtn" onclick="scrollToTop()" title="回到最上方" aria-label="回到網頁最上方"><i class="fa-solid fa-arrow-up"></i></button>
@@ -726,7 +748,24 @@
       // ★ SEO 關鍵優化：網頁載入時，直接無條件取得商品清單，讓 Google 爬蟲能看到資料！
       // 移除了原本的阻擋機制，現在使用者進站就能看到型錄
       fetchAndRenderProducts(false);
+
+      showRegionScopeToast();
     };
+
+    // ★ 右下角小彈窗提醒：本站僅查詢高雄地區郵局庫存，每個瀏覽階段只彈一次，避免打擾
+    function showRegionScopeToast() {
+      if (sessionStorage.getItem('region_scope_toast_shown') === 'true') return;
+      sessionStorage.setItem('region_scope_toast_shown', 'true');
+      setTimeout(() => {
+        const toast = document.getElementById('regionScopeToast');
+        toast.classList.add('show');
+        setTimeout(() => closeRegionScopeToast(), 6000);
+      }, 800);
+    }
+
+    function closeRegionScopeToast() {
+      document.getElementById('regionScopeToast').classList.remove('show');
+    }
 
     function initLocationDropdowns() {
       const citySel = document.getElementById('citySelect');
@@ -750,9 +789,14 @@
     function updateDistricts() {
       const city = document.getElementById('citySelect').value;
       const distSel = document.getElementById('districtSelect');
-      distSel.innerHTML = '<option value="" disabled selected>請選擇區域</option>';
-      if (city && twData[city]) {
+      if (city === '高雄市') {
+        distSel.disabled = false;
+        distSel.innerHTML = '<option value="" disabled selected>請選擇區域</option>';
         twData[city].forEach(dist => distSel.add(new Option(dist, dist)));
+      } else {
+        // ★ 外縣市不用選區，本站只查高雄地區的郵局庫存，選區沒有意義、只是徒增選擇負擔
+        distSel.innerHTML = '<option value="" selected>（外縣市不需選擇）</option>';
+        distSel.disabled = true;
       }
       saveLocation();
       userLat = null;
@@ -779,7 +823,7 @@
       const dist = document.getElementById('districtSelect').value;
       
       // 如果是使用者點擊「搜尋鄰近郵局」按鈕，才檢查是否有選擇地區
-      if (isUserClick && !userLat && (!city || !dist)) {
+      if (isUserClick && !userLat && (!city || (city === '高雄市' && !dist))) {
         return alert("請先選擇您所在的「縣市」與「區域」，或點擊 GPS 按鈕自動定位！");
       }
 
@@ -1078,7 +1122,7 @@
         const selDist = document.getElementById('districtSelect').value || '';
         
         // ★ 在開啟庫存視窗時，才強制檢查定位！讓首頁保持開放
-        if(!userLat && (!selCity || !selDist)) {
+        if(!userLat && (!selCity || (selCity === '高雄市' && !selDist))) {
              alert("請確保已選擇縣市與區域，或點選 GPS 按鈕自動定位！");
              return;
         }
@@ -1276,17 +1320,18 @@
            
            if (Array.from(citySel.options).some(opt => opt.value === city)) {
                citySel.value = city;
-               
-               distSel.innerHTML = '<option value="" disabled selected>請選擇區域</option>';
-               twData[city].forEach(d => distSel.add(new Option(d, d)));
-               
-               const matchedDist = Array.from(distSel.options).find(opt => dist.includes(opt.value) || opt.value.includes(dist));
-               if (matchedDist) {
-                   distSel.value = matchedDist.value;
+               updateDistricts();
+
+               let matchedDist = null;
+               if (city === '高雄市') {
+                 matchedDist = Array.from(distSel.options).find(opt => dist.includes(opt.value) || opt.value.includes(dist));
+                 if (matchedDist) {
+                     distSel.value = matchedDist.value;
+                 }
                }
                saveLocation();
                found = true;
-               alert(`📍 已精準鎖定座標！\n目前大約位置：${city} ${distSel.value || dist}\n(已為您啟用實際距離排序推薦)`);
+               alert(`📍 已精準鎖定座標！\n目前大約位置：${city}${city === '高雄市' ? ' ' + (distSel.value || dist) : ''}\n(已為您啟用實際距離排序推薦)`);
            }
            
            if(!found) {
