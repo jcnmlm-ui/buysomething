@@ -378,6 +378,7 @@
         <button class="tab-btn" onclick="switchAdminTab('tab-admin-extrastock', this)">📦 現場庫存</button>
         <button class="tab-btn" onclick="switchAdminTab('tab-blog', this)">📰 專欄管理</button>
         <button class="tab-btn" onclick="switchAdminTab('tab-accounts', this)">👤 帳號管理</button>
+        <button class="tab-btn" onclick="switchAdminTab('tab-redirects', this)">🔗 縮址管理</button>
       </div>
 
       <div id="tab-upload" class="tab-content active">
@@ -621,6 +622,24 @@
         </div>
       </div>
 
+      <div id="tab-redirects" class="tab-content">
+        <div class="box-container">
+          <div class="section-header">
+            <div class="header-left">
+              <h3>🔗 縮址管理</h3>
+              <div class="selection-count" id="redirectsCountLabel">載入中...</div>
+            </div>
+            <div class="filters">
+              <input type="search" id="redirectsSearchInput" placeholder="🔍 搜尋短碼或備註..." oninput="filterRedirects()">
+              <button type="button" class="btn-primary" onclick="openNewRedirectModal()" style="margin-left:8px; white-space:nowrap;">＋ 新增縮址</button>
+            </div>
+          </div>
+          <div style="font-size:13px; color:#94a3b8; margin:-8px 0 16px;">💡 短網址格式為 kspost08.tw/go/短碼/，適合先印在 QR code 上，轉跳的目的地網址之後隨時可以在這裡修改，不用重新部署網站。若還沒設定目的地網址，掃碼會先導回官網首頁。</div>
+          <div id="redirectsLoading" style="text-align: center; padding: 40px; color: var(--text-light);">讀取縮址清單中...</div>
+          <div id="redirectsContainer" class="admin-product-list" style="display:none;"></div>
+        </div>
+      </div>
+
       <div class="mobile-footer" id="adminMobileFooter">
         <div class="row">
           <button class="btn-mobile-secondary" onclick="toggleAllAdminCheckbox(true)">全選</button>
@@ -771,6 +790,54 @@
         <div style="font-size:12px; color:#94a3b8; margin-bottom:15px;">💡 地址若不確定經緯度，可以先留空，之後再用地圖工具查詢補上，不影響帳號登入使用。</div>
 
         <button onclick="saveAccountEdit()" id="btnSaveAccountEdit" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;">💾 儲存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 縮址編輯視窗 -->
+  <div id="editRedirectModal" class="modal">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="editRedirectTitle">新增縮址</h3>
+        <button class="modal-close" onclick="closeEditRedirectModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px; text-align: left;">
+        <input type="hidden" id="editRedirectId">
+
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">短碼</label>
+        <div style="display:flex; gap:8px; margin-bottom:6px;">
+          <input type="text" id="editRedirectSlug" readonly style="flex:1; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none; background:#f8fafc; font-family:monospace; font-weight:bold; letter-spacing:1px;">
+          <button type="button" class="btn-edit-master" onclick="regenerateRedirectSlug()">🎲 重新產生</button>
+        </div>
+        <div id="editRedirectFullUrl" style="font-size:13px; color:#475569; margin-bottom:15px; word-break:break-all;"></div>
+
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">備註（給自己看，例如活動名稱）</label>
+        <input type="text" id="editRedirectLabel" placeholder="例如：2026 母親節活動" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none;">
+
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">轉跳目的地網址（非必填）</label>
+        <input type="text" id="editRedirectTarget" placeholder="https://..." style="width: 100%; padding: 10px; margin-bottom: 6px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none;">
+        <div style="font-size:12px; color:#94a3b8; margin-bottom:15px;">💡 空著不填的話，掃 QR code 進來會先導回官網首頁，之後活動頁做好了再回來補上目的地網址即可，不用重新印 QR code。</div>
+
+        <button onclick="saveRedirectEdit()" id="btnSaveRedirectEdit" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;">💾 儲存</button>
+        <button id="btnDeleteRedirect" type="button" style="display:none; width: 100%; margin-top:10px; padding: 12px; background: #fef2f2; color: #dc2626; border: 1px solid #f87171; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer;" onclick="document.getElementById('redirectConfirmModal').style.display='flex'">🗑️ 刪除這個縮址</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 縮址刪除確認視窗 -->
+  <div id="redirectConfirmModal" class="modal">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width:400px;">
+      <div class="modal-header">
+        <h3>確定刪除？</h3>
+        <button class="modal-close" onclick="document.getElementById('redirectConfirmModal').style.display='none'">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 30px 20px; font-size: 16px; font-weight: bold; color: #475569;">
+        確定要永久刪除這個縮址嗎？<br>
+        <span style="font-size: 13px; color: #ef4444; font-weight: normal; margin-top: 8px; display: inline-block;">(刪除後，已經印出去的 QR code 掃進來會導回官網首頁，此動作無法復原)</span>
+      </div>
+      <div style="display: flex; gap: 10px; padding: 15px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+        <button style="flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e0; background: #fff; font-weight: bold; cursor: pointer; color: #475569; transition: 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'" onclick="document.getElementById('redirectConfirmModal').style.display='none'">取消</button>
+        <button style="flex: 1; padding: 12px; border-radius: 6px; border: none; background: #ef4444; color: white; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'" onclick="executeDeleteRedirect()">確定刪除</button>
       </div>
     </div>
   </div>
@@ -1111,7 +1178,7 @@
           if (currentRole === 'A') {
             document.getElementById('adminArea').style.display = 'block';
             switchAdminTab('tab-upload', document.querySelector('#adminArea .tab-btn'));
-            loadAdminData(); loadLeaderboard(); loadMasterData(); loadExtraStock(); loadBlogArticles(); loadAccountsData();
+            loadAdminData(); loadLeaderboard(); loadMasterData(); loadExtraStock(); loadBlogArticles(); loadAccountsData(); loadRedirectsData();
           } else {
             document.getElementById('loadingStatus').style.display = 'block';
             document.getElementById('managerContent').style.display = 'none';
@@ -1818,6 +1885,160 @@
         alert('儲存失敗：' + e.message);
       }
       btn.innerText = '💾 儲存'; btn.disabled = false;
+    }
+    // ------------------------------------------------------------------
+
+    // ★ 縮址管理 ---------------------------------------------------------
+    let globalRedirectsData = [];
+    const REDIRECT_BASE_URL = 'https://kspost08.tw/go/';
+    const REDIRECT_SLUG_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789'; // 避免 0/O、1/l/I 混淆
+
+    async function loadRedirectsData() {
+      document.getElementById('redirectsLoading').style.display = 'block';
+      document.getElementById('redirectsContainer').style.display = 'none';
+      try {
+        const { data, error } = await supabaseClient.from('redirects').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        globalRedirectsData = data || [];
+        filterRedirects();
+      } catch (e) {
+        alert('讀取縮址清單失敗：' + e.message);
+      }
+      document.getElementById('redirectsLoading').style.display = 'none';
+      document.getElementById('redirectsContainer').style.display = 'grid';
+    }
+
+    function filterRedirects() {
+      const search = (document.getElementById('redirectsSearchInput').value || '').toLowerCase();
+      const filtered = globalRedirectsData.filter(r =>
+        (r.slug || '').toLowerCase().includes(search) ||
+        (r.label || '').toLowerCase().includes(search)
+      );
+      renderRedirectsList(filtered);
+    }
+
+    function renderRedirectsList(list) {
+      const container = document.getElementById('redirectsContainer');
+      document.getElementById('redirectsCountLabel').innerText = `共 ${globalRedirectsData.length} 筆縮址，顯示 ${list.length} 筆`;
+      container.innerHTML = '';
+      if (list.length === 0) {
+        container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #94a3b8; padding: 20px;">目前沒有縮址，點右上角「＋ 新增縮址」建立第一個吧</div>';
+        return;
+      }
+      list.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'admin-item';
+        const targetBadge = r.target_url
+          ? `<span style="color:#16a34a;">已設定 → ${r.target_url}</span>`
+          : `<span style="color:#e58715;">⏳ 尚未設定目的地（暫導首頁）</span>`;
+        div.innerHTML = `
+          <div class="admin-item-info" style="flex:1;">
+            <span class="admin-item-title" style="color: var(--primary-dark); font-family:monospace;">${REDIRECT_BASE_URL}${r.slug}/</span>
+            <span class="admin-item-code">${r.label ? r.label + '　｜　' : ''}${targetBadge}</span>
+          </div>
+          <button type="button" class="btn-edit-master" onclick="openEditRedirectModal('${r.id}')">✏️ 編輯</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function generateRedirectSlug() {
+      let slug;
+      do {
+        slug = Array.from({ length: 6 }, () => REDIRECT_SLUG_CHARS[Math.floor(Math.random() * REDIRECT_SLUG_CHARS.length)]).join('');
+      } while (globalRedirectsData.some(r => r.slug === slug));
+      return slug;
+    }
+
+    function regenerateRedirectSlug() {
+      document.getElementById('editRedirectSlug').value = generateRedirectSlug();
+      updateRedirectFullUrlPreview();
+    }
+
+    function updateRedirectFullUrlPreview() {
+      const slug = document.getElementById('editRedirectSlug').value;
+      document.getElementById('editRedirectFullUrl').innerText = `完整短網址：${REDIRECT_BASE_URL}${slug}/`;
+    }
+
+    function openNewRedirectModal() {
+      document.getElementById('editRedirectTitle').innerText = '新增縮址';
+      document.getElementById('editRedirectId').value = '';
+      document.getElementById('editRedirectSlug').value = generateRedirectSlug();
+      document.getElementById('editRedirectLabel').value = '';
+      document.getElementById('editRedirectTarget').value = '';
+      document.getElementById('btnDeleteRedirect').style.display = 'none';
+      updateRedirectFullUrlPreview();
+      document.getElementById('editRedirectModal').style.display = 'flex';
+    }
+
+    function openEditRedirectModal(id) {
+      const r = globalRedirectsData.find(x => String(x.id) === String(id));
+      if (!r) return;
+      document.getElementById('editRedirectTitle').innerText = '編輯縮址';
+      document.getElementById('editRedirectId').value = r.id;
+      document.getElementById('editRedirectSlug').value = r.slug || '';
+      document.getElementById('editRedirectLabel').value = r.label || '';
+      document.getElementById('editRedirectTarget').value = r.target_url || '';
+      document.getElementById('btnDeleteRedirect').style.display = 'block';
+      updateRedirectFullUrlPreview();
+      document.getElementById('editRedirectModal').style.display = 'flex';
+    }
+
+    function closeEditRedirectModal() {
+      document.getElementById('editRedirectModal').style.display = 'none';
+    }
+
+    async function saveRedirectEdit() {
+      const id = document.getElementById('editRedirectId').value;
+      const slug = document.getElementById('editRedirectSlug').value.trim();
+      const label = document.getElementById('editRedirectLabel').value.trim();
+      let target = document.getElementById('editRedirectTarget').value.trim();
+
+      if (!slug) {
+        alert('短碼不能是空的');
+        return;
+      }
+      if (target && !/^https?:\/\//i.test(target)) {
+        target = 'https://' + target;
+      }
+
+      const payload = {
+        slug: slug,
+        label: label || null,
+        target_url: target || null,
+        updated_at: new Date().toISOString()
+      };
+
+      const btn = document.getElementById('btnSaveRedirectEdit');
+      btn.innerText = '處理中...'; btn.disabled = true;
+      try {
+        let error;
+        if (id) {
+          ({ error } = await supabaseClient.from('redirects').update(payload).eq('id', id));
+        } else {
+          ({ error } = await supabaseClient.from('redirects').insert([payload]));
+        }
+        if (error) throw error;
+        closeEditRedirectModal();
+        await loadRedirectsData();
+      } catch (e) {
+        alert('儲存失敗：' + e.message);
+      }
+      btn.innerText = '💾 儲存'; btn.disabled = false;
+    }
+
+    async function executeDeleteRedirect() {
+      const id = document.getElementById('editRedirectId').value;
+      if (!id) return;
+      try {
+        const { error } = await supabaseClient.from('redirects').delete().eq('id', id);
+        if (error) throw error;
+        document.getElementById('redirectConfirmModal').style.display = 'none';
+        closeEditRedirectModal();
+        await loadRedirectsData();
+      } catch (e) {
+        alert('刪除失敗：' + e.message);
+      }
     }
     // ------------------------------------------------------------------
 
