@@ -976,7 +976,7 @@
         card.className = 'p-card sd-ui-box';
         card.style = outOfStockStyle;
         
-        const isAboveFold = index < 4;
+        const isAboveFold = index < 8;
         
         // 核心優化：如果有 Supabase 上傳的縮圖，就優先用它！否則找 GitHub 的
         const thumbWebpPath = safeThumbUrl ? safeThumbUrl : `./images/${safeBarcode}_thumb.webp`;
