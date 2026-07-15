@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+
+const desc = '找不到頁面，或正在為您導向正確的位置。';
+---
+<Base title="轉址中⋯｜高雄郵局企劃行銷科" description={desc}>
+  <main class="container" style="max-width:600px; text-align:center; padding-top:60px;">
+    <div class="sd-ui-box">
+      <h1 id="goTitle" style="font-size:22px;">🔄 轉址中，請稍候...</h1>
+      <p id="goMsg" style="color:var(--sd-text-muted); font-weight:normal;">正在為您導向正確的頁面</p>
+    </div>
+  </main>
+</Base>
+
+<script>
+  import { supabase } from '../lib/supabase.js';
+
+  const HOME = import.meta.env.BASE_URL || '/';
+
+  function showFallback(title, html) {
+    const t = document.getElementById('goTitle');
+    const m = document.getElementById('goMsg');
+    if (t) t.textContent = title;
+    if (m) m.innerHTML = html;
+  }
+
+  async function run() {
+    const path = window.location.pathname;
+    // 只處理 /go/短碼/ 這種網址（短碼固定 6 碼英數字，由後台自動產生）
+    const match = path.match(/\/go\/([A-Za-z0-9]{6})\/?$/);
+
+    if (!match) {
+      showFallback(
+        '😢 找不到這個頁面',
+        `網址可能打錯了，或內容已經下架。<br><a href="${HOME}" style="color:var(--sd-wood-dark); font-weight:bold;">回到首頁</a>`
+      );
+      return;
+    }
+
+    const slug = match[1];
+    try {
+      const { data, error } = await supabase
+        .from('redirects')
+        .select('target_url')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      const target = data && data.target_url ? data.target_url : HOME;
+      window.location.replace(target);
+    } catch (e) {
+      // 查詢失敗時，安全預設：導回官網首頁
+      window.location.replace(HOME);
+    }
+  }
+
+  run();
+</script>
