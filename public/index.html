@@ -792,7 +792,8 @@
       }
     }
 
-    function updateDistricts() {
+    // ★ 只負責重建鄉鎮市區選單，不動到 GPS 座標（給 GPS 定位流程專用）
+    function rebuildDistrictOptions() {
       const city = document.getElementById('citySelect').value;
       const distSel = document.getElementById('districtSelect');
       if (city === '高雄市') {
@@ -804,6 +805,12 @@
         distSel.innerHTML = '<option value="" selected>（其他縣市不需選擇）</option>';
         distSel.disabled = true;
       }
+    }
+
+    // ★ 使用者「手動」切換縣市下拉選單時呼叫：重建選單，並清除舊的 GPS 座標
+    // （手動選擇代表要以選單為準，不該繼續套用先前的 GPS 定位結果）
+    function updateDistricts() {
+      rebuildDistrictOptions();
       saveLocation();
       userLat = null;
       userLng = null;
@@ -1325,7 +1332,7 @@
            // ★ 下拉選單只剩「高雄市」與「其他縣市」，只需判斷偵測到的縣市是否為高雄市
            const isKaohsiung = city === '高雄市';
            citySel.value = isKaohsiung ? '高雄市' : '其他縣市';
-           updateDistricts();
+           rebuildDistrictOptions(); // ★ 用不會清空 userLat/userLng 的版本，GPS 座標才不會被自己蓋掉
 
            if (isKaohsiung) {
              const matchedDist = Array.from(distSel.options).find(opt => dist.includes(opt.value) || opt.value.includes(dist));
