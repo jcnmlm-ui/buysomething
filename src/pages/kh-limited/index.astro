@@ -28,7 +28,10 @@ const itemListLd = {
     '@type': 'ListItem',
     position: i + 1,
     name: c.name,
-    url: new URL(c.keywordUrl, Astro.site).href,
+    // ★ 只在有開箱文章時才給 url（指向可被收錄的靜態文章頁）。
+    //   不要指向 /?keyword= 這種帶參數的首頁網址——canonical 指回首頁，
+    //   Google 只會把它們歸類成「替代頁面」，徒增 GSC 報表雜訊。
+    ...(c.articleUrl ? { url: new URL(c.articleUrl, Astro.site).href } : {}),
   })),
 };
 ---
