@@ -31,7 +31,10 @@ export async function getPublishedArticles() {
     if (error) throw error;
     return (data || []).filter(isLive);
   } catch (e) {
-    console.warn('\n[articles] 無法從 Supabase 取得資料（' + e.message + '），改用備援示意資料建置。部署時請確認 CI 可連線 Supabase。\n');
+    // ★ CI（GitHub Actions）連不上 Supabase 時直接讓建置失敗，
+    //   保留上一版正常的網站，避免部署出「所有文章都變 404」的版本被 Google 爬到。
+    if (process.env.CI) throw new Error('[articles] CI 建置無法連線 Supabase：' + e.message);
+    console.warn('\n[articles] 無法從 Supabase 取得資料（' + e.message + '），改用備援示意資料建置（僅限本機開發）。\n');
     return SAMPLE.filter(isLive);
   }
 }

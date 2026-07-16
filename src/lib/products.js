@@ -25,7 +25,9 @@ export async function getKhLimitedProducts() {
     if (error) throw error;
     return data || [];
   } catch (e) {
-    console.warn('\n[kh-limited] 無法從 Supabase 取得資料（' + e.message + '），改用備援示意資料建置。部署時請確認 CI 可連線 Supabase。\n');
+    // ★ CI 建置失敗即中止，避免部署出資料不完整的版本被 Google 爬到
+    if (process.env.CI) throw new Error('[kh-limited] CI 建置無法連線 Supabase：' + e.message);
+    console.warn('\n[kh-limited] 無法從 Supabase 取得資料（' + e.message + '），改用備援示意資料建置（僅限本機開發）。\n');
     return SAMPLE;
   }
 }
