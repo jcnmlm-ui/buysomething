@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>郵票編輯器 · 收藏遊戲風 v11</title>
+<title>郵票編輯器 · 收藏遊戲風 v15(新增顯示縮放)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Huninn&family=Baloo+2:wght@500;600;700;800&family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
@@ -81,14 +81,17 @@
     text-shadow: 0 1px 0 rgba(255,255,255,0.45);
   }
   header p { margin: 12px 0 0; font-size: 12.5px; color: #A9825A; font-weight: 400; }
+  .header-actions { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
   .help-btn {
-    margin-top: 12px; display: inline-block;
+    display: inline-block;
     background: linear-gradient(180deg, #9FEEDA 0%, var(--mint) 55%, var(--mint-deep) 100%);
     border: 3px solid var(--brown-900);
     color: var(--brown-900); padding: 8px 20px; border-radius: 999px; font-size: 12.5px; font-weight: 400;
     cursor: pointer; box-shadow: 0 4px 0 #1F8B70;
     font-family: 'Huninn', 'Baloo 2', 'Noto Sans TC', sans-serif;
+    transition: transform .15s cubic-bezier(.34,1.4,.64,1), box-shadow .15s ease, filter .15s ease;
   }
+  .help-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
   .help-btn:active { transform: translateY(4px); box-shadow: none; }
 
   .layout {
@@ -104,9 +107,32 @@
     background: var(--cream); border: 3px solid var(--brown-900); color: var(--brown-900);
     padding: 9px 22px; border-radius: 999px; font-size: 13px; font-weight: 400;
     cursor: pointer; box-shadow: 0 4px 0 var(--brown-700); font-family: 'Huninn', 'Baloo 2', 'Noto Sans TC', sans-serif;
+    transition: transform .15s cubic-bezier(.34,1.4,.64,1), box-shadow .15s ease, background .15s ease;
   }
+  .history-btn:hover:not(:disabled) { background: var(--sand); transform: translateY(-1px); }
   .history-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: none; }
   .history-btn:disabled { opacity: 0.4; cursor: default; box-shadow: 0 4px 0 var(--line); }
+
+  .zoom-bar { display: flex; gap: 8px; align-items: center; }
+  .zoom-btn {
+    background: var(--cream); border: 3px solid var(--brown-900); color: var(--brown-900);
+    width: 40px; height: 40px; border-radius: 999px; font-size: 17px; font-weight: 700;
+    cursor: pointer; box-shadow: 0 4px 0 var(--brown-700);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Huninn', 'Baloo 2', 'Noto Sans TC', sans-serif;
+    transition: transform .15s cubic-bezier(.34,1.4,.64,1), box-shadow .15s ease, background .15s ease;
+  }
+  .zoom-btn:hover { background: var(--sand); transform: translateY(-1px); }
+  .zoom-btn:active { transform: translateY(4px); box-shadow: none; }
+  .zoom-reset {
+    background: var(--cream); border: 3px solid var(--brown-900); color: var(--ink-soft);
+    padding: 0 16px; height: 40px; border-radius: 999px; font-size: 12.5px; font-weight: 400;
+    cursor: pointer; box-shadow: 0 4px 0 var(--brown-700); min-width: 78px;
+    font-family: 'Huninn', 'Baloo 2', 'Noto Sans TC', sans-serif;
+    transition: transform .15s cubic-bezier(.34,1.4,.64,1), box-shadow .15s ease, background .15s ease;
+  }
+  .zoom-reset:hover { background: var(--sand); transform: translateY(-1px); }
+  .zoom-reset:active { transform: translateY(4px); box-shadow: none; }
 
   .stamp-outer {
     position: relative; background: var(--stamp-mat);
@@ -118,6 +144,23 @@
   .stamp-outer svg.perf { position: absolute; inset: 0; pointer-events: none; }
   .stamp-outer .canvas-container { touch-action: none; }
   canvas { display: block; border-radius: 6px; box-shadow: 0 0 0 3px #fff; }
+
+  .stamp-loading {
+    position: absolute; inset: 20px; z-index: 5;
+    background: #fff; border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    min-width: 300px; min-height: 380px;
+  }
+  .stamp-loading .icon { font-size: 46px; animation: stampBounce 1.1s ease-in-out infinite; }
+  .stamp-loading .text {
+    font-size: 13px; color: var(--ink-soft); font-weight: 400;
+    font-family: 'Huninn', 'Baloo 2', 'Noto Sans TC', sans-serif;
+  }
+  .stamp-loading.hide { display: none; }
+  @keyframes stampBounce {
+    0%, 100% { transform: translateY(0) rotate(-10deg); }
+    50% { transform: translateY(-14px) rotate(10deg); }
+  }
 
   .panel {
     background: var(--cream); border-radius: 26px; padding: 22px 24px;
@@ -150,12 +193,13 @@
     color: var(--brown-900); border-radius: 999px; font-size: 13.5px; font-weight: 400;
     cursor: pointer; border: 3px solid var(--brown-900); margin-bottom: 9px;
     box-shadow: 0 5px 0 var(--brown-700);
-    transition: transform .05s;
+    transition: transform .15s cubic-bezier(.34,1.4,.64,1), box-shadow .15s ease, filter .15s ease;
     -webkit-tap-highlight-color: transparent;
     font-family: 'Huninn', 'Baloo 2', 'Noto Sans TC', sans-serif;
     letter-spacing: 0.3px;
   }
-  .btn:active { transform: translateY(5px); box-shadow: none; }
+  .btn:hover { filter: brightness(1.07); transform: translateY(-1px); }
+  .btn:active { transform: translateY(5px); box-shadow: none; filter: none; }
   .btn.secondary { background: linear-gradient(180deg,#9FEEDA 0%, var(--mint) 55%, var(--mint-deep) 100%); box-shadow: 0 5px 0 #1F8B70; }
   .btn.lavender { background: linear-gradient(180deg,#CDEBF9 0%, var(--sky) 55%, var(--sky-deep) 100%); box-shadow: 0 5px 0 #2E7FA8; }
   .btn.tiny { padding: 9px 0; font-size: 12px; }
@@ -172,8 +216,9 @@
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 3px 0 var(--brown-700);
     -webkit-tap-highlight-color: transparent;
+    transition: transform .15s cubic-bezier(.34,1.4,.64,1), box-shadow .15s ease, border-color .15s ease;
   }
-  .sticker-item:hover { border-color: var(--gold-deep); }
+  .sticker-item:hover { border-color: var(--gold-deep); transform: translateY(-1px); }
   .sticker-item:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--brown-700); }
   .sticker-item img { width: 60%; height: 60%; object-fit: contain; }
   .sticker-label {
@@ -195,8 +240,10 @@
     border: 2px solid var(--line); background: #fff; cursor: pointer; font-size: 11px;
     padding: 5px 9px; border-radius: 10px; color: var(--ink-soft); font-weight: 400;
     -webkit-tap-highlight-color: transparent;
+    transition: background .15s ease, border-color .15s ease, color .15s ease, transform .15s cubic-bezier(.34,1.4,.64,1);
   }
-  .icon-btn:hover { background: var(--sand); border-color: var(--gold-deep); color: var(--brown-900); }
+  .icon-btn:hover { background: var(--sand); border-color: var(--gold-deep); color: var(--brown-900); transform: translateY(-1px); }
+  .icon-btn:active { transform: translateY(1px); }
 
   .prop-row { margin-bottom: 12px; }
   .prop-row label { display: block; font-size: 11.5px; font-weight: 400; margin-bottom: 5px; color: var(--brown-900); }
@@ -214,8 +261,10 @@
   .align-btn {
     padding: 8px 0; border-radius: 12px; border: 2px solid var(--line); background: #fff;
     font-size: 11px; cursor: pointer; color: var(--ink); font-weight: 400;
+    transition: background .15s ease, border-color .15s ease, transform .15s cubic-bezier(.34,1.4,.64,1);
   }
-  .align-btn:hover { background: var(--sand); border-color: var(--gold-deep); }
+  .align-btn:hover { background: var(--sand); border-color: var(--gold-deep); transform: translateY(-1px); }
+  .align-btn:active { transform: translateY(1px); }
 
   .legend { font-size: 11.5px; color: var(--ink-soft); }
   .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-weight: 400; }
@@ -240,8 +289,10 @@
     padding: 12px 18px; border-radius: 999px; font-weight: 400; font-size: 13px;
     box-shadow: 0 5px 0 var(--brown-700); cursor: pointer;
     font-family: 'Huninn', 'Baloo 2', 'Noto Sans TC', sans-serif;
+    transition: transform .15s cubic-bezier(.34,1.4,.64,1), box-shadow .15s ease, filter .15s ease;
   }
-  .admin-fab:active { transform: translateY(5px); box-shadow: none; }
+  .admin-fab:hover { filter: brightness(1.08); transform: translateY(-2px); }
+  .admin-fab:active { transform: translateY(5px); box-shadow: none; filter: none; }
 
   .modal-overlay {
     display: none; position: fixed; inset: 0; background: rgba(92,58,31,0.5);
@@ -258,8 +309,10 @@
   .modal-close {
     border: 2px solid var(--brown-900); background: var(--coral); color: #fff; border-radius: 50%;
     width: 32px; height: 32px; cursor: pointer; font-weight: 400; box-shadow: 0 3px 0 var(--coral-deep);
+    transition: transform .15s cubic-bezier(.34,1.4,.64,1), box-shadow .15s ease, filter .15s ease;
   }
-  .modal-close:active { transform: translateY(3px); box-shadow: none; }
+  .modal-close:hover { filter: brightness(1.08); transform: translateY(-1px); }
+  .modal-close:active { transform: translateY(3px); box-shadow: none; filter: none; }
   .db-status {
     font-size: 11px; padding: 5px 12px; border-radius: 999px; display: inline-block; margin-bottom: 12px;
     background: var(--sand); color: var(--ink); font-weight: 400; border: 2px solid var(--brown-300);
@@ -270,7 +323,9 @@
     flex: 1; min-width: 100px; padding: 10px 0; border-radius: 999px; border: 2px solid var(--line);
     background: #fff; font-size: 12px; cursor: pointer; font-weight: 400; color: var(--ink-soft);
     font-family: 'Huninn', 'Baloo 2', 'Noto Sans TC', sans-serif;
+    transition: background .15s ease, border-color .15s ease, color .15s ease, transform .15s cubic-bezier(.34,1.4,.64,1);
   }
+  .tab-btn:hover { background: var(--sand); transform: translateY(-1px); }
   .tab-btn.active { background: var(--gold); border-color: var(--brown-900); color: var(--brown-900); }
   .tab-pane { display: none; }
   .tab-pane.active { display: block; }
@@ -309,8 +364,10 @@
     text-decoration: none; box-shadow: 0 4px 0 #2E7FA8; margin-bottom: 10px;
     border: 3px solid var(--brown-900);
     font-family: 'Huninn', 'Baloo 2', 'Noto Sans TC', sans-serif;
+    transition: transform .15s cubic-bezier(.34,1.4,.64,1), box-shadow .15s ease, filter .15s ease;
   }
-  .video-link:active { transform: translateY(4px); box-shadow: none; }
+  .video-link:hover { filter: brightness(1.07); transform: translateY(-1px); }
+  .video-link:active { transform: translateY(4px); box-shadow: none; filter: none; }
 
   .ctx-menu {
     display: none; position: fixed; z-index: 50; min-width: 150px;
@@ -320,6 +377,7 @@
   .ctx-menu.open { display: block; }
   .ctx-item {
     padding: 9px 14px; font-size: 12.5px; cursor: pointer; border-radius: 10px; color: var(--ink); font-weight: 400;
+    transition: background .12s ease;
   }
   .ctx-item:hover { background: var(--sand); }
   .ctx-item.danger:hover { background: #FFD9D2; color: var(--coral-deep); }
@@ -338,8 +396,20 @@
     position: absolute; top: 18px; right: 22px;
     border: none; background: rgba(255,255,255,0.15); color: #fff; border-radius: 50%;
     width: 42px; height: 42px; cursor: pointer; font-size: 18px; font-weight: 400;
+    transition: background .15s ease, transform .15s cubic-bezier(.34,1.4,.64,1);
   }
-  .preview-close:hover { background: rgba(255,255,255,0.3); }
+  .preview-close:hover { background: rgba(255,255,255,0.3); transform: scale(1.06); }
+  .mask-toggle-btn {
+    position: absolute; top: 18px; left: 22px;
+    border: 3px solid var(--brown-900); background: var(--mint); color: var(--brown-900);
+    border-radius: 999px; padding: 9px 18px; font-size: 12.5px; font-weight: 400; cursor: pointer;
+    box-shadow: 0 4px 0 var(--mint-deep);
+    font-family: 'Huninn', 'Baloo 2', 'Noto Sans TC', sans-serif;
+    transition: transform .15s cubic-bezier(.34,1.4,.64,1), box-shadow .15s ease, background .15s ease, filter .15s ease;
+  }
+  .mask-toggle-btn:hover { filter: brightness(1.07); transform: translateY(-1px); }
+  .mask-toggle-btn:active { transform: translateY(4px); box-shadow: none; filter: none; }
+  .mask-toggle-btn[data-on="false"] { background: var(--coral); box-shadow: 0 4px 0 var(--coral-deep); }
   .preview-hint {
     position: absolute; bottom: 26px; right: 26px; display: flex; align-items: center; gap: 12px;
   }
@@ -349,8 +419,10 @@
     color: var(--brown-900); border-radius: 999px;
     padding: 12px 24px; font-size: 14px; font-weight: 400; cursor: pointer;
     box-shadow: 0 5px 0 var(--brown-700); font-family: 'Huninn', 'Baloo 2', 'Noto Sans TC', sans-serif;
+    transition: transform .15s cubic-bezier(.34,1.4,.64,1), box-shadow .15s ease, filter .15s ease;
   }
-  .preview-download:active { transform: translateY(5px); box-shadow: none; }
+  .preview-download:hover { filter: brightness(1.07); transform: translateY(-1px); }
+  .preview-download:active { transform: translateY(5px); box-shadow: none; filter: none; }
 
   /* scrollbars */
   .panel::-webkit-scrollbar, .layer-list::-webkit-scrollbar, .sticker-grid::-webkit-scrollbar, .modal::-webkit-scrollbar {
@@ -375,18 +447,27 @@
   <header>
     <div class="badge-title"><h1>🎫 郵票編輯器 · 收藏遊戲風 v11</h1></div>
     <p>白色畫布底色 · 雲端設計 14 天自動清理</p>
-    <button class="help-btn" id="helpBtn">❓ 操作教學</button>
+    <div class="header-actions">
+      <button class="history-btn" id="undoBtn" disabled>↩ 上一步</button>
+      <button class="help-btn" id="helpBtn">❓ 操作教學</button>
+      <button class="history-btn" id="redoBtn" disabled>↪ 下一步</button>
+    </div>
   </header>
 
   <div class="layout">
     <div class="canvas-col" id="canvasCol">
-      <div class="history-bar">
-        <button class="history-btn" id="undoBtn" disabled>↩ 上一步</button>
-        <button class="history-btn" id="redoBtn" disabled>↪ 下一步</button>
-      </div>
       <div class="stamp-outer" id="stampOuter">
         <svg class="perf" id="perfSvg"></svg>
+        <div class="stamp-loading" id="stampLoading">
+          <div class="icon">🎫</div>
+          <div class="text">版型載入中…</div>
+        </div>
         <canvas id="stampCanvas" width="400" height="520"></canvas>
+      </div>
+      <div class="zoom-bar">
+        <button class="zoom-btn" id="zoomOutBtn" title="縮小顯示">－</button>
+        <button class="zoom-reset" id="zoomResetBtn" title="適應視窗大小">⤢ <span id="zoomPct">100%</span></button>
+        <button class="zoom-btn" id="zoomInBtn" title="放大顯示">＋</button>
       </div>
     </div>
 
@@ -549,10 +630,25 @@
 
 <div class="preview-overlay" id="previewOverlay">
   <button class="preview-close" id="previewClose">✕</button>
+  <button class="mask-toggle-btn" id="previewMaskToggleBtn" data-on="true">👁 顯示版型遮罩</button>
   <img id="previewImg" alt="設計預覽">
   <div class="preview-hint">
     <span>喜歡這個設計嗎?</span>
     <button class="preview-download" id="previewDownload">⬇ 下載 300 DPI 圖檔</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="exportMaskModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>📦 匯出設定</h2>
+      <button class="modal-close" id="exportMaskClose">✕</button>
+    </div>
+    <p class="hint">請選擇這次匯出的圖檔要不要包含版型的固定圖文(遮罩)。</p>
+    <button class="btn" id="exportWithMaskBtn">✅ 含版型遮罩(交件送印用)</button>
+    <p class="hint" style="margin: 0 0 16px;">輸出會保留版型固定的圖文,例如標題、邊框、品牌字樣,適合直接送印或作為最終交件檔案。</p>
+    <button class="btn secondary" id="exportWithoutMaskBtn">🎨 不含版型遮罩(純設計稿)</button>
+    <p class="hint" style="margin:0;">只輸出您自己加入的照片、文字、貼紙、畫筆,不含版型固定圖文,方便另外後製或套用到別的版型。</p>
   </div>
 </div>
 
@@ -755,20 +851,42 @@
   canvas.on('object:added', () => pushHistory());
   canvas.on('object:removed', () => pushHistory());
 
-  // ================= 響應式畫布縮放 =================
+  // ================= 響應式畫布縮放(含手動縮放,僅影響編輯畫面顯示大小,不影響輸出解析度) =================
+  let manualZoomFactor = 1; // 1 = 沿用自動適應視窗的大小;此倍率只餵給 canvas.setZoom,EXPORT_PX_W/H 完全獨立計算,不受影響
+  const MANUAL_ZOOM_MIN = 0.4, MANUAL_ZOOM_MAX = 2.5;
+  const ZOOM_STEP = 1.15;
+
   function applyResponsiveZoom() {
     const col = document.getElementById('canvasCol');
     const padding = 36 + 24;
     const availW = Math.max(260, col.clientWidth - padding);
     const availH = Math.max(300, window.innerHeight - 280);
-    let zoom = Math.min(availW / CANVAS_W, availH / CANVAS_H);
-    zoom = Math.max(0.45, Math.min(zoom, 2.6));
+    let autoZoom = Math.min(availW / CANVAS_W, availH / CANVAS_H);
+    autoZoom = Math.max(0.45, Math.min(autoZoom, 2.6));
+    const zoom = Math.max(0.15, Math.min(autoZoom * manualZoomFactor, 4));
     ZOOM = zoom;
     canvas.setDimensions({ width: Math.round(CANVAS_W * zoom), height: Math.round(CANVAS_H * zoom) });
     canvas.setZoom(zoom);
     redrawPerforation();
     canvas.renderAll();
+    updateZoomLabel();
   }
+  function updateZoomLabel() {
+    const el = document.getElementById('zoomPct');
+    if (el) el.textContent = Math.round(manualZoomFactor * 100) + '%';
+  }
+  document.getElementById('zoomInBtn').addEventListener('click', () => {
+    manualZoomFactor = Math.min(MANUAL_ZOOM_MAX, manualZoomFactor * ZOOM_STEP);
+    applyResponsiveZoom();
+  });
+  document.getElementById('zoomOutBtn').addEventListener('click', () => {
+    manualZoomFactor = Math.max(MANUAL_ZOOM_MIN, manualZoomFactor / ZOOM_STEP);
+    applyResponsiveZoom();
+  });
+  document.getElementById('zoomResetBtn').addEventListener('click', () => {
+    manualZoomFactor = 1;
+    applyResponsiveZoom();
+  });
   let resizeTimer = null;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
@@ -991,6 +1109,11 @@
   let currentTemplateKey = null;
 
   function ensureLockedOnTop() { lockedObjects.forEach(o => canvas.bringToFront(o)); }
+  function setLockedVisible(visible) { lockedObjects.forEach(o => { o.visible = visible; }); }
+  function hideStampLoading() {
+    const el = document.getElementById('stampLoading');
+    if (el) el.classList.add('hide');
+  }
 
   function resizeCanvasKeepingContent(newW, newH) {
     const oldW = CANVAS_W, oldH = CANVAS_H;
@@ -1012,6 +1135,7 @@
     const customEntry = customTemplates.find(t => 'custom_' + t.id === key);
     if (!customEntry) return;
     currentTemplateKey = key;
+    manualZoomFactor = 1; // 換版型時重置縮放,直式/橫式都從「適應視窗」的100%開始
 
     suspendHistory = true;
     const mmW = customEntry.mmW, mmH = customEntry.mmH;
@@ -1035,12 +1159,14 @@
       updateLayerPanel();
       suspendHistory = false;
       pushHistory();
+      hideStampLoading();
     });
   }
   document.getElementById('templateSelect').addEventListener('change', e => loadTemplate(e.target.value));
 
   function showEmptyTemplateState() {
     CANVAS_W = 400; CANVAS_H = 520;
+    manualZoomFactor = 1;
     updateExportDimensions(40, 52);
     applyResponsiveZoom();
     canvas.clear();
@@ -1056,6 +1182,7 @@
     updateLayerPanel();
     suspendHistory = false;
     pushHistory();
+    hideStampLoading();
   }
 
   function renderTemplateOptions() {
@@ -1811,30 +1938,70 @@
     });
   });
 
-  // ================= 匯出與預覽(檔名含時間戳記) =================
-  function exportPngWithDpi() {
+  // ================= 匯出與預覽(檔名含時間戳記,支援版型遮罩開關) =================
+  function exportPngWithDpi(includeMask) {
+    if (includeMask === undefined) includeMask = true;
     canvas.discardActiveObject();
+    setLockedVisible(includeMask);
     canvas.renderAll();
     const multiplier = EXPORT_PX_W / canvas.getWidth();
     const dataUrl = canvas.toDataURL({ format: 'png', multiplier });
+    setLockedVisible(true); // 匯出完成後,編輯畫面一律恢復顯示遮罩,避免誤以為遮罩被刪除了
+    canvas.renderAll();
     const pngBytes = dataURLtoUint8Array(dataUrl);
     const withDpi = addPngDpi(pngBytes, DPI);
     const blob = new Blob([withDpi], { type: 'image/png' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `stamp-design-300dpi-${timestampStr()}.png`; a.click();
+    const suffix = includeMask ? '' : '-無遮罩';
+    a.href = url; a.download = `stamp-design-300dpi-${timestampStr()}${suffix}.png`; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
     updateLayerPanel();
   }
-  document.getElementById('exportBtn').addEventListener('click', exportPngWithDpi);
 
-  const previewOverlay = document.getElementById('previewOverlay');
-  document.getElementById('previewBtn').addEventListener('click', () => {
+  // 直接按「匯出設計」時,先跳出確認要不要包含版型遮罩
+  const exportMaskModal = document.getElementById('exportMaskModal');
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    exportMaskModal.classList.add('open');
+  });
+  document.getElementById('exportMaskClose').addEventListener('click', () => exportMaskModal.classList.remove('open'));
+  exportMaskModal.addEventListener('click', e => { if (e.target === exportMaskModal) exportMaskModal.classList.remove('open'); });
+  document.getElementById('exportWithMaskBtn').addEventListener('click', () => {
+    exportMaskModal.classList.remove('open');
+    exportPngWithDpi(true);
+  });
+  document.getElementById('exportWithoutMaskBtn').addEventListener('click', () => {
+    exportMaskModal.classList.remove('open');
+    exportPngWithDpi(false);
+  });
+
+  // 全螢幕預覽:可即時開關版型遮罩,下載會依照預覽當下顯示的狀態輸出
+  let previewShowMask = true;
+  function renderPreviewImage() {
     canvas.discardActiveObject();
+    setLockedVisible(previewShowMask);
     canvas.renderAll();
     updateAlignSection();
     const previewMultiplier = Math.min(3, Math.max(1.5, 1200 / canvas.getWidth()));
     document.getElementById('previewImg').src = canvas.toDataURL({ format: 'png', multiplier: previewMultiplier });
+    setLockedVisible(true); // 預覽產生完就恢復,編輯畫面不受預覽時的開關影響
+    canvas.renderAll();
+  }
+  function updateMaskToggleBtn() {
+    const btn = document.getElementById('previewMaskToggleBtn');
+    btn.textContent = previewShowMask ? '👁 顯示版型遮罩' : '🚫 已隱藏版型遮罩';
+    btn.dataset.on = previewShowMask ? 'true' : 'false';
+  }
+  document.getElementById('previewMaskToggleBtn').addEventListener('click', () => {
+    previewShowMask = !previewShowMask;
+    updateMaskToggleBtn();
+    renderPreviewImage();
+  });
+
+  const previewOverlay = document.getElementById('previewOverlay');
+  document.getElementById('previewBtn').addEventListener('click', () => {
+    updateMaskToggleBtn();
+    renderPreviewImage();
     previewOverlay.classList.add('open');
   });
   document.getElementById('previewClose').addEventListener('click', () => previewOverlay.classList.remove('open'));
@@ -1842,7 +2009,7 @@
     if (e.target === previewOverlay) previewOverlay.classList.remove('open');
   });
   document.getElementById('previewDownload').addEventListener('click', () => {
-    exportPngWithDpi();
+    exportPngWithDpi(previewShowMask);
   });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && previewOverlay.classList.contains('open')) previewOverlay.classList.remove('open');
