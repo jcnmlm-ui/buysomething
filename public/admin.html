@@ -2164,6 +2164,8 @@
       logMsg(`讀取主圖檔案：${file.name}`);
       document.getElementById('previewContainer').style.display = 'flex';
       document.getElementById('logBox').style.display = 'block';
+      document.getElementById('thumbInfo').innerText = '準備中...';
+      document.getElementById('largeInfo').innerText = '準備中...';
       
       const reader = new FileReader();
       reader.onload = function(e) {
@@ -2188,12 +2190,21 @@
       ctx.drawImage(img, sX, sY, sSize, sSize, 0, 0, targetSize, targetSize);
 
       canvas.toBlob((blob) => {
+        if (!blob) {
+          const infoId = type === 'thumb' ? 'thumbInfo' : 'largeInfo';
+          document.getElementById(infoId).innerText = '❌ 轉檔失敗';
+          logMsg(`❌ ${type === 'thumb' ? '縮圖' : '大圖'} WebP 轉檔失敗（canvas.toBlob 回傳 null）`);
+          return;
+        }
         const url = URL.createObjectURL(blob);
+        const sizeKB = (blob.size / 1024).toFixed(1);
         if (type === 'thumb') {
           document.getElementById('thumbPreview').src = url;
+          document.getElementById('thumbInfo').innerText = `✅ ${targetSize}x${targetSize} · ${sizeKB} KB`;
           processedFiles.thumb = blob;
         } else {
           document.getElementById('largePreview').src = url;
+          document.getElementById('largeInfo').innerText = `✅ ${targetSize}x${targetSize} · ${sizeKB} KB`;
           processedFiles.large = blob;
         }
       }, 'image/webp', quality);
