@@ -2350,9 +2350,15 @@
       try {
         if (processedFiles.thumb && processedFiles.large) {
           logMsg('============== 開始上傳新主圖 ==============');
-          const thumbFileName = `${barcode}_thumb.webp`;
-          const largeFileName = `${barcode}.webp`;
           const bucketName = 'product-images';
+          // ★ 加上時間戳記讓每次上傳的檔名都是全新的，避免 CDN／瀏覽器快取抓到舊圖（含已刪除的殘留圖）
+          const versionTag = Date.now();
+          const thumbFileName = `${barcode}_thumb_${versionTag}.webp`;
+          const largeFileName = `${barcode}_${versionTag}.webp`;
+
+          // 先記住舊檔案網址，等新圖上傳成功後再清掉，避免 Storage 留下孤兒檔案
+          const oldImgUrl = existingItem ? existingItem.img : null;
+          const oldThumbUrl = existingItem ? existingItem.thumb : null;
 
           const { error: thumbErr } = await supabaseClient.storage.from(bucketName).upload(thumbFileName, processedFiles.thumb, { upsert: true, contentType: 'image/webp' });
           if (thumbErr) throw thumbErr;
@@ -2366,6 +2372,18 @@
           updatePayload.thumb_url = thumbUrl;
           updatePayload.image_url = largeUrl;
           updatePayload.img_url = largeUrl; 
+
+          logMsg('✅ 新主圖上傳完成，網址為全新檔名，不會有快取殘留問題');
+
+          // 新圖確定上傳成功後，才清掉舊的實體檔案
+          if (oldImgUrl && oldImgUrl.includes('supabase.co')) {
+            const oldFileName = oldImgUrl.substring(oldImgUrl.lastIndexOf('/') + 1);
+            await supabaseClient.storage.from(bucketName).remove([oldFileName]);
+          }
+          if (oldThumbUrl && oldThumbUrl.includes('supabase.co')) {
+            const oldThumbFileName = oldThumbUrl.substring(oldThumbUrl.lastIndexOf('/') + 1);
+            await supabaseClient.storage.from(bucketName).remove([oldThumbFileName]);
+          }
         }
 
         const { error: upErr } = await supabaseClient.from('products_master').update(updatePayload).eq('product_key', productKey);
