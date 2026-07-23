@@ -379,6 +379,7 @@
         <button class="tab-btn" onclick="switchAdminTab('tab-blog', this)">📰 專欄管理</button>
         <button class="tab-btn" onclick="switchAdminTab('tab-accounts', this)">👤 帳號管理</button>
         <button class="tab-btn" onclick="switchAdminTab('tab-redirects', this)">🔗 縮址管理</button>
+        <button class="tab-btn" onclick="switchAdminTab('tab-branch-proxy', this)">🏪 支局代管上架</button>
       </div>
 
       <div id="tab-upload" class="tab-content active">
@@ -640,12 +641,52 @@
         </div>
       </div>
 
+      <!-- ★ A級代管：協助上架不活躍的支局，效力等同於該支局自行操作 -->
+      <div id="tab-branch-proxy" class="tab-content">
+        <div class="box-container">
+          <div class="section-header">
+            <div class="header-left">
+              <h3>🏪 支局代管上架</h3>
+              <div id="proxySelectionCount" class="selection-count">請先選擇要協助的支局</div>
+            </div>
+            <div class="filters">
+              <select id="proxyBranchSelect" onchange="onProxyBranchChange()" style="min-width:200px; padding:12px; border:1px solid var(--border-color); border-radius:8px; font-size:14px; background:white; cursor:pointer;">
+                <option value="">請選擇支局...</option>
+              </select>
+              <input type="search" id="proxySearchInput" placeholder="🔍 搜尋商品名稱、條碼、組合鍵或金額..." oninput="filterProxyProducts()" disabled>
+              <select id="proxyStatusFilter" onchange="filterProxyProducts()" disabled>
+                <option value="all">全部商品</option>
+                <option value="checked">已上架</option>
+                <option value="unchecked">未上架</option>
+              </select>
+            </div>
+            <div class="controls" id="proxyControls" style="display:none;">
+               <button onclick="toggleAllProxyCheckbox(true)">全選</button>
+               <button onclick="toggleAllProxyCheckbox(false)">全取消</button>
+               <button class="btn-primary" onclick="saveProxySettings()" id="btnSaveProxy">💾 儲存上架清單</button>
+            </div>
+          </div>
+          <div style="font-size:13px; color:#94a3b8; margin:-8px 0 16px;">💡 這裡是代替支局操作，選好支局之後看到的上架清單、搜尋跟查詢功能跟該支局自己登入看到的完全一樣；按下「儲存上架清單」後效力等同於該支局自己操作，會直接覆蓋掉該支局目前的上架設定。</div>
+          <div id="proxyLoading" style="text-align: center; padding: 40px; color: var(--text-light); display:none;">資料載入中...</div>
+          <div id="proxyEmptyHint" style="text-align: center; padding: 60px; color: #94a3b8;">請先在上方選擇要協助上架的支局</div>
+          <ul id="proxyProductList" class="branch-product-list" style="display:none;"></ul>
+        </div>
+      </div>
+
       <div class="mobile-footer" id="adminMobileFooter">
         <div class="row">
           <button class="btn-mobile-secondary" onclick="toggleAllAdminCheckbox(true)">全選</button>
           <button class="btn-mobile-secondary" onclick="toggleAllAdminCheckbox(false)">全取消</button>
         </div>
         <button class="btn-mobile-save" onclick="saveAdminSettings()" id="btnSaveAdminMobile">💾 儲存權限</button>
+      </div>
+
+      <div class="mobile-footer" id="proxyMobileFooter">
+        <div class="row">
+          <button class="btn-mobile-secondary" onclick="toggleAllProxyCheckbox(true)">全選</button>
+          <button class="btn-mobile-secondary" onclick="toggleAllProxyCheckbox(false)">全取消</button>
+        </div>
+        <button class="btn-mobile-save" onclick="saveProxySettings()" id="btnSaveProxyMobile">💾 確認儲存上架清單</button>
       </div>
     </div>
 
@@ -942,6 +983,8 @@
     let myBranchId = '';
     let myAccount = '';
     let currentRole = '';
+    let currentProxyBranchId = '';
+    let currentProxyBranchName = '';
 
     let processedFiles = { thumb: null, large: null };
     let pendingBlogCover = null; 
@@ -1178,7 +1221,7 @@
           if (currentRole === 'A') {
             document.getElementById('adminArea').style.display = 'block';
             switchAdminTab('tab-upload', document.querySelector('#adminArea .tab-btn'));
-            loadAdminData(); loadLeaderboard(); loadMasterData(); loadExtraStock(); loadBlogArticles(); loadAccountsData(); loadRedirectsData();
+            loadAdminData(); loadLeaderboard(); loadMasterData(); loadExtraStock(); loadBlogArticles(); loadAccountsData(); loadRedirectsData(); loadProxyBranchOptions();
           } else {
             document.getElementById('loadingStatus').style.display = 'block';
             document.getElementById('managerContent').style.display = 'none';
@@ -1215,6 +1258,7 @@
       if (btnElement) btnElement.classList.add('active');
       else document.querySelector(`[onclick="switchAdminTab('${tabId}', this)"]`).classList.add('active');
       document.getElementById('adminMobileFooter').style.display = (window.innerWidth <= 768 && tabId === 'tab-permissions') ? 'flex' : 'none';
+      updateProxyMobileFooter();
     }
 
     function switchBranchTab(tabId, btnElement) {
@@ -3057,6 +3101,249 @@
         showCustomToast("儲存失敗：" + err.message);
       }
       
+      btnDesk.innerText = "💾 儲存上架清單"; btnDesk.disabled = false;
+      btnMob.innerText = "💾 確認儲存上架清單"; btnMob.disabled = false;
+    }
+
+    // ============ ★ A級代管支局上架（功能與寫入效果完全比照 B 級支局自行操作） ============
+
+    async function loadProxyBranchOptions() {
+      try {
+        const branches = await fetchAllData('users', 'branch_id, branch_name', [{op: 'eq', col: 'role', val: 'B'}]);
+        branches.sort((a, b) => String(a.branch_name || '').localeCompare(String(b.branch_name || ''), 'zh-Hant'));
+        const select = document.getElementById('proxyBranchSelect');
+        select.innerHTML = '<option value="">請選擇支局...</option>' + branches.map(b => `<option value="${b.branch_id}">${b.branch_name}</option>`).join('');
+      } catch (err) {
+        showCustomToast('載入支局清單失敗：' + err.message);
+      }
+    }
+
+    function onProxyBranchChange() {
+      const select = document.getElementById('proxyBranchSelect');
+      const branchId = select.value;
+      const branchName = select.options[select.selectedIndex] ? select.options[select.selectedIndex].text : '';
+      currentProxyBranchId = branchId;
+      currentProxyBranchName = branchName;
+
+      document.getElementById('proxySearchInput').value = '';
+      document.getElementById('proxyStatusFilter').value = 'all';
+
+      if (!branchId) {
+        document.getElementById('proxyProductList').style.display = 'none';
+        document.getElementById('proxyProductList').innerHTML = '';
+        document.getElementById('proxyControls').style.display = 'none';
+        document.getElementById('proxySearchInput').disabled = true;
+        document.getElementById('proxyStatusFilter').disabled = true;
+        document.getElementById('proxyEmptyHint').style.display = 'block';
+        document.getElementById('proxySelectionCount').innerText = '請先選擇要協助的支局';
+        updateProxyMobileFooter();
+        return;
+      }
+
+      document.getElementById('proxyEmptyHint').style.display = 'none';
+      document.getElementById('proxySearchInput').disabled = false;
+      document.getElementById('proxyStatusFilter').disabled = false;
+      loadProxyBranchData(branchId);
+      updateProxyMobileFooter();
+    }
+
+    async function loadProxyBranchData(branchId) {
+      document.getElementById('proxyLoading').style.display = 'block';
+      document.getElementById('proxyProductList').style.display = 'none';
+      document.getElementById('proxyControls').style.display = 'none';
+      try {
+        const allowlistData = await fetchAllData('global_allowlist', 'product_key');
+        const allowedKeys = allowlistData.map(r => r.product_key);
+
+        const masterData = await fetchAllData('products_master', '*');
+        const mainMap = {};
+        masterData.forEach(row => mainMap[row.product_key] = row);
+
+        const invData = await fetchAllData('inventory', '*', [{op: 'eq', col: 'branch_id', val: branchId}]);
+
+        const listingsData = await fetchAllData('branch_listings', '*', [{op: 'eq', col: 'branch_id', val: branchId}, {op: 'eq', col: 'is_listed', val: true}]);
+        const selectedItemsMap = {};
+        listingsData.forEach(row => {
+          if (allowedKeys.includes(row.product_key)) {
+            selectedItemsMap[row.product_key] = row.extra_qty || 0;
+          }
+        });
+
+        const branchProducts = invData.map(row => {
+          const info = mainMap[row.product_key];
+          return {
+            key: row.product_key,
+            barcode: info ? (info.barcode || row.product_key) : row.product_key,
+            name: info ? (info.original_name || info.name || "未命名商品") : "未命名商品",
+            originalName: info ? (info.original_name || "") : "",
+            price: info ? (info.price || 0) : 0,
+            date: (info && info.publish_date && info.publish_date !== 'null') ? info.publish_date : "未提供",
+            img: info ? (info.img_url || "") : "",
+            qty: row.qty || 0
+          };
+        }).filter(p => allowedKeys.includes(p.key));
+
+        // 若這次選的支局跟畫面切換過程中被再次改變，就不要用過期的資料覆蓋畫面
+        if (branchId !== currentProxyBranchId) return;
+        renderProxyBranch({ allProducts: branchProducts, selectedItemsMap: selectedItemsMap });
+      } catch (err) {
+        document.getElementById('proxyLoading').innerHTML = `<div style="color:#ef4444; font-weight:bold;">載入出錯：${err.message}</div>`;
+      }
+    }
+
+    function renderProxyBranch(data) {
+      const list = document.getElementById('proxyProductList');
+      list.innerHTML = '';
+      let checkedCount = 0;
+
+      data.allProducts.forEach(p => {
+        const isChecked = data.selectedItemsMap.hasOwnProperty(p.key);
+        const extraQty = isChecked ? (data.selectedItemsMap[p.key] || 0) : 0;
+        if (isChecked) checkedCount++;
+
+        const li = document.createElement('li');
+        li.className = isChecked ? 'item-card proxy-item selected' : 'item-card proxy-item';
+        li.setAttribute('data-key', p.key);
+        li.setAttribute('data-barcode', p.barcode);
+        li.setAttribute('data-name', p.name);
+        li.setAttribute('data-originalname', p.originalName);
+        li.setAttribute('data-price', p.price);
+
+        const qtyBadgeClass = p.qty <= 5 ? 'qty-badge low' : 'qty-badge';
+
+        li.innerHTML = `
+          <div class="card-header">
+            <div class="barcode">條碼: ${p.barcode}</div>
+            <div class="${qtyBadgeClass}">A庫: ${p.qty}</div>
+          </div>
+          <div class="desc">${p.name}</div>
+          <div class="card-footer">
+            <div class="info-group">
+              <div class="price">$${p.price}</div>
+              <div class="date-label">發行日期：${p.date}</div>
+            </div>
+            ${p.img ? `<button class="btn-img" onclick="openImg('${p.name}', '${p.img}')">圖片預覽</button>` : ''}
+          </div>
+          <label class="branch-action">
+            <input type="checkbox" class="proxy-cb" value="${p.key}" ${isChecked ? 'checked' : ''} onchange="updateProxyCardStyle(this)">
+            <span>${isChecked ? '已上架' : '尚未上架'}</span>
+          </label>
+          <div class="extra-qty-container" style="display: ${isChecked ? 'flex' : 'none'};">
+            <span style="font-size:13px; color:var(--text-light); font-weight:bold;">現場額外數量:</span>
+            <button class="btn-qty" type="button" onclick="changeExtraQty(this, -1)">-</button>
+            <input type="number" class="extra-qty-input" value="${extraQty}" min="0" onchange="validateExtraQty(this)">
+            <button class="btn-qty" type="button" onclick="changeExtraQty(this, 1)">+</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+
+      document.getElementById('proxySelectionCount').innerText = `${currentProxyBranchName}　已上架: ${checkedCount} 筆`;
+      document.getElementById('proxyLoading').style.display = 'none';
+      document.getElementById('proxyProductList').style.display = 'grid';
+      document.getElementById('proxyControls').style.display = 'flex';
+      updateProxyMobileFooter();
+    }
+
+    function updateProxyCardStyle(checkbox) {
+      const card = checkbox.closest('.item-card');
+      const span = checkbox.nextElementSibling;
+      const extraContainer = card.querySelector('.extra-qty-container');
+
+      if (checkbox.checked) {
+        card.classList.add('selected');
+        span.innerText = '已上架';
+        extraContainer.style.display = 'flex';
+      } else {
+        card.classList.remove('selected');
+        span.innerText = '尚未上架';
+        extraContainer.style.display = 'none';
+        extraContainer.querySelector('.extra-qty-input').value = 0;
+      }
+      const totalChecked = document.querySelectorAll('.proxy-cb:checked').length;
+      document.getElementById('proxySelectionCount').innerText = `${currentProxyBranchName}　已上架: ${totalChecked} 筆`;
+    }
+
+    function filterProxyProducts() {
+      const searchText = document.getElementById('proxySearchInput').value.toLowerCase();
+      const statusFilter = document.getElementById('proxyStatusFilter').value;
+      const items = document.querySelectorAll('.proxy-item');
+
+      items.forEach(item => {
+        const key = (item.dataset.key || '').toLowerCase();
+        const barcode = (item.dataset.barcode || '').toLowerCase();
+        const name = (item.dataset.name || '').toLowerCase();
+        const originalName = (item.dataset.originalname || '').toLowerCase();
+        const price = (item.dataset.price || '').toLowerCase();
+        const isChecked = item.querySelector('.proxy-cb').checked;
+        const matchesSearch = key.includes(searchText) || barcode.includes(searchText) || name.includes(searchText) || originalName.includes(searchText) || price.includes(searchText);
+        let matchesStatus = true;
+        if (statusFilter === 'checked' && !isChecked) matchesStatus = false;
+        if (statusFilter === 'unchecked' && isChecked) matchesStatus = false;
+
+        if (matchesSearch && matchesStatus) item.style.display = 'flex';
+        else item.style.display = 'none';
+      });
+    }
+
+    function toggleAllProxyCheckbox(checkState) {
+      const items = document.querySelectorAll('.proxy-item');
+      items.forEach(item => {
+        if (item.style.display !== 'none') {
+          const cb = item.querySelector('.proxy-cb');
+          if (cb) { cb.checked = checkState; updateProxyCardStyle(cb); }
+        }
+      });
+    }
+
+    function updateProxyMobileFooter() {
+      const tabActive = document.getElementById('tab-branch-proxy').classList.contains('active');
+      const isMobile = window.innerWidth <= 768;
+      document.getElementById('proxyMobileFooter').style.display = (isMobile && tabActive && currentProxyBranchId) ? 'flex' : 'none';
+    }
+
+    async function saveProxySettings() {
+      if (!currentProxyBranchId) { showCustomToast('請先選擇要協助上架的支局'); return; }
+
+      const checkedBoxes = document.querySelectorAll('.proxy-cb:checked');
+      const itemsData = {};
+      checkedBoxes.forEach(cb => {
+        const card = cb.closest('.item-card');
+        const qtyInput = card.querySelector('.extra-qty-input');
+        itemsData[cb.value] = parseInt(qtyInput.value) || 0;
+      });
+
+      const btnDesk = document.getElementById('btnSaveProxy');
+      const btnMob = document.getElementById('btnSaveProxyMobile');
+      btnDesk.innerText = "儲存中..."; btnDesk.disabled = true;
+      btnMob.innerText = "儲存中..."; btnMob.disabled = true;
+      const savingBranchId = currentProxyBranchId;
+      const savingBranchName = currentProxyBranchName;
+
+      try {
+        const { error: delErr } = await supabaseClient.from('branch_listings').delete().eq('branch_id', savingBranchId);
+        if (delErr) throw delErr;
+
+        const nowISO = new Date().toISOString();
+        const inserts = Object.keys(itemsData).map(key => ({
+            branch_id: savingBranchId,
+            product_key: key,
+            is_listed: true,
+            extra_qty: itemsData[key],
+            updated_at: nowISO
+        }));
+
+        if (inserts.length > 0) {
+            const { error: insErr } = await supabaseClient.from('branch_listings').insert(inserts);
+            if (insErr) throw insErr;
+        }
+
+        await logSystemAction(myAccount, `[代管上架] 協助「${savingBranchName}」更新了上架清單與現場數量`);
+        showCustomToast(`已成功協助「${savingBranchName}」更新上架清單！`);
+      } catch (err) {
+        showCustomToast("儲存失敗：" + err.message);
+      }
+
       btnDesk.innerText = "💾 儲存上架清單"; btnDesk.disabled = false;
       btnMob.innerText = "💾 確認儲存上架清單"; btnMob.disabled = false;
     }
