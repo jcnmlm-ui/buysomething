@@ -3110,7 +3110,11 @@
     async function loadProxyBranchOptions() {
       try {
         const branches = await fetchAllData('users', 'branch_id, branch_name', [{op: 'eq', col: 'role', val: 'B'}]);
-        branches.sort((a, b) => String(a.branch_name || '').localeCompare(String(b.branch_name || ''), 'zh-Hant'));
+        branches.sort((a, b) => {
+          const numA = Number(a.branch_id), numB = Number(b.branch_id);
+          if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+          return String(a.branch_id || '').localeCompare(String(b.branch_id || ''));
+        });
         const select = document.getElementById('proxyBranchSelect');
         select.innerHTML = '<option value="">請選擇支局...</option>' + branches.map(b => `<option value="${b.branch_id}">${b.branch_name}（局號: ${b.branch_id}）</option>`).join('');
       } catch (err) {
