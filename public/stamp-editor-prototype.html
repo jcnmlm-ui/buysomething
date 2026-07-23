@@ -620,6 +620,9 @@
 <button class="admin-fab" id="adminFab">🛠 後台管理</button>
 
 <div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" data-act="copy">📋 複製</div>
+  <div class="ctx-item" data-act="duplicate">📑 複製一份</div>
+  <div class="ctx-sep"></div>
   <div class="ctx-item" data-act="up">⬆ 上移一層</div>
   <div class="ctx-item" data-act="down">⬇ 下移一層</div>
   <div class="ctx-item" data-act="toTop">⏫ 移到最上層</div>
@@ -786,6 +789,7 @@
   let lockedObjects = [];
   let photoCounter = 0;
   let drawingMode = false;
+  let clipboard = null; // 暫存已「複製」的元件(單一或多個),供 Ctrl+V / 右鍵貼上使用
 
   // ================= 歷史紀錄(復原/重做,最多50步) =================
   const MAX_HISTORY = 50;
@@ -1274,22 +1278,26 @@
     const objs = canvas.getObjects().filter(o => !o.isLocked).reverse();
     if (objs.length === 0) { list.innerHTML = '<p class="hint">尚未加入任何元件</p>'; return; }
     const active = canvas.getActiveObject();
+    const activeObjs = active ? (active.type === 'activeSelection' ? active.getObjects() : [active]) : [];
     objs.forEach(obj => {
       const row = document.createElement('div');
-      row.className = 'layer-row' + (obj === active ? ' active' : '');
+      row.className = 'layer-row' + (activeObjs.includes(obj) ? ' active' : '');
       const name = obj.layerName || (obj.type === 'i-text' ? '文字: ' + (obj.text || '').slice(0, 10) : (obj.type === 'path' ? '畫筆線稿' : '元件'));
       row.innerHTML = `
         <button class="icon-btn eye">${obj.visible === false ? '隱藏' : '顯示'}</button>
         <span class="layer-name">${name}</span>
         <button class="icon-btn up">↑</button>
         <button class="icon-btn down">↓</button>
+        <button class="icon-btn dup" title="複製這個圖層">複製</button>
         <button class="icon-btn del">✕</button>
       `;
       const nameEl = row.querySelector('.layer-name');
       if (obj.type === 'image' && obj._naturalW) {
         nameEl.title = getImageResInfo(obj);
       }
-      nameEl.addEventListener('click', () => {
+      nameEl.addEventListener('click', ev => {
+        // Shift+點選:和編輯區域一樣可以一次選取多個圖層,一起搬移/刪除/複製/右鍵操作
+        if (ev.shiftKey) { toggleLayerSelection(obj); return; }
         canvas.setActiveObject(obj); showPropertiesFor(obj); canvas.renderAll(); updateLayerPanel();
       });
       row.querySelector('.eye').addEventListener('click', ev => {
@@ -1302,11 +1310,32 @@
       row.querySelector('.down').addEventListener('click', ev => {
         ev.stopPropagation(); canvas.sendBackwards(obj); ensureLockedOnTop(); canvas.renderAll(); updateLayerPanel(); pushHistory();
       });
+      row.querySelector('.dup').addEventListener('click', ev => {
+        ev.stopPropagation(); duplicateObjects([obj]);
+      });
       row.querySelector('.del').addEventListener('click', ev => {
         ev.stopPropagation(); canvas.remove(obj); clearProperties(); canvas.renderAll(); updateLayerPanel();
       });
       list.appendChild(row);
     });
+  }
+
+  // Shift+點選圖層清單中的名稱,加入/移出目前選取範圍(對應編輯區域的 Shift+點選多選)
+  function toggleLayerSelection(obj) {
+    const current = canvas.getActiveObject();
+    const selected = current ? (current.type === 'activeSelection' ? current.getObjects().slice() : [current]) : [];
+    const idx = selected.indexOf(obj);
+    if (idx === -1) selected.push(obj); else selected.splice(idx, 1);
+    canvas.discardActiveObject();
+    if (selected.length === 1) {
+      canvas.setActiveObject(selected[0]);
+    } else if (selected.length > 1) {
+      canvas.setActiveObject(new fabric.ActiveSelection(selected, { canvas }));
+    }
+    canvas.requestRenderAll();
+    showPropertiesFor(canvas.getActiveObject());
+    updateAlignSection();
+    updateLayerPanel();
   }
 
   // ================= 屬性面板 =================
@@ -1442,19 +1471,27 @@
   canvas.on('mouse:down', opt => {
     if (opt.button === 3) {
       const target = opt.target;
-      if (target && !target.isLocked) {
+      const current = canvas.getActiveObject();
+      // 如果右鍵點到的物件本來就屬於目前的多選範圍,保留整個群組,右鍵選單的動作(複製/刪除/圖層排序等)才會套用到所有選取的物件
+      const rightClickedInsideGroup = current && current.type === 'activeSelection' &&
+        target && current.getObjects().indexOf(target) !== -1;
+
+      if (rightClickedInsideGroup) {
+        ctxTarget = current;
+      } else if (target && !target.isLocked) {
         ctxTarget = target;
         canvas.setActiveObject(target);
-        canvas.renderAll();
-        updateLayerPanel();
-        showPropertiesFor(target);
-        const ev = opt.e;
-        ctxMenu.style.left = Math.min(ev.clientX, window.innerWidth - 170) + 'px';
-        ctxMenu.style.top = Math.min(ev.clientY, window.innerHeight - 220) + 'px';
-        ctxMenu.classList.add('open');
       } else {
         ctxMenu.classList.remove('open');
+        return;
       }
+      canvas.renderAll();
+      updateLayerPanel();
+      showPropertiesFor(ctxTarget);
+      const ev = opt.e;
+      ctxMenu.style.left = Math.min(ev.clientX, window.innerWidth - 170) + 'px';
+      ctxMenu.style.top = Math.min(ev.clientY, window.innerHeight - 220) + 'px';
+      ctxMenu.classList.add('open');
     } else {
       ctxMenu.classList.remove('open');
     }
@@ -1462,20 +1499,96 @@
   document.addEventListener('click', e => {
     if (!ctxMenu.contains(e.target)) ctxMenu.classList.remove('open');
   });
-  ctxMenu.addEventListener('click', e => {
+  ctxMenu.addEventListener('click', async e => {
     const item = e.target.closest('.ctx-item');
     if (!item || !ctxTarget) return;
     const act = item.dataset.act;
+    const isGroup = ctxTarget.type === 'activeSelection';
+
+    if (act === 'copy') {
+      await copySelectionToClipboard(ctxTarget);
+      ctxMenu.classList.remove('open');
+      return;
+    }
+    if (act === 'duplicate') {
+      await duplicateObjects(isGroup ? ctxTarget.getObjects() : [ctxTarget]);
+      ctxMenu.classList.remove('open');
+      return;
+    }
     if (act === 'up') { canvas.bringForward(ctxTarget); pushHistory(); }
     if (act === 'down') { canvas.sendBackwards(ctxTarget); pushHistory(); }
     if (act === 'toTop') { canvas.bringToFront(ctxTarget); pushHistory(); }
     if (act === 'toBottom') { canvas.sendToBack(ctxTarget); pushHistory(); }
-    if (act === 'delete') { canvas.remove(ctxTarget); clearProperties(); }
+    if (act === 'delete') {
+      if (isGroup) { ctxTarget.getObjects().forEach(o => canvas.remove(o)); canvas.discardActiveObject(); }
+      else { canvas.remove(ctxTarget); }
+      clearProperties();
+    }
     ensureLockedOnTop();
     canvas.renderAll();
     updateLayerPanel();
     ctxMenu.classList.remove('open');
   });
+
+  // ================= 複製 / 貼上 / 複製一份 =================
+  // clone 是非同步的(Fabric 5 的 API),包成 Promise 方便用 await 依序處理多個物件
+  function cloneFabricObject(obj) {
+    return new Promise(resolve => obj.clone(cloned => resolve(cloned), EXTRA_PROPS));
+  }
+
+  // 直接就地複製:每個原始物件都在畫布上緊接著、z 序恰好低一層的位置產生一份拷貝(對應圖層清單中「往下產生一個」)
+  async function duplicateObjects(objs) {
+    if (!objs || objs.length === 0) return;
+    suspendHistory = true;
+    const clones = [];
+    for (const obj of objs) {
+      const cloned = await cloneFabricObject(obj);
+      cloned.set({ left: obj.left + 14, top: obj.top + 14 });
+      if (cloned.layerName) cloned.layerName = cloned.layerName + ' 複製';
+      const idx = canvas.getObjects().indexOf(obj);
+      canvas.insertAt(cloned, idx, false);
+      clones.push(cloned);
+    }
+    ensureLockedOnTop();
+    suspendHistory = false;
+    canvas.discardActiveObject();
+    if (clones.length === 1) canvas.setActiveObject(clones[0]);
+    else canvas.setActiveObject(new fabric.ActiveSelection(clones, { canvas }));
+    canvas.requestRenderAll();
+    showPropertiesFor(canvas.getActiveObject());
+    updateLayerPanel();
+    pushHistory();
+  }
+
+  // 複製到剪貼簿(不會馬上加入畫布),之後用 Ctrl+V 或再次「複製一份」貼上
+  async function copySelectionToClipboard(target) {
+    const objs = target && target.type === 'activeSelection' ? target.getObjects() : (target ? [target] : []);
+    if (objs.length === 0) return;
+    const clones = [];
+    for (const obj of objs) clones.push(await cloneFabricObject(obj));
+    clipboard = clones;
+  }
+
+  async function pasteFromClipboard() {
+    if (!clipboard || clipboard.length === 0) return;
+    suspendHistory = true;
+    const pasted = [];
+    for (const item of clipboard) {
+      const cloned = await cloneFabricObject(item);
+      cloned.set({ left: item.left + 14, top: item.top + 14 });
+      canvas.add(cloned);
+      pasted.push(cloned);
+    }
+    ensureLockedOnTop();
+    suspendHistory = false;
+    canvas.discardActiveObject();
+    if (pasted.length === 1) canvas.setActiveObject(pasted[0]);
+    else canvas.setActiveObject(new fabric.ActiveSelection(pasted, { canvas }));
+    canvas.requestRenderAll();
+    showPropertiesFor(canvas.getActiveObject());
+    updateLayerPanel();
+    pushHistory();
+  }
 
   // ================= 屬性面板事件 =================
   function propChanged() { canvas.renderAll(); pushHistory(); }
@@ -1600,6 +1713,16 @@
     }
     if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
       e.preventDefault(); redo(); return;
+    }
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'c') {
+      const activeObj = canvas.getActiveObject();
+      if (!activeObj || (isTextObj(activeObj) && activeObj.isEditing)) return; // 文字編輯中,讓瀏覽器處理原生的文字複製
+      e.preventDefault(); copySelectionToClipboard(activeObj); return;
+    }
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'v') {
+      const activeObj = canvas.getActiveObject();
+      if (activeObj && isTextObj(activeObj) && activeObj.isEditing) return; // 文字編輯中,讓瀏覽器處理原生的文字貼上
+      e.preventDefault(); pasteFromClipboard(); return;
     }
 
     const obj = canvas.getActiveObject();
@@ -2012,7 +2135,10 @@
     exportPngWithDpi(previewShowMask);
   });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && previewOverlay.classList.contains('open')) previewOverlay.classList.remove('open');
+    if (e.key !== 'Escape') return;
+    if (previewOverlay.classList.contains('open')) { previewOverlay.classList.remove('open'); return; }
+    // 不論目前處於哪個工具模式,按 ESC 都直接離開該模式(目前只有畫筆模式,之後新增其他模式可比照加在這裡)
+    if (drawingMode) { exitDrawingModeIfNeeded(); return; }
   });
 
   // ================= 初始化 =================
