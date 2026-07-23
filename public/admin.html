@@ -835,6 +835,37 @@
     </div>
   </div>
 
+  <!-- 支局裁撤確認視窗 -->
+  <div id="decommissionModal" class="modal">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 460px; padding: 0;">
+      <div class="modal-header" style="background: #fef2f2; border-bottom: 1px solid #fecaca;">
+        <h3 style="color: #dc2626;"><i class="fa-solid fa-triangle-exclamation"></i> 裁撤支局確認</h3>
+        <button class="modal-close" onclick="closeDecommissionModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 25px 20px; text-align:left;">
+        <div style="font-weight:bold; font-size:16px; color:#475569; margin-bottom:12px;">
+          即將裁撤：<span id="decoBranchName" style="color:#dc2626;"></span>（局號: <span id="decoBranchId"></span>）
+        </div>
+        <div id="decoImpactBox" style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px 15px; font-size:14px; color:#7f1d1d; margin-bottom:15px;">
+          正在確認影響範圍...
+        </div>
+        <div style="font-size:13px; color:#94a3b8; margin-bottom:15px; line-height:1.6;">
+          此動作無法復原，會同時刪除：<br>
+          1. 該支局帳號本身（刪除後無法再登入）<br>
+          2. 該支局在「現場庫存」的所有數量紀錄<br>
+          3. 該支局在「上架管理」的所有已上架設定<br>
+          過去的操作歷史紀錄不會被刪除，仍可在系統中查詢。
+        </div>
+        <label style="font-weight:bold; display:block; margin-bottom:6px; color:#475569;">請輸入「裁撤」以確認執行：</label>
+        <input type="text" id="decoConfirmInput" placeholder="輸入 裁撤" oninput="validateDecoInput()" style="width:100%; padding:10px; border:1px solid #cbd5e0; border-radius:6px; outline:none; margin-bottom:5px; box-sizing:border-box;">
+      </div>
+      <div style="display:flex; gap:10px; padding:15px; background:#f8fafc; border-top:1px solid #e2e8f0;">
+        <button style="flex: 1; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e0; background: #fff; font-weight: bold; cursor: pointer; color: #475569; transition: 0.2s;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='#fff'" onclick="closeDecommissionModal()">取消</button>
+        <button id="btnConfirmDecommission" disabled style="flex: 1; padding: 12px; border-radius: 6px; border: none; background: #cbd5e0; color: white; font-weight: bold; cursor: not-allowed; transition: 0.2s;" onclick="executeDecommission()">確定永久裁撤</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 縮址編輯視窗 -->
   <div id="editRedirectModal" class="modal">
     <div class="modal-content" onclick="event.stopPropagation()">
@@ -985,6 +1016,7 @@
     let currentRole = '';
     let currentProxyBranchId = '';
     let currentProxyBranchName = '';
+    let decoTargetUser = null;
 
     let processedFiles = { thumb: null, large: null };
     let pendingBlogCover = null; 
@@ -1834,6 +1866,7 @@
             <span class="admin-item-code">局號: ${u.branch_id || '無'}　｜　帳號: ${u.account || '無'}</span>
           </div>
           <button type="button" class="btn-edit-master" onclick="openEditAccountModal('${u.id}')">✏️ 編輯</button>
+          ${u.role === 'A' ? '' : `<button type="button" class="btn-edit-master" style="background:#fef2f2; color:#dc2626; border-color:#fecaca; margin-left:8px;" onclick="openDecommissionModal('${u.id}')">🗑️ 裁撤</button>`}
         `;
         container.appendChild(div);
       });
@@ -1929,6 +1962,87 @@
         alert('儲存失敗：' + e.message);
       }
       btn.innerText = '💾 儲存'; btn.disabled = false;
+    }
+    // ------------------------------------------------------------------
+
+    // ★ 支局裁撤：連動刪除該局的現場庫存與上架設定，最後才刪帳號本身 -------
+    function openDecommissionModal(id) {
+      const u = globalAccountsData.find(x => String(x.id) === String(id));
+      if (!u) return;
+      if (u.role === 'A') {
+        alert('這是 A 級管理者帳號，「裁撤」功能只適用於 B 級支局帳號，請改用「編輯」處理。');
+        return;
+      }
+      decoTargetUser = u;
+      document.getElementById('decoBranchName').innerText = u.branch_name || '(未命名)';
+      document.getElementById('decoBranchId').innerText = u.branch_id || '無';
+      document.getElementById('decoConfirmInput').value = '';
+      document.getElementById('decoImpactBox').innerText = '正在確認影響範圍...';
+      validateDecoInput();
+      document.getElementById('decommissionModal').style.display = 'flex';
+      loadDecommissionImpact(u.branch_id);
+    }
+
+    async function loadDecommissionImpact(branchId) {
+      try {
+        const [invRows, listRows] = await Promise.all([
+          fetchAllData('inventory', 'product_key', [{op: 'eq', col: 'branch_id', val: branchId}]),
+          fetchAllData('branch_listings', 'product_key', [{op: 'eq', col: 'branch_id', val: branchId}])
+        ]);
+        document.getElementById('decoImpactBox').innerHTML = `會一併刪除：現場庫存紀錄 <b>${invRows.length}</b> 筆、上架設定 <b>${listRows.length}</b> 筆。`;
+      } catch (err) {
+        document.getElementById('decoImpactBox').innerText = '影響範圍確認失敗：' + err.message + '（仍可繼續裁撤，但無法預覽會刪除幾筆）';
+      }
+    }
+
+    function validateDecoInput() {
+      const val = document.getElementById('decoConfirmInput').value.trim();
+      const btn = document.getElementById('btnConfirmDecommission');
+      if (val === '裁撤') {
+        btn.disabled = false;
+        btn.style.background = '#dc2626';
+        btn.style.cursor = 'pointer';
+      } else {
+        btn.disabled = true;
+        btn.style.background = '#cbd5e0';
+        btn.style.cursor = 'not-allowed';
+      }
+    }
+
+    function closeDecommissionModal() {
+      document.getElementById('decommissionModal').style.display = 'none';
+      decoTargetUser = null;
+    }
+
+    async function executeDecommission() {
+      if (!decoTargetUser) return;
+      const input = document.getElementById('decoConfirmInput').value.trim();
+      if (input !== '裁撤') { alert('請先輸入「裁撤」兩個字才能確認執行。'); return; }
+
+      const u = decoTargetUser;
+      const btn = document.getElementById('btnConfirmDecommission');
+      btn.innerText = '裁撤處理中...'; btn.disabled = true;
+
+      try {
+        // 先刪子資料（現場庫存、上架設定），最後才刪帳號本身，避免留下沒有主人的孤兒資料
+        const { error: invErr } = await supabaseClient.from('inventory').delete().eq('branch_id', u.branch_id);
+        if (invErr) throw invErr;
+
+        const { error: listErr } = await supabaseClient.from('branch_listings').delete().eq('branch_id', u.branch_id);
+        if (listErr) throw listErr;
+
+        const { error: userErr } = await supabaseClient.from('users').delete().eq('id', u.id);
+        if (userErr) throw userErr;
+
+        await logSystemAction(myAccount, `[裁撤支局] 刪除了「${u.branch_name}」（局號: ${u.branch_id}），含現場庫存與上架設定，帳號無法再登入`);
+        showCustomToast(`已裁撤「${u.branch_name}」`);
+        closeDecommissionModal();
+        await loadAccountsData();
+        loadProxyBranchOptions(); // 代管上架的支局下拉選單也要跟著移除這個已裁撤的局
+      } catch (err) {
+        alert('裁撤失敗：' + err.message);
+        btn.innerText = '確定永久裁撤'; btn.disabled = false;
+      }
     }
     // ------------------------------------------------------------------
 
