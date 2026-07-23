@@ -1536,14 +1536,23 @@
     return new Promise(resolve => obj.clone(cloned => resolve(cloned), EXTRA_PROPS));
   }
 
+  const CASCADE_STEP = 14; // 每一階的位移量(px)
+
+  // 記錄「複製一份」每個來源物件被連續複製的次數,同一個來源連續點擊時位移遞增(階梯狀排開,方便辨識);
+  // 換成別的來源物件則各自獨立起算,不會互相干擾。用 WeakMap 是為了物件被刪除後不佔記憶體。
+  const duplicateStreaks = new WeakMap();
+
   // 直接就地複製:每個原始物件都在畫布上緊接著、z 序恰好低一層的位置產生一份拷貝(對應圖層清單中「往下產生一個」)
   async function duplicateObjects(objs) {
     if (!objs || objs.length === 0) return;
     suspendHistory = true;
     const clones = [];
     for (const obj of objs) {
+      const streak = (duplicateStreaks.get(obj) || 0) + 1;
+      duplicateStreaks.set(obj, streak);
+      const step = CASCADE_STEP * streak;
       const cloned = await cloneFabricObject(obj);
-      cloned.set({ left: obj.left + 14, top: obj.top + 14 });
+      cloned.set({ left: obj.left + step, top: obj.top + step });
       if (cloned.layerName) cloned.layerName = cloned.layerName + ' 複製';
       const idx = canvas.getObjects().indexOf(obj);
       canvas.insertAt(cloned, idx, false);
@@ -1560,22 +1569,30 @@
     pushHistory();
   }
 
-  // 複製到剪貼簿(不會馬上加入畫布),之後用 Ctrl+V 或再次「複製一份」貼上
+  // 貼上位移的階梯計數:只在「按下 Ctrl+C 複製」的當下重設,不受貼上後選取跳到新物件影響,
+  // 這樣連續按 Ctrl+V 時,每一份會依序往右下多錯開一階、方便辨識貼了幾份,而不會因為選取跳到剛貼上的
+  // 那份、下次意外把它當成新的複製來源,導致位移量忽大忽小、或每次都疊在完全相同的位置看不出來。
+  let pasteStep = 0;
+
+  // 複製到剪貼簿(不會馬上加入畫布),之後用 Ctrl+V 貼上
   async function copySelectionToClipboard(target) {
     const objs = target && target.type === 'activeSelection' ? target.getObjects() : (target ? [target] : []);
     if (objs.length === 0) return;
     const clones = [];
     for (const obj of objs) clones.push(await cloneFabricObject(obj));
     clipboard = clones;
+    pasteStep = 0; // 每次重新複製,都從第一階開始算
   }
 
   async function pasteFromClipboard() {
     if (!clipboard || clipboard.length === 0) return;
+    pasteStep++;
+    const step = CASCADE_STEP * pasteStep;
     suspendHistory = true;
     const pasted = [];
     for (const item of clipboard) {
       const cloned = await cloneFabricObject(item);
-      cloned.set({ left: item.left + 14, top: item.top + 14 });
+      cloned.set({ left: item.left + step, top: item.top + step });
       canvas.add(cloned);
       pasted.push(cloned);
     }
@@ -1589,6 +1606,7 @@
     updateLayerPanel();
     pushHistory();
   }
+
 
   // ================= 屬性面板事件 =================
   function propChanged() { canvas.renderAll(); pushHistory(); }
