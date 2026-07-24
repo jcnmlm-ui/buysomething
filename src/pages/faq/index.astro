@@ -1,0 +1,91 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getFaqItems } from '../../lib/faq.js';
+import { editorjsToHtml, editorjsToPlainText } from '../../lib/editorjs.js';
+
+const base = import.meta.env.BASE_URL;
+const items = await getFaqItems();
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+
+// ★ 依「排序」欄位分組：同一個 section 文字的問答會被歸在一起，
+//   分類本身出現的先後順序，看該分類裡第一次出現的那一則排序值最小是誰。
+//   （在 admin 後台的「FAQ管理」頁籤維護內容，同分類用相近數字、不同分類間留間距即可）
+const sections = [];
+items.forEach((it) => {
+  let group = sections.find((s) => s.name === it.section);
+  if (!group) { group = { name: it.section, items: [] }; sections.push(group); }
+  group.items.push(it);
+});
+
+const faqPageLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: items.map((it) => ({
+    '@type': 'Question',
+    name: it.question,
+    acceptedAnswer: { '@type': 'Answer', text: editorjsToPlainText(it.answer) },
+  })),
+};
+
+const desc = '高雄郵局郵風商品與代售商品購買須知、退換貨政策、付款方式及常見問題解答 (FAQ)。了解如何使用郵政 VISA 卡享有專屬優惠。';
+---
+<Base title="購買須知與常見問題 - 高雄郵局郵風商品櫥窗" description={desc} canonical={canonical} ogType="website" jsonLd={faqPageLd}>
+  <header class="header">
+    <a href={base} class="btn-back" title="回首頁"><i class="fa-solid fa-arrow-left"></i> 回首頁</a>
+    <h2 class="header-title"><i class="fa-solid fa-circle-question"></i> 購買須知與常見問題</h2>
+    <div style="width:86px;"></div>
+  </header>
+
+  <main class="container">
+    {sections.length === 0 ? (
+      <div class="sd-ui-box" style="text-align:center; font-weight:bold;">目前還沒有常見問題內容。</div>
+    ) : sections.map((sec) => (
+      <div class="sd-ui-box">
+        <h2 class="section-title">{sec.name || '常見問題'}</h2>
+        {sec.items.map((it) => (
+          <div class="faq-item">
+            <div class="faq-question">Q：{it.question} <i class="fa-solid fa-chevron-down"></i></div>
+            <div class="faq-answer" set:html={editorjsToHtml(it.answer)} />
+          </div>
+        ))}
+      </div>
+    ))}
+  </main>
+</Base>
+
+<style>
+  .section-title { color: var(--sd-hot); font-size: 24px; margin-top: 0; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px dashed var(--sd-wood-dark); text-shadow: 1px 1px 0 #fff; }
+
+  .faq-item { margin-bottom: 15px; border: 3px solid var(--sd-wood-dark); border-radius: 8px; background: #fff; overflow: hidden; }
+  .faq-question { background: #fff8d6; padding: 15px 20px; cursor: pointer; font-weight: bold; font-size: 17px; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+  .faq-question:hover { background: #fdeca6; }
+  .faq-question i { color: var(--sd-wood); transition: transform 0.3s ease; }
+  .faq-item.active .faq-question i { transform: rotate(180deg); color: var(--sd-hot); }
+
+  .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease; background: #fff; font-weight: bold; color: var(--sd-text); }
+  .faq-item.active .faq-answer { max-height: 3000px; padding: 15px 20px; border-top: 2px dashed var(--sd-border); }
+  .faq-answer p { margin: 0 0 10px 0; }
+  .faq-answer p:last-child { margin-bottom: 0; }
+  .faq-answer ul, .faq-answer ol { margin: 5px 0 0 0; padding-left: 20px; }
+  .faq-answer h3, .faq-answer h4 { margin: 0.6em 0 0.4em; color: var(--sd-wood-dark); }
+
+  @media (max-width: 600px) {
+    .faq-question { font-size: 15px; padding: 12px 15px; }
+    .faq-answer { font-size: 14px; }
+  }
+</style>
+
+<script>
+  // 手風琴 (Accordion) 展開/收合，跟原本的 faq.html 是同一套邏輯
+  document.addEventListener('DOMContentLoaded', function () {
+    const faqItems = document.querySelectorAll('.faq-item');
+    faqItems.forEach((item) => {
+      const question = item.querySelector('.faq-question');
+      question.addEventListener('click', () => {
+        const isActive = item.classList.contains('active');
+        faqItems.forEach((other) => other.classList.remove('active'));
+        if (!isActive) item.classList.add('active');
+      });
+    });
+  });
+</script>

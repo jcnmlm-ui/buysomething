@@ -239,6 +239,15 @@
       text-align: left; 
       cursor: text; 
     }
+    #faqEditorjs {
+      padding: 12px 15px 15px 15px;
+      min-height: 160px;
+      text-align: left;
+      cursor: text;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #fff;
+    }
     
     .ce-block__content, .ce-toolbar__content { 
       max-width: 100% !important; /* 取消寬度限制，完整利用空間 */
@@ -381,6 +390,7 @@
         <button class="tab-btn" onclick="switchAdminTab('tab-accounts', this)">👤 帳號管理</button>
         <button class="tab-btn" onclick="switchAdminTab('tab-redirects', this)">🔗 縮址管理</button>
         <button class="tab-btn" onclick="switchAdminTab('tab-branch-proxy', this)">🏪 代管上架</button>
+        <button class="tab-btn" onclick="switchAdminTab('tab-faq', this)">❓ FAQ管理</button>
       </div>
 
       <div id="tab-upload" class="tab-content active">
@@ -674,6 +684,25 @@
         </div>
       </div>
 
+      <!-- ★ FAQ 管理：對應前台 /faq/ 頁面的問答內容，database-driven，建置時產生靜態頁 -->
+      <div id="tab-faq" class="tab-content">
+        <div class="box-container">
+          <div class="section-header">
+            <div class="header-left">
+              <h3>❓ FAQ管理</h3>
+              <div class="selection-count" id="faqCountLabel">載入中...</div>
+            </div>
+            <div class="filters">
+              <input type="search" id="faqSearchInput" placeholder="🔍 搜尋分類或問題..." oninput="renderFaqList()">
+              <button type="button" class="btn-primary" onclick="openFaqEditor()" style="margin-left:8px; white-space:nowrap;">＋ 新增問答</button>
+            </div>
+          </div>
+          <div style="font-size:13px; color:#94a3b8; margin:-8px 0 16px;">💡 這裡的內容對應官網「購買須知與常見問題」頁面（/faq/），存檔後跟文章一樣，需等網站下次重新建置（push 後立即，或最晚 6 小時內自動重建）才會實際更新到前台。「排序」欄位同時決定分類出現的先後順序（看該分類裡最小的排序值）跟分類內問答的順序，建議同一分類用相近的數字（例如 10、20、30），不同分類間留一點間距（例如 10-30 給第一類、100-130 給第二類），之後要插入新問答會比較好安排。</div>
+          <div id="faqLoading" style="text-align: center; padding: 40px; color: var(--text-light);">讀取 FAQ 清單中...</div>
+          <div id="faqContainer" style="display:none;"></div>
+        </div>
+      </div>
+
       <div class="mobile-footer" id="adminMobileFooter">
         <div class="row">
           <button class="btn-mobile-secondary" onclick="toggleAllAdminCheckbox(true)">全選</button>
@@ -915,6 +944,44 @@
     </div>
   </div>
 
+  <!-- FAQ 問答編輯視窗 -->
+  <div id="editFaqModal" class="modal">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 760px;">
+      <div class="modal-header">
+        <h3 id="editFaqTitle">新增問答</h3>
+        <button class="modal-close" onclick="closeFaqEditor()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px; text-align: left;">
+        <input type="hidden" id="faqId">
+
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">分類</label>
+        <input type="text" id="faqSection" list="faqSectionList" placeholder="例如：付款與優惠須知" style="width: 100%; padding: 10px; margin-bottom: 6px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none; box-sizing:border-box;">
+        <datalist id="faqSectionList"></datalist>
+        <div style="font-size:12px; color:#94a3b8; margin-bottom:15px;">💡 打跟現有分類一樣的名稱，這則問答就會歸到同一個分類區塊下面；打新名稱就會產生新的分類。</div>
+
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">問題</label>
+        <input type="text" id="faqQuestion" placeholder="例如：可以使用哪些付款方式？" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none; box-sizing:border-box;">
+
+        <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">答案</label>
+        <div id="faqEditorjs"></div>
+        <div style="font-size:12px; color:#94a3b8; margin:8px 0 15px;">💡 用法跟「專欄管理」的文章編輯器一樣：點空白處打字，反白文字可設定粗體，左側 <code>+</code> 號可插入清單、標題等。</div>
+
+        <div style="display:flex; gap:20px; align-items:center; margin-bottom:15px;">
+          <div style="flex:1;">
+            <label style="font-weight: bold; display: block; margin-bottom: 5px; color: #475569;">排序（數字越小越前面）</label>
+            <input type="number" id="faqSortOrder" value="0" style="width: 100%; padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none; box-sizing:border-box;">
+          </div>
+          <label style="display:flex; align-items:center; gap:8px; font-weight:bold; color:#475569; white-space:nowrap; margin-top:20px;">
+            <input type="checkbox" id="faqIsPublished" checked style="width:18px; height:18px;"> 前台顯示
+          </label>
+        </div>
+
+        <button onclick="saveFaqItem()" id="btnSaveFaq" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;">💾 儲存</button>
+        <button id="btnDeleteFaq" type="button" style="display:none; width: 100%; margin-top:10px; padding: 12px; background: #fef2f2; color: #dc2626; border: 1px solid #f87171; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer;" onclick="deleteFaqItem()">🗑️ 刪除這則問答</button>
+      </div>
+    </div>
+  </div>
+
   <div id="editMasterModal" class="modal">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div class="modal-header">
@@ -1018,6 +1085,8 @@
     let currentProxyBranchId = '';
     let currentProxyBranchName = '';
     let decoTargetUser = null;
+    let faqEditor;
+    let globalFaqData = [];
 
     let processedFiles = { thumb: null, large: null };
     let pendingBlogCover = null; 
@@ -1064,6 +1133,7 @@
       });
 
       initEditorJS();
+      initFaqEditorJS();
     };
 
     function showCustomToast(msg) {
@@ -1199,6 +1269,22 @@
       }
     }
 
+    function initFaqEditorJS() {
+      try {
+        faqEditor = new EditorJS({
+          holder: 'faqEditorjs',
+          placeholder: '在這裡輸入答案內容，可用清單、粗體等格式...',
+          tools: {
+            header: { class: Header, config: { placeholder: '輸入標題...', levels: [3, 4], defaultLevel: 3 } },
+            list: { class: List, inlineToolbar: true }
+          },
+          data: {}
+        });
+      } catch (err) {
+        console.error("FAQ Editor.js 初始化失敗: ", err);
+      }
+    }
+
     async function fetchAllData(table, select = '*', conditions = []) {
       let allData = [];
       let from = 0;
@@ -1254,7 +1340,7 @@
           if (currentRole === 'A') {
             document.getElementById('adminArea').style.display = 'block';
             switchAdminTab('tab-upload', document.querySelector('#adminArea .tab-btn'));
-            loadAdminData(); loadLeaderboard(); loadMasterData(); loadExtraStock(); loadBlogArticles(); loadAccountsData(); loadRedirectsData(); loadProxyBranchOptions();
+            loadAdminData(); loadLeaderboard(); loadMasterData(); loadExtraStock(); loadBlogArticles(); loadAccountsData(); loadRedirectsData(); loadProxyBranchOptions(); loadFaqData();
           } else {
             document.getElementById('loadingStatus').style.display = 'block';
             document.getElementById('managerContent').style.display = 'none';
@@ -2195,6 +2281,159 @@
         document.getElementById('redirectConfirmModal').style.display = 'none';
         closeEditRedirectModal();
         await loadRedirectsData();
+      } catch (e) {
+        alert('刪除失敗：' + e.message);
+      }
+    }
+    // ------------------------------------------------------------------
+
+    // ★ FAQ 管理：對應前台 /faq/ 頁面，database-driven（跟專欄管理同一套 Editor.js） ---
+    async function loadFaqData() {
+      document.getElementById('faqLoading').style.display = 'block';
+      document.getElementById('faqContainer').style.display = 'none';
+      try {
+        const { data, error } = await supabaseClient.from('faq_items').select('*').order('sort_order', { ascending: true });
+        if (error) throw error;
+        globalFaqData = data || [];
+        renderFaqList();
+      } catch (e) {
+        alert('讀取 FAQ 清單失敗：' + e.message);
+      }
+      document.getElementById('faqLoading').style.display = 'none';
+      document.getElementById('faqContainer').style.display = 'block';
+    }
+
+    function renderFaqList() {
+      const search = (document.getElementById('faqSearchInput').value || '').toLowerCase();
+      const filtered = globalFaqData.filter(f =>
+        (f.question || '').toLowerCase().includes(search) || (f.section || '').toLowerCase().includes(search)
+      );
+      document.getElementById('faqCountLabel').innerText = `共 ${globalFaqData.length} 則問答，顯示 ${filtered.length} 則`;
+
+      const container = document.getElementById('faqContainer');
+      container.innerHTML = '';
+      if (filtered.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:20px;">沒有符合條件的問答，點右上角「＋ 新增問答」建立第一則吧</div>';
+        return;
+      }
+
+      const sections = [];
+      filtered.forEach(f => { if (!sections.includes(f.section)) sections.push(f.section); });
+
+      sections.forEach(sec => {
+        const h4 = document.createElement('h4');
+        h4.style.cssText = 'color:var(--primary-dark); margin:18px 0 8px; font-size:15px;';
+        h4.innerText = `📁 ${sec || '（未分類）'}`;
+        container.appendChild(h4);
+
+        const groupWrap = document.createElement('div');
+        groupWrap.style.cssText = 'display:flex; flex-direction:column; gap:10px;';
+
+        filtered.filter(f => f.section === sec).forEach(f => {
+          const div = document.createElement('div');
+          div.className = 'admin-item';
+          const pubBadge = f.is_published
+            ? '<span style="color:#16a34a;">✅ 前台顯示中</span>'
+            : '<span style="color:#94a3b8;">⏸️ 已隱藏</span>';
+          div.innerHTML = `
+            <div class="admin-item-info" style="flex:1;">
+              <span class="admin-item-title" style="color: var(--primary-dark);">Q：${f.question || '(未命名問題)'}</span>
+              <span class="admin-item-code">排序: ${f.sort_order ?? 0}　｜　${pubBadge}</span>
+            </div>
+            <button type="button" class="btn-edit-master" onclick="openFaqEditor('${f.id}')">✏️ 編輯</button>
+          `;
+          groupWrap.appendChild(div);
+        });
+        container.appendChild(groupWrap);
+      });
+    }
+
+    function openFaqEditor(id) {
+      const f = id ? globalFaqData.find(x => String(x.id) === String(id)) : null;
+
+      document.getElementById('editFaqTitle').innerText = f ? '✏️ 編輯問答' : '✨ 新增問答';
+      document.getElementById('faqId').value = f ? f.id : '';
+      document.getElementById('faqSection').value = f ? (f.section || '') : '';
+      document.getElementById('faqQuestion').value = f ? (f.question || '') : '';
+      document.getElementById('faqSortOrder').value = f ? (f.sort_order ?? 0) : 0;
+      document.getElementById('faqIsPublished').checked = f ? !!f.is_published : true;
+      document.getElementById('btnDeleteFaq').style.display = f ? 'block' : 'none';
+
+      // 分類欄位的自動建議清單，抓現有用過的分類名稱，方便打字對齊、不會多打出一個新分類
+      const sections = [...new Set(globalFaqData.map(x => x.section).filter(Boolean))];
+      document.getElementById('faqSectionList').innerHTML = sections.map(s => `<option value="${String(s).replace(/"/g, '&quot;')}">`).join('');
+
+      document.getElementById('editFaqModal').style.display = 'flex';
+
+      if (faqEditor && faqEditor.isReady) {
+        faqEditor.isReady.then(() => {
+          try {
+            if (f && f.answer) {
+              const parsed = JSON.parse(f.answer);
+              if (parsed && Array.isArray(parsed.blocks)) faqEditor.render(parsed);
+              else faqEditor.clear();
+            } else {
+              faqEditor.clear();
+            }
+          } catch (e) {
+            faqEditor.render({ blocks: [{ type: 'paragraph', data: { text: (f && f.answer) || '' } }] });
+          }
+        }).catch(e => console.error(e));
+      }
+    }
+
+    function closeFaqEditor() {
+      document.getElementById('editFaqModal').style.display = 'none';
+    }
+
+    async function saveFaqItem() {
+      const id = document.getElementById('faqId').value;
+      const section = document.getElementById('faqSection').value.trim();
+      const question = document.getElementById('faqQuestion').value.trim();
+      const sortOrder = parseInt(document.getElementById('faqSortOrder').value) || 0;
+      const isPublished = document.getElementById('faqIsPublished').checked;
+
+      if (!section || !question) { alert('分類與問題為必填欄位'); return; }
+
+      const btn = document.getElementById('btnSaveFaq');
+      btn.innerText = '儲存中...'; btn.disabled = true;
+      try {
+        let answerStr = '{}';
+        if (faqEditor) answerStr = JSON.stringify(await faqEditor.save());
+
+        const payload = {
+          section: section,
+          question: question,
+          answer: answerStr,
+          sort_order: sortOrder,
+          is_published: isPublished,
+          updated_at: new Date().toISOString()
+        };
+
+        const { error } = id
+          ? await supabaseClient.from('faq_items').update(payload).eq('id', id)
+          : await supabaseClient.from('faq_items').insert([payload]);
+        if (error) throw error;
+
+        showCustomToast('FAQ 儲存成功！');
+        closeFaqEditor();
+        await loadFaqData();
+      } catch (err) {
+        alert('儲存失敗：' + err.message);
+      }
+      btn.innerText = '💾 儲存'; btn.disabled = false;
+    }
+
+    async function deleteFaqItem() {
+      const id = document.getElementById('faqId').value;
+      if (!id) return;
+      if (!confirm('確定要刪除這則問答嗎？此動作無法復原。')) return;
+      try {
+        const { error } = await supabaseClient.from('faq_items').delete().eq('id', id);
+        if (error) throw error;
+        showCustomToast('已刪除');
+        closeFaqEditor();
+        await loadFaqData();
       } catch (e) {
         alert('刪除失敗：' + e.message);
       }
