@@ -54,16 +54,22 @@ const desc = '高雄郵局郵風商品與代售商品購買須知、退換貨政
 </Base>
 
 <style>
-  .section-title { color: var(--sd-hot); font-size: 24px; margin-top: 0; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px dashed var(--sd-wood-dark); text-shadow: 1px 1px 0 #fff; }
+  .container { max-width: 720px; }
+  .sd-ui-box { text-align: left; }
+
+  .section-title { color: var(--sd-hot); font-size: 24px; margin-top: 0; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 3px dashed var(--sd-wood-dark); text-shadow: 1px 1px 0 #fff; text-align: left; }
 
   .faq-item { margin-bottom: 15px; border: 3px solid var(--sd-wood-dark); border-radius: 8px; background: #fff; overflow: hidden; }
-  .faq-question { background: #fff8d6; padding: 15px 20px; cursor: pointer; font-weight: bold; font-size: 17px; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+  .faq-question { background: #fff8d6; padding: 15px 20px; cursor: pointer; font-weight: bold; font-size: 17px; display: flex; justify-content: space-between; align-items: center; gap: 10px; text-align: left; transition: background 0.2s; }
   .faq-question:hover { background: #fdeca6; }
-  .faq-question i { color: var(--sd-wood); transition: transform 0.3s ease; }
+  .faq-question i { flex-shrink: 0; color: var(--sd-wood); transition: transform 0.3s ease; }
   .faq-item.active .faq-question i { transform: rotate(180deg); color: var(--sd-hot); }
 
-  .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, padding 0.3s ease; background: #fff; font-weight: bold; color: var(--sd-text); }
-  .faq-item.active .faq-answer { max-height: 3000px; padding: 15px 20px; border-top: 2px dashed var(--sd-border); }
+  /* ★ max-height 用 JS 量出答案實際高度後才展開（見下方 script），這裡的 CSS 只負責收合時的初始狀態，
+     不要在這裡放一個猜測用的固定大數字，兩者對不起來就是抖動的來源。border-top 也一起放進 transition，
+     用顏色淡入取代「突然彈出來」的邊框，兩個動畫節奏才會一致。 */
+  .faq-answer { max-height: 0; overflow: hidden; text-align: left; background: #fff; font-weight: bold; color: var(--sd-text); padding: 0 20px; border-top: 2px dashed transparent; transition: max-height 0.3s ease-out, padding 0.3s ease, border-color 0.3s ease; }
+  .faq-item.active .faq-answer { padding: 15px 20px; border-top-color: var(--sd-border); }
   .faq-answer p { margin: 0 0 10px 0; }
   .faq-answer p:last-child { margin-bottom: 0; }
   .faq-answer ul, .faq-answer ol { margin: 5px 0 0 0; padding-left: 20px; }
@@ -76,15 +82,25 @@ const desc = '高雄郵局郵風商品與代售商品購買須知、退換貨政
 </style>
 
 <script>
-  // 手風琴 (Accordion) 展開/收合，跟原本的 faq.html 是同一套邏輯
+  // 手風琴 (Accordion) 展開/收合：用 JS 量出答案的實際高度 (scrollHeight) 再展開，
+  // 不要用 CSS 猜一個很大的 max-height 固定值，避免動畫節奏跟實際內容對不起來造成的抖動感。
   document.addEventListener('DOMContentLoaded', function () {
     const faqItems = document.querySelectorAll('.faq-item');
     faqItems.forEach((item) => {
       const question = item.querySelector('.faq-question');
+      const answer = item.querySelector('.faq-answer');
       question.addEventListener('click', () => {
         const isActive = item.classList.contains('active');
-        faqItems.forEach((other) => other.classList.remove('active'));
-        if (!isActive) item.classList.add('active');
+
+        faqItems.forEach((other) => {
+          other.classList.remove('active');
+          other.querySelector('.faq-answer').style.maxHeight = '';
+        });
+
+        if (!isActive) {
+          item.classList.add('active');
+          answer.style.maxHeight = answer.scrollHeight + 'px';
+        }
       });
     });
   });
