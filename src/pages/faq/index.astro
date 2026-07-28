@@ -69,7 +69,7 @@ const desc = '高雄郵局郵風商品與代售商品購買須知、退換貨政
      不要在這裡放一個猜測用的固定大數字，兩者對不起來就是抖動的來源。border-top 也一起放進 transition，
      用顏色淡入取代「突然彈出來」的邊框，兩個動畫節奏才會一致。 */
   .faq-answer { max-height: 0; overflow: hidden; text-align: left; background: #fff; font-weight: bold; color: var(--sd-text); padding: 0 20px; border-top: 2px dashed transparent; transition: max-height 0.3s ease-out, padding 0.3s ease, border-color 0.3s ease; }
-  .faq-item.active .faq-answer { padding: 15px 20px; border-top-color: var(--sd-border); }
+  .faq-item.active .faq-answer { padding: 15px 20px 24px 20px; border-top-color: var(--sd-border); }
   .faq-answer p { margin: 0 0 10px 0; }
   .faq-answer p:last-child { margin-bottom: 0; }
   .faq-answer ul, .faq-answer ol { margin: 5px 0 0 0; padding-left: 20px; }
