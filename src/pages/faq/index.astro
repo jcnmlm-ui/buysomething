@@ -45,7 +45,9 @@ const desc = '高雄郵局郵風商品與代售商品購買須知、退換貨政
         {sec.items.map((it) => (
           <div class="faq-item">
             <div class="faq-question">Q：{it.question} <i class="fa-solid fa-chevron-down"></i></div>
-            <div class="faq-answer" set:html={editorjsToHtml(it.answer)} />
+            <div class="faq-answer-wrap">
+              <div class="faq-answer" set:html={editorjsToHtml(it.answer)} />
+            </div>
           </div>
         ))}
       </div>
@@ -68,7 +70,18 @@ const desc = '高雄郵局郵風商品與代售商品購買須知、退換貨政
   /* ★ max-height 用 JS 量出答案實際高度後才展開（見下方 script），這裡的 CSS 只負責收合時的初始狀態，
      不要在這裡放一個猜測用的固定大數字，兩者對不起來就是抖動的來源。border-top 也一起放進 transition，
      用顏色淡入取代「突然彈出來」的邊框，兩個動畫節奏才會一致。 */
-  .faq-answer { max-height: 0; overflow: hidden; text-align: left; background: #fff; font-weight: bold; color: var(--sd-text); padding: 0 20px; border-top: 2px dashed transparent; transition: max-height 0.3s ease-out, padding 0.3s ease, border-color 0.3s ease; }
+  /* ★ padding 改成固定值、不放進 transition，用 box-sizing:border-box 讓 max-height:0 時
+     連同內距一起壓成 0。原本 padding 也一起做動畫時，JS 量測 scrollHeight 的當下常常會
+     抓到「還沒套用新 padding」的舊高度，導致展開高度算錯、底部內距被裁掉——這才是真正
+     讓文字貼底的原因，不是快取問題。 */
+  /* ★ 手風琴改用 CSS Grid 的 0fr → 1fr 技巧，完全不用 JS 去量高度，就不會再有
+     「量到動畫途中、還沒定案的高度」這類問題（先前 max-height 版本就是這樣才會展不開/收不
+     回去）。.faq-answer-wrap 這層負責動畫，裡面的 .faq-answer 只要 min-height:0 + overflow:hidden
+     讓它能真正縮到 0，不會被自己的內容撐開。 */
+  .faq-answer-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease-out; }
+  .faq-item.active .faq-answer-wrap { grid-template-rows: 1fr; }
+
+  .faq-answer { overflow: hidden; min-height: 0; text-align: left; background: #fff; font-weight: bold; color: var(--sd-text); padding: 0 20px; border-top: 2px dashed transparent; transition: padding 0.3s ease, border-color 0.3s ease; }
   .faq-item.active .faq-answer { padding: 15px 20px 32px 20px; border-top-color: var(--sd-border); }
   .faq-answer p { margin: 0 0 10px 0; }
   .faq-answer p:last-child { margin-bottom: 0; }
@@ -82,25 +95,16 @@ const desc = '高雄郵局郵風商品與代售商品購買須知、退換貨政
 </style>
 
 <script>
-  // 手風琴 (Accordion) 展開/收合：用 JS 量出答案的實際高度 (scrollHeight) 再展開，
-  // 不要用 CSS 猜一個很大的 max-height 固定值，避免動畫節奏跟實際內容對不起來造成的抖動感。
+  // 手風琴 (Accordion) 展開/收合：靠 CSS Grid 的 grid-template-rows 動畫處理高度，
+  // 這裡只需要切換 .active 這個 class，不用量測任何高度。
   document.addEventListener('DOMContentLoaded', function () {
     const faqItems = document.querySelectorAll('.faq-item');
     faqItems.forEach((item) => {
       const question = item.querySelector('.faq-question');
-      const answer = item.querySelector('.faq-answer');
       question.addEventListener('click', () => {
         const isActive = item.classList.contains('active');
-
-        faqItems.forEach((other) => {
-          other.classList.remove('active');
-          other.querySelector('.faq-answer').style.maxHeight = '';
-        });
-
-        if (!isActive) {
-          item.classList.add('active');
-          answer.style.maxHeight = answer.scrollHeight + 'px';
-        }
+        faqItems.forEach((other) => other.classList.remove('active'));
+        if (!isActive) item.classList.add('active');
       });
     });
   });
