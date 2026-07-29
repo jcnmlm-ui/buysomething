@@ -669,6 +669,10 @@
             <button type="button" class="btn-edit-master" style="background:#dcfce7; color:#16a34a; border-color:#86efac;" onclick="executeBulkListing(true)">✅ 全支局上架</button>
             <button type="button" class="btn-edit-master" style="background:#fef2f2; color:#dc2626; border-color:#fecaca;" onclick="executeBulkListing(false)">🚫 全支局下架</button>
           </div>
+          <div style="margin-top:18px; padding-top:14px; border-top:1px dashed #fde68a; font-size:13px; color:#94a3b8;">
+            🧹 上面兩顆按鈕只會擋住「以後」用這個工具時誤選到庫存局，如果庫存局<b>之前</b>就已經在某些商品被設為上架（例如舊資料、或別的管道設定的），下面這顆是一次性的清理，把庫存局在<b>全部商品</b>的上架設定一次關掉：
+            <button type="button" class="btn-edit-master" style="background:#fff7ed; color:#c2410c; border-color:#fed7aa; margin-top:8px;" onclick="cleanupExcludedBranchListings()">🧹 一鍵清除庫存局在全部商品的上架設定</button>
+          </div>
         </div>
 
         <div class="box-container">
@@ -1318,6 +1322,7 @@
            if (c.op === 'eq') query = query.eq(c.col, c.val);
            if (c.op === 'gt') query = query.gt(c.col, c.val);
            if (c.op === 'gte') query = query.gte(c.col, c.val);
+           if (c.op === 'in') query = query.in(c.col, c.val);
         });
         const { data, error } = await query;
         if (error) throw error;
@@ -3538,6 +3543,37 @@
         resultsBox.appendChild(row);
       });
       resultsBox.style.display = 'block';
+    }
+
+    async function cleanupExcludedBranchListings() {
+      const excludedNames = BULK_LISTING_EXCLUDED_BRANCHES.map(id => `${bulkBranchNameMap[id] || '(查無局名)'}（${id}）`).join('、');
+
+      try {
+        const affected = await fetchAllData('branch_listings', 'branch_id, product_key', [
+          { op: 'in', col: 'branch_id', val: BULK_LISTING_EXCLUDED_BRANCHES },
+          { op: 'eq', col: 'is_listed', val: true }
+        ]);
+
+        if (affected.length === 0) {
+          alert(`「${excludedNames}」目前在所有商品都沒有上架中的紀錄，不用清理。`);
+          return;
+        }
+
+        if (!confirm(`「${excludedNames}」目前總共在 ${affected.length} 筆商品上架紀錄中設為已上架，確定要一次全部關掉嗎？此動作無法復原，但之後如果要恢復可以再手動個別上架。`)) return;
+
+        const { error } = await supabaseClient.from('branch_listings')
+          .update({ is_listed: false, updated_at: new Date().toISOString() })
+          .in('branch_id', BULK_LISTING_EXCLUDED_BRANCHES)
+          .eq('is_listed', true);
+        if (error) throw error;
+
+        await logSystemAction(myAccount, `[庫存局清理] 一次清除「${excludedNames}」在全部商品的上架設定，共 ${affected.length} 筆`);
+        showCustomToast(`已清除「${excludedNames}」共 ${affected.length} 筆上架設定`);
+
+        if (bulkSelectedProduct) selectBulkProduct(bulkSelectedProduct); // 重新整理目前畫面上的預覽數字
+      } catch (err) {
+        alert('清理失敗：' + err.message);
+      }
     }
 
     async function selectBulkProduct(p) {
