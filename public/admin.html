@@ -97,6 +97,7 @@
     .admin-item-code { font-family: monospace; color: var(--text-light); font-size: 12px; margin-top: 4px; display: block; overflow-wrap: break-word; word-break: break-all; }
     
     .btn-edit-master { padding: 8px 15px; background: #f1f5f9; border: 1px solid #cbd5e0; border-radius: 6px; cursor: pointer; font-weight: bold; color: var(--text-main); white-space: nowrap; transition: 0.2s; outline: none; flex-shrink: 0; }
+    .bulk-result-row:hover { background: #f8fafc; }
     .btn-edit-master:hover { background: #e2e8f0; }
     .btn-edit-master:active { transform: translateY(2px); }
 
@@ -654,6 +655,22 @@
 
       <!-- ★ A級代管：協助上架不活躍的支局，效力等同於該支局自行操作 -->
       <div id="tab-branch-proxy" class="tab-content">
+
+        <!-- ★ 針對「單一商品」一次對多個支局上／下架，跟下面「選支局逐一操作」是兩個獨立的小工具 -->
+        <div class="box-container" style="background:#fefce8; border-color:#fde68a; margin-bottom:20px;">
+          <h3 style="margin-top:0;">🌐 依商品做全支局上／下架</h3>
+          <div style="font-size:13px; color:#94a3b8; margin-bottom:15px;">💡 不用一家一家局挑，針對「某一項商品」：上架會一次幫所有現場有庫存這項商品的支局打開已上架；下架則是幫目前所有已上架這項商品的支局一次關閉。只會影響到本來就有在賣這項商品（現場庫存 &gt; 0 的紀錄）的支局。</div>
+          <div style="position:relative;">
+            <input type="text" id="bulkProductSearch" placeholder="🔍 輸入商品名稱或條碼搜尋..." autocomplete="off" oninput="onBulkProductSearch()" style="width:100%; padding:10px; border:1px solid #cbd5e0; border-radius:6px; outline:none; box-sizing:border-box;">
+            <div id="bulkProductResults" style="display:none; position:absolute; z-index:10; top:100%; left:0; right:0; background:#fff; border:1px solid #cbd5e0; border-top:none; border-radius:0 0 8px 8px; max-height:260px; overflow-y:auto; box-shadow:0 8px 15px rgba(0,0,0,0.1);"></div>
+          </div>
+          <div id="bulkProductPreview" style="margin:12px 0; font-size:14px; color:#475569; min-height:20px;"></div>
+          <div id="bulkActionButtons" style="display:none; gap:10px;">
+            <button type="button" class="btn-edit-master" style="background:#dcfce7; color:#16a34a; border-color:#86efac;" onclick="executeBulkListing(true)">✅ 全支局上架</button>
+            <button type="button" class="btn-edit-master" style="background:#fef2f2; color:#dc2626; border-color:#fecaca;" onclick="executeBulkListing(false)">🚫 全支局下架</button>
+          </div>
+        </div>
+
         <div class="box-container">
           <div class="section-header">
             <div class="header-left">
@@ -1087,6 +1104,8 @@
     let decoTargetUser = null;
     let faqEditor;
     let globalFaqData = [];
+    let bulkSelectedProduct = null;
+    let bulkAllowlistSet = new Set();
 
     let processedFiles = { thumb: null, large: null };
     let pendingBlogCover = null; 
@@ -3471,10 +3490,118 @@
         });
         const select = document.getElementById('proxyBranchSelect');
         select.innerHTML = '<option value="">請選擇支局...</option>' + branches.map(b => `<option value="${b.branch_id}">${b.branch_name}（局號: ${b.branch_id}）</option>`).join('');
+
+        // ★ 順便快取一份允許上架的商品清單，給下面「依商品全支局上下架」的搜尋用，避免每次打字都重抓一次
+        const allowlistData = await fetchAllData('global_allowlist', 'product_key');
+        bulkAllowlistSet = new Set(allowlistData.map(r => r.product_key));
       } catch (err) {
         showCustomToast('載入支局清單失敗：' + err.message);
       }
     }
+
+    // ★ 依商品做全支局上／下架 -------------------------------------------------
+    function onBulkProductSearch() {
+      const q = document.getElementById('bulkProductSearch').value.trim().toLowerCase();
+      const resultsBox = document.getElementById('bulkProductResults');
+      resultsBox.innerHTML = '';
+      bulkSelectedProduct = null;
+      document.getElementById('bulkProductPreview').innerHTML = '';
+      document.getElementById('bulkActionButtons').style.display = 'none';
+
+      if (!q) { resultsBox.style.display = 'none'; return; }
+
+      const matches = globalMasterData.filter(p =>
+        bulkAllowlistSet.has(p.product_key) &&
+        ((p.barcode || '').toLowerCase().includes(q) || (p.originalName || p.name || '').toLowerCase().includes(q))
+      ).slice(0, 8);
+
+      if (matches.length === 0) {
+        resultsBox.innerHTML = '<div style="padding:10px; color:#94a3b8;">沒有符合的商品（只會列出有開放上架權限的商品）</div>';
+        resultsBox.style.display = 'block';
+        return;
+      }
+
+      matches.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'bulk-result-row';
+        row.style.cssText = 'padding:10px; cursor:pointer; border-bottom:1px solid #f1f5f9;';
+        row.innerHTML = `<b>${p.barcode || ''}</b> — ${p.originalName || p.name || '未命名商品'}`;
+        row.addEventListener('click', () => selectBulkProduct(p));
+        resultsBox.appendChild(row);
+      });
+      resultsBox.style.display = 'block';
+    }
+
+    async function selectBulkProduct(p) {
+      bulkSelectedProduct = p;
+      document.getElementById('bulkProductSearch').value = `${p.barcode || ''} - ${p.originalName || p.name || ''}`;
+      document.getElementById('bulkProductResults').style.display = 'none';
+      document.getElementById('bulkActionButtons').style.display = 'flex';
+      document.getElementById('bulkProductPreview').innerText = '正在確認影響範圍...';
+
+      try {
+        const invRows = await fetchAllData('inventory', 'branch_id', [{ op: 'eq', col: 'product_key', val: p.product_key }]);
+        const eligibleBranchIds = [...new Set(invRows.map(r => r.branch_id))];
+        const listedRows = await fetchAllData('branch_listings', 'branch_id, is_listed', [{ op: 'eq', col: 'product_key', val: p.product_key }]);
+        const listedCount = listedRows.filter(r => r.is_listed).length;
+        document.getElementById('bulkProductPreview').innerHTML =
+          `目前有 <b>${eligibleBranchIds.length}</b> 家支局現場庫存有這項商品，其中已上架的有 <b>${listedCount}</b> 家。`;
+      } catch (e) {
+        document.getElementById('bulkProductPreview').innerText = '確認影響範圍失敗：' + e.message;
+      }
+    }
+
+    async function executeBulkListing(shouldList) {
+      if (!bulkSelectedProduct) { alert('請先搜尋並選擇一個商品'); return; }
+      const p = bulkSelectedProduct;
+      const displayName = p.originalName || p.name || '(未命名商品)';
+
+      try {
+        if (shouldList) {
+          // 上架：只對「現場真的有庫存」這項商品的支局生效
+          const invRows = await fetchAllData('inventory', 'branch_id', [{ op: 'eq', col: 'product_key', val: p.product_key }]);
+          const eligibleBranchIds = [...new Set(invRows.map(r => r.branch_id))];
+          if (eligibleBranchIds.length === 0) { alert('目前沒有任何支局的現場庫存有這項商品，無法執行全支局上架。'); return; }
+          if (!confirm(`確定要幫「${displayName}」對 ${eligibleBranchIds.length} 家有庫存的支局，一次全部設為已上架嗎？`)) return;
+
+          const existingRows = await fetchAllData('branch_listings', 'branch_id', [{ op: 'eq', col: 'product_key', val: p.product_key }]);
+          const existingBranchIds = new Set(existingRows.map(r => r.branch_id));
+          const toUpdate = eligibleBranchIds.filter(id => existingBranchIds.has(id));
+          const toInsert = eligibleBranchIds.filter(id => !existingBranchIds.has(id));
+
+          if (toUpdate.length > 0) {
+            const { error } = await supabaseClient.from('branch_listings').update({ is_listed: true, updated_at: new Date().toISOString() }).eq('product_key', p.product_key).in('branch_id', toUpdate);
+            if (error) throw error;
+          }
+          if (toInsert.length > 0) {
+            const rows = toInsert.map(id => ({ branch_id: id, product_key: p.product_key, is_listed: true, extra_qty: 0, updated_at: new Date().toISOString() }));
+            const { error } = await supabaseClient.from('branch_listings').insert(rows);
+            if (error) throw error;
+          }
+
+          await logSystemAction(myAccount, `[全支局上架] 「${displayName}」對 ${eligibleBranchIds.length} 家支局設為已上架`);
+          showCustomToast(`已幫 ${eligibleBranchIds.length} 家支局上架「${displayName}」`);
+        } else {
+          // 下架：對目前所有「已上架」這項商品的支局生效
+          const listedRows = await fetchAllData('branch_listings', 'branch_id', [{ op: 'eq', col: 'product_key', val: p.product_key }, { op: 'eq', col: 'is_listed', val: true }]);
+          const affectedBranchIds = [...new Set(listedRows.map(r => r.branch_id))];
+          if (affectedBranchIds.length === 0) { alert('目前沒有任何支局已上架這項商品。'); return; }
+          if (!confirm(`確定要幫「${displayName}」對目前 ${affectedBranchIds.length} 家已上架的支局，一次全部下架嗎？`)) return;
+
+          const { error } = await supabaseClient.from('branch_listings').update({ is_listed: false, updated_at: new Date().toISOString() }).eq('product_key', p.product_key).in('branch_id', affectedBranchIds);
+          if (error) throw error;
+
+          await logSystemAction(myAccount, `[全支局下架] 「${displayName}」對 ${affectedBranchIds.length} 家支局設為下架`);
+          showCustomToast(`已幫 ${affectedBranchIds.length} 家支局下架「${displayName}」`);
+        }
+
+        selectBulkProduct(p); // 重新整理影響範圍預覽數字
+        if (currentProxyBranchId) loadProxyBranchData(currentProxyBranchId); // 若下面剛好選著同一批支局中的某家，畫面也一起更新，避免顯示過期資料
+      } catch (err) {
+        alert('執行失敗：' + err.message);
+      }
+    }
+    // ------------------------------------------------------------------
 
     function onProxyBranchChange() {
       const select = document.getElementById('proxyBranchSelect');
