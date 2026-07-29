@@ -1106,6 +1106,10 @@
     let globalFaqData = [];
     let bulkSelectedProduct = null;
     let bulkAllowlistSet = new Set();
+    let bulkBranchNameMap = {};
+    // ★ 這些是內部庫存局（不是真正對外零售的支局），「依商品做全支局上／下架」永遠要排除掉，
+    //   不然庫存局本身的巨大庫存量會被誤判成一家可以上架的門市。要新增/移除排除的局，改這個陣列就好。
+    const BULK_LISTING_EXCLUDED_BRANCHES = ['004000', '004100']; // 004000 高雄郵局(總局)、004100 新興郵局
 
     let processedFiles = { thumb: null, large: null };
     let pendingBlogCover = null; 
@@ -3491,6 +3495,10 @@
         const select = document.getElementById('proxyBranchSelect');
         select.innerHTML = '<option value="">請選擇支局...</option>' + branches.map(b => `<option value="${b.branch_id}">${b.branch_name}（局號: ${b.branch_id}）</option>`).join('');
 
+        // ★ 局號 -> 局名對照表，給「依商品全支局上下架」顯示殭屍上架名單用
+        bulkBranchNameMap = {};
+        branches.forEach(b => { bulkBranchNameMap[b.branch_id] = b.branch_name; });
+
         // ★ 順便快取一份允許上架的商品清單，給下面「依商品全支局上下架」的搜尋用，避免每次打字都重抓一次
         const allowlistData = await fetchAllData('global_allowlist', 'product_key');
         bulkAllowlistSet = new Set(allowlistData.map(r => r.product_key));
@@ -3541,11 +3549,20 @@
 
       try {
         const invRows = await fetchAllData('inventory', 'branch_id', [{ op: 'eq', col: 'product_key', val: p.product_key }]);
-        const eligibleBranchIds = [...new Set(invRows.map(r => r.branch_id))];
+        const eligibleBranchIds = [...new Set(invRows.map(r => r.branch_id))].filter(id => !BULK_LISTING_EXCLUDED_BRANCHES.includes(id));
+
         const listedRows = await fetchAllData('branch_listings', 'branch_id, is_listed', [{ op: 'eq', col: 'product_key', val: p.product_key }]);
-        const listedCount = listedRows.filter(r => r.is_listed).length;
-        document.getElementById('bulkProductPreview').innerHTML =
-          `目前有 <b>${eligibleBranchIds.length}</b> 家支局現場庫存有這項商品，其中已上架的有 <b>${listedCount}</b> 家。`;
+        const listedBranchIds = [...new Set(listedRows.filter(r => r.is_listed).map(r => r.branch_id))].filter(id => !BULK_LISTING_EXCLUDED_BRANCHES.includes(id));
+
+        // ★ 已上架但查無現場庫存紀錄的支局（可能是庫存匯出漏掉這個品項、也可能是支局已裁撤但上架設定沒清掉）
+        const orphanedIds = listedBranchIds.filter(id => !eligibleBranchIds.includes(id));
+
+        let html = `目前有 <b>${eligibleBranchIds.length}</b> 家支局現場庫存有這項商品，其中已上架的有 <b>${listedBranchIds.length}</b> 家。`;
+        if (orphanedIds.length > 0) {
+          const names = orphanedIds.map(id => `${bulkBranchNameMap[id] || '(查無局名，局號:' + id + ')'}（${id}）`).join('、');
+          html += `<br><span style="color:#dc2626;">⚠️ 其中 ${orphanedIds.length} 家已上架但查無現場庫存紀錄：${names}。可能是庫存資料漏掉這個品項，也可能是該支局已裁撤但上架設定還沒清掉，建議確認一下。</span>`;
+        }
+        document.getElementById('bulkProductPreview').innerHTML = html;
       } catch (e) {
         document.getElementById('bulkProductPreview').innerText = '確認影響範圍失敗：' + e.message;
       }
@@ -3558,11 +3575,11 @@
 
       try {
         if (shouldList) {
-          // 上架：只對「現場真的有庫存」這項商品的支局生效
+          // 上架：只對「現場真的有庫存」這項商品的支局生效，且排除庫存局
           const invRows = await fetchAllData('inventory', 'branch_id', [{ op: 'eq', col: 'product_key', val: p.product_key }]);
-          const eligibleBranchIds = [...new Set(invRows.map(r => r.branch_id))];
+          const eligibleBranchIds = [...new Set(invRows.map(r => r.branch_id))].filter(id => !BULK_LISTING_EXCLUDED_BRANCHES.includes(id));
           if (eligibleBranchIds.length === 0) { alert('目前沒有任何支局的現場庫存有這項商品，無法執行全支局上架。'); return; }
-          if (!confirm(`確定要幫「${displayName}」對 ${eligibleBranchIds.length} 家有庫存的支局，一次全部設為已上架嗎？`)) return;
+          if (!confirm(`確定要幫「${displayName}」對 ${eligibleBranchIds.length} 家有庫存的支局，一次全部設為已上架嗎？（已自動排除庫存局）`)) return;
 
           const existingRows = await fetchAllData('branch_listings', 'branch_id', [{ op: 'eq', col: 'product_key', val: p.product_key }]);
           const existingBranchIds = new Set(existingRows.map(r => r.branch_id));
@@ -3582,11 +3599,11 @@
           await logSystemAction(myAccount, `[全支局上架] 「${displayName}」對 ${eligibleBranchIds.length} 家支局設為已上架`);
           showCustomToast(`已幫 ${eligibleBranchIds.length} 家支局上架「${displayName}」`);
         } else {
-          // 下架：對目前所有「已上架」這項商品的支局生效
+          // 下架：對目前所有「已上架」這項商品的支局生效（含排除清單外的殭屍上架資料，一併清掉）
           const listedRows = await fetchAllData('branch_listings', 'branch_id', [{ op: 'eq', col: 'product_key', val: p.product_key }, { op: 'eq', col: 'is_listed', val: true }]);
-          const affectedBranchIds = [...new Set(listedRows.map(r => r.branch_id))];
+          const affectedBranchIds = [...new Set(listedRows.map(r => r.branch_id))].filter(id => !BULK_LISTING_EXCLUDED_BRANCHES.includes(id));
           if (affectedBranchIds.length === 0) { alert('目前沒有任何支局已上架這項商品。'); return; }
-          if (!confirm(`確定要幫「${displayName}」對目前 ${affectedBranchIds.length} 家已上架的支局，一次全部下架嗎？`)) return;
+          if (!confirm(`確定要幫「${displayName}」對目前 ${affectedBranchIds.length} 家已上架的支局，一次全部下架嗎？（已自動排除庫存局）`)) return;
 
           const { error } = await supabaseClient.from('branch_listings').update({ is_listed: false, updated_at: new Date().toISOString() }).eq('product_key', p.product_key).in('branch_id', affectedBranchIds);
           if (error) throw error;
